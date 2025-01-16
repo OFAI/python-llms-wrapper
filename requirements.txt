@@ -1,0 +1,5 @@
+litellm
+loguru
+hjson
+pdoc3
+pytest
