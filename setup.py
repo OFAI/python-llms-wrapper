@@ -40,8 +40,12 @@ setup(
     setup_requires=[
     ],
     install_requires=[
+        "loguru",
+        "hjson",
     ],
-    # extras_require=get_install_extras_require(),
+    extras_require={
+        "dev": [ "pdoc3", "pytest", "pytest-cov" ],
+    },
     python_requires=">=3.9",
     tests_require=["pytest", "pytest-cov"],
     platforms="any",
