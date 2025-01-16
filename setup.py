@@ -42,6 +42,7 @@ setup(
     install_requires=[
         "litellm",
         "loguru",
+        "tomllib", 
         "hjson",
     ],
     extras_require={
