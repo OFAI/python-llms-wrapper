@@ -4,7 +4,7 @@ Module related to using LLMs.
 import sys
 import os
 from loguru import logger
-from typing import Optional, Dict, Tuple, List
+from typing import Optional, Dict, Tuple, List, Union
 from copy import deepcopy
 
 import litellm
@@ -98,7 +98,7 @@ class LLMS:
             return_cost: bool = False,
             return_response: bool = False,
             debug=False,
-    ) -> Dict[str, str|bool]:
+    ) -> Dict[str, Union[str,bool]]:
         """
         Query the specified LLM with the given messages.
 
