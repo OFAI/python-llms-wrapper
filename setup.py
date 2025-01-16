@@ -6,8 +6,8 @@ import os
 import re
 from setuptools import setup, find_packages
 
-if sys.version_info < (3, 9):
-    sys.exit("ERROR: ragability requires Python 3.9+")
+if sys.version_info < (3, 11):
+    sys.exit("ERROR: ragability requires Python 3.11+")
 
 here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, "README.md")) as f:
@@ -42,13 +42,12 @@ setup(
     install_requires=[
         "litellm",
         "loguru",
-        "tomllib", 
         "hjson",
     ],
     extras_require={
         "dev": [ "pdoc3", "pytest", "pytest-cov" ],
     },
-    python_requires=">=3.9",
+    python_requires=">=3.11",
     tests_require=["pytest", "pytest-cov"],
     platforms="any",
     packages=find_packages(),
@@ -61,8 +60,6 @@ setup(
         # "Development Status :: 5 - Production/Stable",
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",
