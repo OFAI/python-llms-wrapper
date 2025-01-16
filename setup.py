@@ -40,6 +40,7 @@ setup(
     setup_requires=[
     ],
     install_requires=[
+        "litellm",
         "loguru",
         "hjson",
     ],

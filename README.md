@@ -7,5 +7,6 @@ via human-readable config files.
 
 ## Installation
 
+`python -m pip  install git+https://github.com/OFAI/python-llms-wrapper.git`
 
 ## Usage overview
