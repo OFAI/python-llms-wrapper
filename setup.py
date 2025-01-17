@@ -45,7 +45,7 @@ setup(
         "hjson",
     ],
     extras_require={
-        "dev": [ "pdoc3", "pytest", "pytest-cov" ],
+        "dev": [ "pdoc3", "pytest", "pytest-cov", "ipython", "jupyter", "jupyterlab", "ipykernel", "notebook" ],
     },
     python_requires=">=3.11",
     tests_require=["pytest", "pytest-cov"],

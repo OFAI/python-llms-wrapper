@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.5">
+<title>llms_wrapper.llms API documentation</title>
+<meta name="description" content="Module related to using LLMs.">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>llms_wrapper.llms</code></h1>
+</header>
+<section id="section-intro">
+<p>Module related to using LLMs.</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="llms_wrapper.llms.LLMS"><code class="flex name class">
+<span>class <span class="ident">LLMS</span></span>
+<span>(</span><span>config: Dict, debug: bool = False)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LLMS:
+    &#34;&#34;&#34;
+    Class that represents a preconfigured set of large language modelservices.
+    &#34;&#34;&#34;
+
+    def __init__(self, config: Dict, debug: bool = False):
+        &#34;&#34;&#34;
+        Initialize the LLMS object with the given configuration.
+        &#34;&#34;&#34;
+        self.config = deepcopy(config)
+        self.debug = debug
+        # convert the config into a dictionary of LLM objects where the key is the alias of the LLM
+        self.llms = {}
+        for llm in self.config[&#34;llms&#34;]:
+            alias = llm[&#34;alias&#34;]
+            if alias in self.llms:
+                raise ValueError(f&#34;Error: Duplicate LLM alis {alias} in configuration&#34;)
+            self.llms[alias] = llm
+            self.llms[alias][&#34;cost&#34;] = 0
+
+    def list_models(self) -&gt; List[Dict]:
+        &#34;&#34;&#34;
+        Get a list of model configuration objects
+        &#34;&#34;&#34;
+        return [llm for llm in self.llms.values()]
+
+    def list_aliases(self) -&gt; List[str]:
+        &#34;&#34;&#34;
+        List the (unique) alias names in the configuration.
+        &#34;&#34;&#34;
+        return list(self.llms.keys())
+
+    def get(self, alias: str) -&gt; Optional[Dict]:
+        &#34;&#34;&#34;
+        Get the LLM configuration object with the given alias.
+        &#34;&#34;&#34;
+        return self.llms.get(alias, None)
+
+    def __getitem__(self, item: str) -&gt; Dict:
+        &#34;&#34;&#34;
+        Get the LLM configuration object with the given alias.
+        &#34;&#34;&#34;
+        return self.llms[item]
+
+    def cost(self, llmalias: Union[str, List[str], None] = None):
+        &#34;&#34;&#34;
+        Return the cost accumulated so far for the given llm alias given list of llm aliases
+        or all llms if llmalias is None. Costs are only accumulated for invocations of
+        the query method with return_cost=True.
+        &#34;&#34;&#34;
+        if llmalias is None:
+            return sum([llm[&#34;cost&#34;] for llm in self.llms.values()])
+        if isinstance(llmalias, str):
+            return self.llms[llmalias][&#34;cost&#34;]
+        return sum([self.llms[alias][&#34;cost&#34;] for alias in llmalias])
+
+    def cost_per_token(self, llmalias: str) -&gt; Tuple[float, float]:
+        &#34;&#34;&#34;
+        Return the estimated cost per prompt and completion token for the given model.
+        This may be wrong or cost may get calculated in a different way, e.g. depending on
+        cache, response time etc.
+        &#34;&#34;&#34;
+        return litellm.cost_per_token(self.llms[llmalias][&#34;llm&#34;], prompt_tokens=1, completion_tokens=1)
+
+    def max_prompt_tokens(self, llmalias: str) -&gt; int:
+        &#34;&#34;&#34;
+        Return the maximum number of prompt tokens that can be sent to the model.
+        &#34;&#34;&#34;
+        return litellm.get_max_tokens(self.llms[llmalias][&#34;llm&#34;])
+
+    def set_model_attributes(
+            self, llmalias: str,
+            input_cost_per_token: float,
+            output_cost_per_token: float,
+            input_cost_per_second: float,
+            max_prompt_tokens: int,
+    ):
+        &#34;&#34;&#34;
+        Set or override the attributes for the given model.
+
+        NOTE: instead of using this method, the same parameters can alos
+        be set in the configuration file to be passed to the model invocation call.
+        &#34;&#34;&#34;
+        llmname = self.llms[llmalias][&#34;llm&#34;]
+        provider, model = llmname.split(&#34;/&#34;, 1)
+        litellm.register_model(
+            {
+                model: {
+                    &#34;max_tokens&#34;: max_prompt_tokens,
+                    &#34;output_cost_per_token&#34;: output_cost_per_token,
+                    &#34;input_cost_per_token&#34;: input_cost_per_token,
+                    &#34;input_cost_per_second&#34;: input_cost_per_second,
+                    &#34;litellm_provider&#34;: provider,
+                    &#34;mode&#34;: &#34;chat&#34;,
+                }
+            }
+        )
+
+    def make_messages(
+            self, query: Optional[str] = None, prompt: Optional[Dict[str, str]] = None,
+            messages: Optional[List[Dict[str, str]]] = None,
+            keep_n: Optional[int] = None,
+    ) -&gt; List[Dict[str, str]]:
+        &#34;&#34;&#34;
+        Construct updated messages from the query and/or prompt data.
+
+        :param query: A query text, if no prompt is given, a message with this text for role user is created.
+        :param prompt: a dict mapping roles to text templates, where the text template may contain the string &#34;${query}&#34;
+        :param messages: previous messages to include in the new messages
+        :param keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
+            the last keep_n-1 messages are kept.
+        :return: a list of message dictionaries
+        &#34;&#34;&#34;
+        if messages is None:
+            messages = []
+        if query is None and prompt is None:
+            raise ValueError(&#34;Error: Both query and prompt are None&#34;)
+        if query is None:
+            # convert the prompt as is to messages
+            for role, content in prompt.items():
+                if content and role in ROLES:
+                    messages.append(dict(role=role, content=content))
+        elif prompt is None:
+            messages.append({&#34;content&#34;: query, &#34;role&#34;: &#34;user&#34;})
+        else:
+            for role, content in prompt.items():
+                if content and role in ROLES:
+                    messages.append(dict(role=role, content=content.replace(&#34;${query}&#34;, query)))
+        # if we have more than keep_n messages, remove oldest message but the first so that we have keep_n messages
+        if keep_n is not None and len(messages) &gt; keep_n:
+            messages = messages[:1] + messages[-keep_n:]
+        return messages
+
+    def query(
+            self,
+            llmalias: str,
+            messages: List[Dict[str, str]],
+            return_cost: bool = False,
+            return_response: bool = False,
+            debug=False,
+    ) -&gt; Dict[str, any]:
+        &#34;&#34;&#34;
+        Query the specified LLM with the given messages.
+
+        :param llmalias: the alias/name of the LLM to query
+        :param messages: a list of message dictionaries with role and content keys
+        :param debug: if True, debug logging is enabled
+        :return: a dictionary with keys answer and error and optionally cost-related keys and optionally
+            the full original response. If there is an error, answer is the empty string and error contains the error,
+            otherwise answer contains the response and error is the empty string.
+            The boolean key &#34;ok&#34; is True if there is no error, False otherwise.
+        &#34;&#34;&#34;
+        if self.debug:
+            debug = True
+        if debug:
+            #  litellm.set_verbose = True    ## deprecated!
+            os.environ[&#39;LITELLM_LOG&#39;] = &#39;DEBUG&#39;
+        llm = self.llms[llmalias]
+        if not messages:
+            raise ValueError(f&#34;Error: No messages to send to the LLM: {llmalias}, messages: {messages}&#34;)
+        if debug:
+            logger.debug(f&#34;Sending messages to {llmalias}: {messages}&#34;)
+        # prepare the keyword arguments for colling completion
+        completion_kwargs = dict_except(
+            llm,
+            [
+                &#34;llm&#34;, &#34;alias&#34;, &#34;api_key&#34;, &#34;api_url&#34;, &#34;user&#34;, &#34;password&#34;,
+                &#34;api_key_env&#34;, &#34;user_env&#34;, &#34;password_env&#34;])
+        error = None
+        if llm.get(&#34;api_key&#34;):
+            completion_kwargs[&#34;api_key&#34;] = llm[&#34;api_key&#34;]
+        elif llm.get(&#34;api_key_env&#34;):
+            completion_kwargs[&#34;api_key&#34;] = os.getenv(llm[&#34;api_key_env&#34;])
+        if llm.get(&#34;api_url&#34;):
+            completion_kwargs[&#34;api_base&#34;] = llm[&#34;api_url&#34;]
+
+        ret = {}
+        if debug:
+            logger.debug(f&#34;Calling completion with {completion_kwargs}&#34;)
+        try:
+            response = completion(
+                model=llm[&#34;llm&#34;],
+                messages=messages,
+                **completion_kwargs)
+            logger.debug(f&#34;Full Response: {response}&#34;)
+            if return_response:
+                ret[&#34;response&#34;] = response
+                ret[&#34;kwargs&#34;] = completion_kwargs
+            if return_cost:
+                ret[&#34;cost&#34;] = completion_cost(
+                    completion_response=response,
+                    model=llm[&#34;llm&#34;],
+                    messages=messages,
+                )
+                llm[&#34;cost&#34;] += ret[&#34;cost&#34;]
+                usage = response[&#39;usage&#39;]
+                logger.debug(f&#34;Usage: {usage}&#34;)
+                ret[&#34;n_completion_tokens&#34;] = usage.completion_tokens
+                ret[&#34;n_prompt_tokens&#34;] = usage.prompt_tokens
+                ret[&#34;n_total_tokens&#34;] = usage.total_tokens
+            ret[&#34;answer&#34;] = response[&#39;choices&#39;][0][&#39;message&#39;][&#39;content&#39;]
+            ret[&#34;error&#34;] = &#34;&#34;
+            ret[&#34;ok&#34;] = True
+        except Exception as e:
+            ret[&#34;error&#34;] = str(e)
+            if debug:
+                logger.error(f&#34;Returning error: {e}&#34;)
+            ret[&#34;answer&#34;] = &#34;&#34;
+            ret[&#34;ok&#34;] = False
+        return ret</code></pre>
+</details>
+<div class="desc"><p>Class that represents a preconfigured set of large language modelservices.</p>
+<p>Initialize the LLMS object with the given configuration.</p></div>
+<h3>Methods</h3>
+<dl>
+<dt id="llms_wrapper.llms.LLMS.cost"><code class="name flex">
+<span>def <span class="ident">cost</span></span>(<span>self, llmalias: str | List[str] | None = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cost(self, llmalias: Union[str, List[str], None] = None):
+    &#34;&#34;&#34;
+    Return the cost accumulated so far for the given llm alias given list of llm aliases
+    or all llms if llmalias is None. Costs are only accumulated for invocations of
+    the query method with return_cost=True.
+    &#34;&#34;&#34;
+    if llmalias is None:
+        return sum([llm[&#34;cost&#34;] for llm in self.llms.values()])
+    if isinstance(llmalias, str):
+        return self.llms[llmalias][&#34;cost&#34;]
+    return sum([self.llms[alias][&#34;cost&#34;] for alias in llmalias])</code></pre>
+</details>
+<div class="desc"><p>Return the cost accumulated so far for the given llm alias given list of llm aliases
+or all llms if llmalias is None. Costs are only accumulated for invocations of
+the query method with return_cost=True.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.cost_per_token"><code class="name flex">
+<span>def <span class="ident">cost_per_token</span></span>(<span>self, llmalias: str) ‑> Tuple[float, float]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cost_per_token(self, llmalias: str) -&gt; Tuple[float, float]:
+    &#34;&#34;&#34;
+    Return the estimated cost per prompt and completion token for the given model.
+    This may be wrong or cost may get calculated in a different way, e.g. depending on
+    cache, response time etc.
+    &#34;&#34;&#34;
+    return litellm.cost_per_token(self.llms[llmalias][&#34;llm&#34;], prompt_tokens=1, completion_tokens=1)</code></pre>
+</details>
+<div class="desc"><p>Return the estimated cost per prompt and completion token for the given model.
+This may be wrong or cost may get calculated in a different way, e.g. depending on
+cache, response time etc.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, alias: str) ‑> Dict | None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get(self, alias: str) -&gt; Optional[Dict]:
+    &#34;&#34;&#34;
+    Get the LLM configuration object with the given alias.
+    &#34;&#34;&#34;
+    return self.llms.get(alias, None)</code></pre>
+</details>
+<div class="desc"><p>Get the LLM configuration object with the given alias.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.list_aliases"><code class="name flex">
+<span>def <span class="ident">list_aliases</span></span>(<span>self) ‑> List[str]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def list_aliases(self) -&gt; List[str]:
+    &#34;&#34;&#34;
+    List the (unique) alias names in the configuration.
+    &#34;&#34;&#34;
+    return list(self.llms.keys())</code></pre>
+</details>
+<div class="desc"><p>List the (unique) alias names in the configuration.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.list_models"><code class="name flex">
+<span>def <span class="ident">list_models</span></span>(<span>self) ‑> List[Dict]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def list_models(self) -&gt; List[Dict]:
+    &#34;&#34;&#34;
+    Get a list of model configuration objects
+    &#34;&#34;&#34;
+    return [llm for llm in self.llms.values()]</code></pre>
+</details>
+<div class="desc"><p>Get a list of model configuration objects</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.make_messages"><code class="name flex">
+<span>def <span class="ident">make_messages</span></span>(<span>self,<br>query: str | None = None,<br>prompt: Dict[str, str] | None = None,<br>messages: List[Dict[str, str]] | None = None,<br>keep_n: int | None = None) ‑> List[Dict[str, str]]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def make_messages(
+        self, query: Optional[str] = None, prompt: Optional[Dict[str, str]] = None,
+        messages: Optional[List[Dict[str, str]]] = None,
+        keep_n: Optional[int] = None,
+) -&gt; List[Dict[str, str]]:
+    &#34;&#34;&#34;
+    Construct updated messages from the query and/or prompt data.
+
+    :param query: A query text, if no prompt is given, a message with this text for role user is created.
+    :param prompt: a dict mapping roles to text templates, where the text template may contain the string &#34;${query}&#34;
+    :param messages: previous messages to include in the new messages
+    :param keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
+        the last keep_n-1 messages are kept.
+    :return: a list of message dictionaries
+    &#34;&#34;&#34;
+    if messages is None:
+        messages = []
+    if query is None and prompt is None:
+        raise ValueError(&#34;Error: Both query and prompt are None&#34;)
+    if query is None:
+        # convert the prompt as is to messages
+        for role, content in prompt.items():
+            if content and role in ROLES:
+                messages.append(dict(role=role, content=content))
+    elif prompt is None:
+        messages.append({&#34;content&#34;: query, &#34;role&#34;: &#34;user&#34;})
+    else:
+        for role, content in prompt.items():
+            if content and role in ROLES:
+                messages.append(dict(role=role, content=content.replace(&#34;${query}&#34;, query)))
+    # if we have more than keep_n messages, remove oldest message but the first so that we have keep_n messages
+    if keep_n is not None and len(messages) &gt; keep_n:
+        messages = messages[:1] + messages[-keep_n:]
+    return messages</code></pre>
+</details>
+<div class="desc"><p>Construct updated messages from the query and/or prompt data.</p>
+<p>:param query: A query text, if no prompt is given, a message with this text for role user is created.
+:param prompt: a dict mapping roles to text templates, where the text template may contain the string "${query}"
+:param messages: previous messages to include in the new messages
+:param keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
+the last keep_n-1 messages are kept.
+:return: a list of message dictionaries</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.max_prompt_tokens"><code class="name flex">
+<span>def <span class="ident">max_prompt_tokens</span></span>(<span>self, llmalias: str) ‑> int</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def max_prompt_tokens(self, llmalias: str) -&gt; int:
+    &#34;&#34;&#34;
+    Return the maximum number of prompt tokens that can be sent to the model.
+    &#34;&#34;&#34;
+    return litellm.get_max_tokens(self.llms[llmalias][&#34;llm&#34;])</code></pre>
+</details>
+<div class="desc"><p>Return the maximum number of prompt tokens that can be sent to the model.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.query"><code class="name flex">
+<span>def <span class="ident">query</span></span>(<span>self,<br>llmalias: str,<br>messages: List[Dict[str, str]],<br>return_cost: bool = False,<br>return_response: bool = False,<br>debug=False) ‑> Dict[str, <built-in function any>]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def query(
+        self,
+        llmalias: str,
+        messages: List[Dict[str, str]],
+        return_cost: bool = False,
+        return_response: bool = False,
+        debug=False,
+) -&gt; Dict[str, any]:
+    &#34;&#34;&#34;
+    Query the specified LLM with the given messages.
+
+    :param llmalias: the alias/name of the LLM to query
+    :param messages: a list of message dictionaries with role and content keys
+    :param debug: if True, debug logging is enabled
+    :return: a dictionary with keys answer and error and optionally cost-related keys and optionally
+        the full original response. If there is an error, answer is the empty string and error contains the error,
+        otherwise answer contains the response and error is the empty string.
+        The boolean key &#34;ok&#34; is True if there is no error, False otherwise.
+    &#34;&#34;&#34;
+    if self.debug:
+        debug = True
+    if debug:
+        #  litellm.set_verbose = True    ## deprecated!
+        os.environ[&#39;LITELLM_LOG&#39;] = &#39;DEBUG&#39;
+    llm = self.llms[llmalias]
+    if not messages:
+        raise ValueError(f&#34;Error: No messages to send to the LLM: {llmalias}, messages: {messages}&#34;)
+    if debug:
+        logger.debug(f&#34;Sending messages to {llmalias}: {messages}&#34;)
+    # prepare the keyword arguments for colling completion
+    completion_kwargs = dict_except(
+        llm,
+        [
+            &#34;llm&#34;, &#34;alias&#34;, &#34;api_key&#34;, &#34;api_url&#34;, &#34;user&#34;, &#34;password&#34;,
+            &#34;api_key_env&#34;, &#34;user_env&#34;, &#34;password_env&#34;])
+    error = None
+    if llm.get(&#34;api_key&#34;):
+        completion_kwargs[&#34;api_key&#34;] = llm[&#34;api_key&#34;]
+    elif llm.get(&#34;api_key_env&#34;):
+        completion_kwargs[&#34;api_key&#34;] = os.getenv(llm[&#34;api_key_env&#34;])
+    if llm.get(&#34;api_url&#34;):
+        completion_kwargs[&#34;api_base&#34;] = llm[&#34;api_url&#34;]
+
+    ret = {}
+    if debug:
+        logger.debug(f&#34;Calling completion with {completion_kwargs}&#34;)
+    try:
+        response = completion(
+            model=llm[&#34;llm&#34;],
+            messages=messages,
+            **completion_kwargs)
+        logger.debug(f&#34;Full Response: {response}&#34;)
+        if return_response:
+            ret[&#34;response&#34;] = response
+            ret[&#34;kwargs&#34;] = completion_kwargs
+        if return_cost:
+            ret[&#34;cost&#34;] = completion_cost(
+                completion_response=response,
+                model=llm[&#34;llm&#34;],
+                messages=messages,
+            )
+            llm[&#34;cost&#34;] += ret[&#34;cost&#34;]
+            usage = response[&#39;usage&#39;]
+            logger.debug(f&#34;Usage: {usage}&#34;)
+            ret[&#34;n_completion_tokens&#34;] = usage.completion_tokens
+            ret[&#34;n_prompt_tokens&#34;] = usage.prompt_tokens
+            ret[&#34;n_total_tokens&#34;] = usage.total_tokens
+        ret[&#34;answer&#34;] = response[&#39;choices&#39;][0][&#39;message&#39;][&#39;content&#39;]
+        ret[&#34;error&#34;] = &#34;&#34;
+        ret[&#34;ok&#34;] = True
+    except Exception as e:
+        ret[&#34;error&#34;] = str(e)
+        if debug:
+            logger.error(f&#34;Returning error: {e}&#34;)
+        ret[&#34;answer&#34;] = &#34;&#34;
+        ret[&#34;ok&#34;] = False
+    return ret</code></pre>
+</details>
+<div class="desc"><p>Query the specified LLM with the given messages.</p>
+<p>:param llmalias: the alias/name of the LLM to query
+:param messages: a list of message dictionaries with role and content keys
+:param debug: if True, debug logging is enabled
+:return: a dictionary with keys answer and error and optionally cost-related keys and optionally
+the full original response. If there is an error, answer is the empty string and error contains the error,
+otherwise answer contains the response and error is the empty string.
+The boolean key "ok" is True if there is no error, False otherwise.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.set_model_attributes"><code class="name flex">
+<span>def <span class="ident">set_model_attributes</span></span>(<span>self,<br>llmalias: str,<br>input_cost_per_token: float,<br>output_cost_per_token: float,<br>input_cost_per_second: float,<br>max_prompt_tokens: int)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_model_attributes(
+        self, llmalias: str,
+        input_cost_per_token: float,
+        output_cost_per_token: float,
+        input_cost_per_second: float,
+        max_prompt_tokens: int,
+):
+    &#34;&#34;&#34;
+    Set or override the attributes for the given model.
+
+    NOTE: instead of using this method, the same parameters can alos
+    be set in the configuration file to be passed to the model invocation call.
+    &#34;&#34;&#34;
+    llmname = self.llms[llmalias][&#34;llm&#34;]
+    provider, model = llmname.split(&#34;/&#34;, 1)
+    litellm.register_model(
+        {
+            model: {
+                &#34;max_tokens&#34;: max_prompt_tokens,
+                &#34;output_cost_per_token&#34;: output_cost_per_token,
+                &#34;input_cost_per_token&#34;: input_cost_per_token,
+                &#34;input_cost_per_second&#34;: input_cost_per_second,
+                &#34;litellm_provider&#34;: provider,
+                &#34;mode&#34;: &#34;chat&#34;,
+            }
+        }
+    )</code></pre>
+</details>
+<div class="desc"><p>Set or override the attributes for the given model.</p>
+<p>NOTE: instead of using this method, the same parameters can alos
+be set in the configuration file to be passed to the model invocation call.</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="llms_wrapper" href="index.html">llms_wrapper</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="llms_wrapper.llms.LLMS" href="#llms_wrapper.llms.LLMS">LLMS</a></code></h4>
+<ul class="">
+<li><code><a title="llms_wrapper.llms.LLMS.cost" href="#llms_wrapper.llms.LLMS.cost">cost</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.cost_per_token" href="#llms_wrapper.llms.LLMS.cost_per_token">cost_per_token</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.get" href="#llms_wrapper.llms.LLMS.get">get</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.list_aliases" href="#llms_wrapper.llms.LLMS.list_aliases">list_aliases</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.list_models" href="#llms_wrapper.llms.LLMS.list_models">list_models</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.make_messages" href="#llms_wrapper.llms.LLMS.make_messages">make_messages</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.max_prompt_tokens" href="#llms_wrapper.llms.LLMS.max_prompt_tokens">max_prompt_tokens</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.query" href="#llms_wrapper.llms.LLMS.query">query</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.set_model_attributes" href="#llms_wrapper.llms.LLMS.set_model_attributes">set_model_attributes</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.5</a>.</p>
+</footer>
+</body>
+</html>

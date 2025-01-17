@@ -1,13 +1,13 @@
 """
 Module related to using LLMs.
 """
-import sys
 import os
-from loguru import logger
-from typing import Optional, Dict, Tuple, List, Union
-from copy import deepcopy
 
 import litellm
+from loguru import logger
+from typing import Optional, Dict, List, Union, Tuple
+from copy import deepcopy
+
 from litellm import completion, completion_cost
 from llms_wrapper.utils import dict_except
 
@@ -19,7 +19,7 @@ class LLMS:
     Class that represents a preconfigured set of large language modelservices.
     """
 
-    def __init__(self, config, debug=False):
+    def __init__(self, config: Dict, debug: bool = False):
         """
         Initialize the LLMS object with the given configuration.
         """
@@ -32,29 +32,85 @@ class LLMS:
             if alias in self.llms:
                 raise ValueError(f"Error: Duplicate LLM alis {alias} in configuration")
             self.llms[alias] = llm
-    def list_models(self):
+            self.llms[alias]["cost"] = 0
+
+    def list_models(self) -> List[Dict]:
         """
         Get a list of model configuration objects
         """
         return [llm for llm in self.llms.values()]
 
-    def list_aliases(self):
+    def list_aliases(self) -> List[str]:
         """
         List the (unique) alias names in the configuration.
         """
         return list(self.llms.keys())
 
-    def get(self, alias):
+    def get(self, alias: str) -> Optional[Dict]:
         """
         Get the LLM configuration object with the given alias.
         """
         return self.llms.get(alias, None)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> Dict:
         """
         Get the LLM configuration object with the given alias.
         """
         return self.llms[item]
+
+    def cost(self, llmalias: Union[str, List[str], None] = None):
+        """
+        Return the cost accumulated so far for the given llm alias given list of llm aliases
+        or all llms if llmalias is None. Costs are only accumulated for invocations of
+        the query method with return_cost=True.
+        """
+        if llmalias is None:
+            return sum([llm["cost"] for llm in self.llms.values()])
+        if isinstance(llmalias, str):
+            return self.llms[llmalias]["cost"]
+        return sum([self.llms[alias]["cost"] for alias in llmalias])
+
+    def cost_per_token(self, llmalias: str) -> Tuple[float, float]:
+        """
+        Return the estimated cost per prompt and completion token for the given model.
+        This may be wrong or cost may get calculated in a different way, e.g. depending on
+        cache, response time etc.
+        """
+        return litellm.cost_per_token(self.llms[llmalias]["llm"], prompt_tokens=1, completion_tokens=1)
+
+    def max_prompt_tokens(self, llmalias: str) -> int:
+        """
+        Return the maximum number of prompt tokens that can be sent to the model.
+        """
+        return litellm.get_max_tokens(self.llms[llmalias]["llm"])
+
+    def set_model_attributes(
+            self, llmalias: str,
+            input_cost_per_token: float,
+            output_cost_per_token: float,
+            input_cost_per_second: float,
+            max_prompt_tokens: int,
+    ):
+        """
+        Set or override the attributes for the given model.
+
+        NOTE: instead of using this method, the same parameters can alos
+        be set in the configuration file to be passed to the model invocation call.
+        """
+        llmname = self.llms[llmalias]["llm"]
+        provider, model = llmname.split("/", 1)
+        litellm.register_model(
+            {
+                model: {
+                    "max_tokens": max_prompt_tokens,
+                    "output_cost_per_token": output_cost_per_token,
+                    "input_cost_per_token": input_cost_per_token,
+                    "input_cost_per_second": input_cost_per_second,
+                    "litellm_provider": provider,
+                    "mode": "chat",
+                }
+            }
+        )
 
     def make_messages(
             self, query: Optional[str] = None, prompt: Optional[Dict[str, str]] = None,
@@ -93,12 +149,12 @@ class LLMS:
 
     def query(
             self,
-            llmalias,
+            llmalias: str,
             messages: List[Dict[str, str]],
             return_cost: bool = False,
             return_response: bool = False,
             debug=False,
-    ) -> Dict[str, Union[str,bool]]:
+    ) -> Dict[str, any]:
         """
         Query the specified LLM with the given messages.
 
@@ -152,6 +208,7 @@ class LLMS:
                     model=llm["llm"],
                     messages=messages,
                 )
+                llm["cost"] += ret["cost"]
                 usage = response['usage']
                 logger.debug(f"Usage: {usage}")
                 ret["n_completion_tokens"] = usage.completion_tokens

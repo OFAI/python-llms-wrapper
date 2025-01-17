@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.5">
+<title>llms_wrapper.config API documentation</title>
+<meta name="description" content="Module for reading/writing config files and merging in information from the arguments. The config file can be in
+one of the following formats: json, …">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>llms_wrapper.config</code></h1>
+</header>
+<section id="section-intro">
+<p>Module for reading/writing config files and merging in information from the arguments. The config file can be in
+one of the following formats: json, hjson, yaml, toml. This module only cares about the top-level fields
+"llms" and "providers": all other fields are ignored.</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="llms_wrapper.config.read_config_file"><code class="name flex">
+<span>def <span class="ident">read_config_file</span></span>(<span>filepath, update=True)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_config_file(filepath, update=True):
+    &#34;&#34;&#34;
+    Read a config file in one of these formats: json, hjson, yaml, toml. Return the dict with the configuration.
+    This function already checks that the llm-related fields &#34;llms&#34; and &#34;proviers&#34; in the config file are valid.
+
+    - llms: a list of strings or dicts with the LLM name and the
+        LLM config to use. If the LLM is identified by a string it has to be in the format &#39;provider/model&#39; according
+        to the LightLLM naming scheme. &#39;provider&#39; is the provider name used by the litellm backend but it always
+        has to be present, even if it is optional in litellm. See https://docs.litellm.ai/docs/providers
+        The LLM config is a dict with the following fields:
+        - api_key: the API key to use for the LLM
+        - api_key_env: the name of the environment variable to use for the API key. Ignored if api_key is specified.
+        - api_url: the URL to use. In this URL, the placeholders ${model}, ${user}, ${password}, ${api_key}
+            are replaced with the actual values.
+        - user: the user name to use for basic authentication
+        - password: the password to use for basic authentication
+        - alias: a user friendly unique name for the LLM model (provider, model and settings=. The alias must be
+          unique among all LLMs in the config file. If not specified, the provider+modelname is used as the alias.
+        - OTHER FIELDS are passed to the LLM as is, however most providers just support the following additional
+          fields: temperature, max_tokens, top_p
+        If config settings are specified in both a provider config and an llm config for the provider, the
+        settings in the llm config take precedence.
+    - providers: a dict with with LLM provider names and a dict of config settings for the provider. The follogin
+        fields are allowed in the provider config:
+        - api_key: the API key to use for the LLM
+        - api_key_env: the name of the environment variable to use for the API key
+        - api_url: the URL to use. In this URL, the placeholders ${model}, ${user}, ${password}, ${api_key}
+            are replaced with the actual values.
+        - user: the user name to use for basic authentication
+        - password: the password to use for basic authentication
+
+    Note that config files without a &#34;llms&#34; field are allowed and will be treated as if the &#34;llms&#34; field is an empty list.
+    The same is true for the &#34;providers&#34; field.
+
+    :param filepath: where to read the config file from
+    :param update: if True, update the LLM information in the config dict for each LLM in the list
+    :return: dict with the configuration
+    &#34;&#34;&#34;
+    # read config file as json, yaml or toml, depending on file extension
+    if filepath.endswith(&#34;.json&#34;):
+        with open(filepath, &#39;r&#39;) as f:
+            config = json.load(f)
+    if filepath.endswith(&#34;.hjson&#34;):
+        with open(filepath, &#39;r&#39;) as f:
+            config = hjson.load(f)
+    elif filepath.endswith(&#34;.yaml&#34;):
+        with open(filepath, &#39;r&#39;) as f:
+            config = yaml.safe_load(f)
+    elif filepath.endswith(&#34;.toml&#34;):
+        with open(filepath, &#39;r&#39;) as f:
+            config = tomllib.load(f)
+    else:
+        raise ValueError(f&#34;Unknown file extension for config file {filepath}&#34;)
+    if not &#34;llms&#34; in config:
+        config[&#34;llms&#34;] = []
+    else:
+        if not isinstance(config[&#34;llms&#34;], list):
+            raise ValueError(f&#34;Error: &#39;llms&#39; field in config file {filepath} must be a list&#34;)
+    if not &#34;providers&#34; in config:
+        config[&#34;providers&#34;] = {}
+    else:
+        if not isinstance(config[&#34;providers&#34;], dict):
+            raise ValueError(f&#34;Error: &#39;providers&#39; field in config file {filepath} must be a dict&#34;)
+    for llm in config[&#34;llms&#34;]:
+        if not isinstance(llm, str) and not isinstance(llm, dict):
+            raise ValueError(f&#34;Error: LLM entry in config file {filepath} must be a string or a dict&#34;)
+        if isinstance(llm, dict):
+            if not &#39;llm&#39; in llm:
+                raise ValueError(f&#34;Error: Missing &#39;llm&#39; field in llm config&#34;)
+            llm = llm[&#34;llm&#34;]
+        if not re.match(r&#34;^[a-zA-Z0-9]+/\S+$&#34;, llm):
+            raise ValueError(f&#34;Error: &#39;llm&#39; field must be in the format &#39;provider/model&#39; in line: {llm}&#34;)
+    for provider, provider_config in config[&#39;providers&#39;].items():
+        # provider name must be one of the supported providers by litellm
+        if provider not in LITELLM_CHAT_PROVIDERS:
+            raise ValueError(f&#34;Error: Unknown provider {provider}, must be one of {LITELLM_CHAT_PROVIDERS}&#34;)
+        # all the fields are optional, but at least one should be specified
+        if (not &#39;api_key&#39; in provider_config and
+                not &#39;api_url&#39; in provider_config and
+                not &#39;user&#39; in provider_config and
+                not &#39;password&#39; in provider_config and
+                not &#39;api_key_env&#39; in provider_config and
+                not &#39;user_env&#39; in provider_config and
+                not &#39;password_env&#39; in provider_config
+        ):
+            raise ValueError(f&#34;Error: Missing config settings for provider {provider}&#34;)
+    if update:
+        update_llm_config(config)
+    return config</code></pre>
+</details>
+<div class="desc"><p>Read a config file in one of these formats: json, hjson, yaml, toml. Return the dict with the configuration.
+This function already checks that the llm-related fields "llms" and "proviers" in the config file are valid.</p>
+<ul>
+<li>llms: a list of strings or dicts with the LLM name and the
+LLM config to use. If the LLM is identified by a string it has to be in the format 'provider/model' according
+to the LightLLM naming scheme. 'provider' is the provider name used by the litellm backend but it always
+has to be present, even if it is optional in litellm. See <a href="https://docs.litellm.ai/docs/providers">https://docs.litellm.ai/docs/providers</a>
+The LLM config is a dict with the following fields:<ul>
+<li>api_key: the API key to use for the LLM</li>
+<li>api_key_env: the name of the environment variable to use for the API key. Ignored if api_key is specified.</li>
+<li>api_url: the URL to use. In this URL, the placeholders ${model}, ${user}, ${password}, ${api_key}
+are replaced with the actual values.</li>
+<li>user: the user name to use for basic authentication</li>
+<li>password: the password to use for basic authentication</li>
+<li>alias: a user friendly unique name for the LLM model (provider, model and settings=. The alias must be
+unique among all LLMs in the config file. If not specified, the provider+modelname is used as the alias.</li>
+<li>OTHER FIELDS are passed to the LLM as is, however most providers just support the following additional
+fields: temperature, max_tokens, top_p
+If config settings are specified in both a provider config and an llm config for the provider, the
+settings in the llm config take precedence.</li>
+</ul>
+</li>
+<li>providers: a dict with with LLM provider names and a dict of config settings for the provider. The follogin
+fields are allowed in the provider config:<ul>
+<li>api_key: the API key to use for the LLM</li>
+<li>api_key_env: the name of the environment variable to use for the API key</li>
+<li>api_url: the URL to use. In this URL, the placeholders ${model}, ${user}, ${password}, ${api_key}
+are replaced with the actual values.</li>
+<li>user: the user name to use for basic authentication</li>
+<li>password: the password to use for basic authentication</li>
+</ul>
+</li>
+</ul>
+<p>Note that config files without a "llms" field are allowed and will be treated as if the "llms" field is an empty list.
+The same is true for the "providers" field.</p>
+<p>:param filepath: where to read the config file from
+:param update: if True, update the LLM information in the config dict for each LLM in the list
+:return: dict with the configuration</p></div>
+</dd>
+<dt id="llms_wrapper.config.update_llm_config"><code class="name flex">
+<span>def <span class="ident">update_llm_config</span></span>(<span>config)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_llm_config(config):
+    &#34;&#34;&#34;
+    Update the LLM information in the config dict for each LLM in the list. If the LLM is a string, replace it
+    by a dict with all the details. The details are taken from the corresponding provider definition in the config
+    file, if it exists, otherwise just the API key is taken from the default environment variable.
+    The api key is selected in the following way: if the LLM dict speicifies it, use it, otherwise, if the LLM
+    dict specifies api_key_env, use the environment variable with that name, otherwise use the api_key setting from
+    the corresponding provider definition in the config file, otherwise use the api_key_env setting from the
+    corresponding provider definition in the config file, otherwise use the default environment variable.
+    In addition, for each llm, update the api_url field by replacing the placeholders ${api_key}, &#34;${user}&#34;,
+    &#34;${password}&#34;, and &#34;${model}&#34; with the actual values.
+    &#34;&#34;&#34;
+    for i, llm in enumerate(config[&#34;llms&#34;]):
+        if isinstance(llm, str):
+            provider, model = llm.split(&#34;:&#34;)
+            if provider in config.get(&#34;providers&#34;, {}):
+                provider_config = config[&#34;providers&#34;][provider]
+                llm = {
+                    &#34;llm&#34;: llm,
+                    &#34;api_key&#34;: provider_config.get(&#34;api_key&#34;, os.getenv(f&#34;{provider.upper()}_API_KEY&#34;))
+                }
+                # copy over user, password, user_env, and password_env if they exist
+                if &#34;user&#34; in provider_config:
+                    llm[&#34;user&#34;] = provider_config[&#34;user&#34;]
+                if &#34;password&#34; in provider_config:
+                    llm[&#34;password&#34;] = provider_config[&#34;password&#34;]
+                if &#34;user_env&#34; in provider_config:
+                    llm[&#34;user&#34;] = os.getenv(provider_config[&#34;user_env&#34;])
+                if &#34;password_env&#34; in provider_config:
+                    llm[&#34;password&#34;] = os.getenv(provider_config[&#34;password_env&#34;])
+            else:
+                llm = {
+                    &#34;llm&#34;: llm,
+                    &#34;api_key&#34;: os.getenv(f&#34;{provider.upper()}_API_KEY&#34;)
+                }
+        else:
+            provider, model = llm[&#34;llm&#34;].split(&#34;/&#34;, 1)
+            if &#34;api_key&#34; not in llm:
+                if &#34;api_key_env&#34; in llm:
+                    llm[&#34;api_key&#34;] = os.getenv(llm[&#34;api_key_env&#34;])
+                else:
+                    if provider in config.get(&#34;providers&#34;, {}):
+                        provider_config = config[&#34;providers&#34;][provider]
+                        llm[&#34;api_key&#34;] = provider_config.get(&#34;api_key&#34;, os.getenv(f&#34;{provider.upper()}_API_KEY&#34;))
+                    else:
+                        llm[&#34;api_key&#34;] = os.getenv(f&#34;{provider.upper()}_API_KEY&#34;)
+        if not llm.get(&#34;password&#34;) and &#34;password_env&#34; in llm:
+            llm[&#34;password&#34;] = os.getenv(llm[&#34;password_env&#34;])
+        if not llm.get(&#34;user&#34;) and &#34;user_env&#34; in llm:
+            llm[&#34;user&#34;] = os.getenv(llm[&#34;user_env&#34;])
+        if not llm.get(&#34;api_key&#34;) and &#34;api_key_env&#34; in llm:
+            llm[&#34;api_key&#34;] = os.getenv(llm[&#34;api_key_env&#34;])
+        config[&#34;llms&#34;][i] = llm
+        if &#34;api_url&#34; in llm:
+            if &#34;api_key&#34; in llm and llm[&#34;api_key&#34;]:
+                llm[&#34;api_url&#34;] = llm[&#34;api_url&#34;].replace(&#34;${api_key}&#34;, llm[&#34;api_key&#34;])
+            if &#34;user&#34; in llm:
+                llm[&#34;api_url&#34;] = llm[&#34;api_url&#34;].replace(&#34;${user}&#34;, llm[&#34;user&#34;])
+            if &#34;password&#34; in llm:
+                llm[&#34;api_url&#34;] = llm[&#34;api_url&#34;].replace(&#34;${password}&#34;, llm[&#34;password&#34;])
+            if &#34;model&#34; in llm:
+                llm[&#34;api_url&#34;] = llm[&#34;api_url&#34;].replace(&#34;${model}&#34;, llm[&#34;model&#34;])
+        # if there is no alias defined, set the alias to the model name
+        if not &#34;alias&#34; in llm:
+            llm[&#34;alias&#34;] = llm[&#34;llm&#34;]
+    # make sure all the aliases are unique
+    aliases = set()
+    for llm in config[&#34;llms&#34;]:
+        if llm[&#34;alias&#34;] in aliases:
+            raise ValueError(f&#34;Error: Duplicate alias {llm[&#39;alias&#39;]} in LLM list&#34;)
+        aliases.add(llm[&#34;alias&#34;])
+    return config</code></pre>
+</details>
+<div class="desc"><p>Update the LLM information in the config dict for each LLM in the list. If the LLM is a string, replace it
+by a dict with all the details. The details are taken from the corresponding provider definition in the config
+file, if it exists, otherwise just the API key is taken from the default environment variable.
+The api key is selected in the following way: if the LLM dict speicifies it, use it, otherwise, if the LLM
+dict specifies api_key_env, use the environment variable with that name, otherwise use the api_key setting from
+the corresponding provider definition in the config file, otherwise use the api_key_env setting from the
+corresponding provider definition in the config file, otherwise use the default environment variable.
+In addition, for each llm, update the api_url field by replacing the placeholders ${api_key}, "${user}",
+"${password}", and "${model}" with the actual values.</p></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="llms_wrapper" href="index.html">llms_wrapper</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="llms_wrapper.config.read_config_file" href="#llms_wrapper.config.read_config_file">read_config_file</a></code></li>
+<li><code><a title="llms_wrapper.config.update_llm_config" href="#llms_wrapper.config.update_llm_config">update_llm_config</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.5</a>.</p>
+</footer>
+</body>
+</html>
