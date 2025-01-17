@@ -2,5 +2,5 @@
 
 Python package `llms_wrapper`
 
-* <a href="wiki">Documentation wiki</a>
+* [Documentation wiki](https://github.com/OFAI/python-llms-wrapper/wiki)
 * [Python API Documentation](https://ofai.github.io/python-llms-wrapper/llms_wrapper/)
