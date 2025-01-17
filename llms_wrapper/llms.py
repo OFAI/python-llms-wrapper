@@ -187,7 +187,7 @@ class LLMS:
             llm,
             [
                 "llm", "alias", "api_key", "api_url", "user", "password",
-                "api_key_env", "user_env", "password_env"])
+                "api_key_env", "user_env", "password_env", "cost"])
         error = None
         if llm.get("api_key"):
             completion_kwargs["api_key"] = llm["api_key"]

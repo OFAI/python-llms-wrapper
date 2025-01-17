@@ -4,4 +4,5 @@ conda activate llms_wrapper
 
 pip install -e .
 
+python -m ipykernel install --user --name=llms_wrapper
 

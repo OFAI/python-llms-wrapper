@@ -148,56 +148,43 @@ def update_llm_config(config: dict):
     """
     for i, llm in enumerate(config["llms"]):
         if isinstance(llm, str):
-            provider, model = llm.split(":")
+            provider, model = llm.split("/")
             if provider in config.get("providers", {}):
-                provider_config = config["providers"][provider]
-                llm = {
-                    "llm": llm,
-                    "api_key": provider_config.get("api_key", os.getenv(f"{provider.upper()}_API_KEY"))
-                }
-                # copy over user, password, user_env, and password_env if they exist
-                if "user" in provider_config:
-                    llm["user"] = provider_config["user"]
-                if "password" in provider_config:
-                    llm["password"] = provider_config["password"]
-                if "user_env" in provider_config:
-                    llm["user"] = os.getenv(provider_config["user_env"])
-                if "password_env" in provider_config:
-                    llm["password"] = os.getenv(provider_config["password_env"])
+                llm = {}
+                llm.update(config["providers"][provider])
             else:
                 llm = {
                     "llm": llm,
-                    "api_key": os.getenv(f"{provider.upper()}_API_KEY")
                 }
         else:
             provider, model = llm["llm"].split("/", 1)
-            if "api_key" not in llm:
-                if "api_key_env" in llm:
-                    llm["api_key"] = os.getenv(llm["api_key_env"])
-                else:
-                    if provider in config.get("providers", {}):
-                        provider_config = config["providers"][provider]
-                        llm["api_key"] = provider_config.get("api_key", os.getenv(f"{provider.upper()}_API_KEY"))
-                    else:
-                        llm["api_key"] = os.getenv(f"{provider.upper()}_API_KEY")
-        if not llm.get("password") and "password_env" in llm:
-            llm["password"] = os.getenv(llm["password_env"])
-        if not llm.get("user") and "user_env" in llm:
-            llm["user"] = os.getenv(llm["user_env"])
-        if not llm.get("api_key") and "api_key_env" in llm:
-            llm["api_key"] = os.getenv(llm["api_key_env"])
+            provider_config = config.get("providers", {}).get(provider, {})
+            for key in provider_config:
+                if key not in llm:
+                    llm[key] = provider_config[key]
+        if "api_key" not in llm and "api_key_env" not in llm and os.environ.get(f"{provider.upper()}_API_KEY"):
+            llm["api_key_env"] = f"{provider.upper()}_API_KEY"
         config["llms"][i] = llm
         if "api_url" in llm:
-            if "api_key" in llm and llm["api_key"]:
-                llm["api_url"] = llm["api_url"].replace("${api_key}", llm["api_key"])
-            if "user" in llm:
-                llm["api_url"] = llm["api_url"].replace("${user}", llm["user"])
-            if "password" in llm:
-                llm["api_url"] = llm["api_url"].replace("${password}", llm["password"])
-            if "model" in llm:
-                llm["api_url"] = llm["api_url"].replace("${model}", llm["model"])
+            # get the user, password and api_key for substitution
+            user = llm.get("user")
+            if user is None and "user_env" in llm:
+                user = os.environ.get(llm["user_env"])
+            password = llm.get("password")
+            if password is None and "password_env" in llm:
+                password = os.environ.get(llm["password_env"])
+            api_key = llm.get("api_key")
+            if api_key is None and "api_key_env" in llm:
+                api_key = os.environ.get(llm["api_key_env"])
+            if api_key is not None:
+                llm["api_url"] = llm["api_url"].replace("${api_key}", api_key)
+            if user is not None:
+                llm["api_url"] = llm["api_url"].replace("${user}", user)
+            if password is not None:
+                llm["api_url"] = llm["api_url"].replace("${password}", password)
+            llm["api_url"] = llm["api_url"].replace("${model}", model)
         # if there is no alias defined, set the alias to the model name
-        if not "alias" in llm:
+        if "alias" not in llm:
             llm["alias"] = llm["llm"]
     # make sure all the aliases are unique
     aliases = set()
