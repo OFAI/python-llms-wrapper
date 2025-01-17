@@ -1,3 +1,4 @@
 #!/bin/bash
 
-pdoc3 llms_wrapper -o docs/pythondoc --html --force --skip-errors
+pdoc3 llms_wrapper -o docs --html --force --skip-errors
+
