@@ -1,5 +1,7 @@
 """
-Module for reading/writing config files and merging in information from the arguments. The config file can be in
+Module for reading config files.
+
+The config file can be in
 one of the following formats: json, hjson, yaml, toml. This module only cares about the top-level fields
 "llms" and "providers": all other fields are ignored.
 
@@ -26,7 +28,7 @@ with warnings.catch_warnings():
     from litellm import LITELLM_CHAT_PROVIDERS
 
 
-def read_config_file(filepath, update=True):
+def read_config_file(filepath: str, update: bool = True) -> dict:
     """
     Read a config file in one of these formats: json, hjson, yaml, toml. Return the dict with the configuration.
     This function already checks that the llm-related fields "llms" and "proviers" in the config file are valid.
@@ -60,9 +62,12 @@ def read_config_file(filepath, update=True):
     Note that config files without a "llms" field are allowed and will be treated as if the "llms" field is an empty list.
     The same is true for the "providers" field.
 
-    :param filepath: where to read the config file from
-    :param update: if True, update the LLM information in the config dict for each LLM in the list
-    :return: dict with the configuration
+    Args:
+        filepath: where to read the config file from
+        update: if True, update the LLM information in the config dict for each LLM in the list
+
+    Returns:
+        A dict with the configuration
     """
     # read config file as json, yaml or toml, depending on file extension
     if filepath.endswith(".json"):
@@ -117,9 +122,15 @@ def read_config_file(filepath, update=True):
     return config
 
 
-def update_llm_config(config):
+def update_llm_config(config: dict):
     """
-    Update the LLM information in the config dict for each LLM in the list. If the LLM is a string, replace it
+    Update the LLM information in the config dict for each LLM in the list.
+
+    This will make sure the information provided in the providers section of the config file
+    is transferred to the llms and that other substitutions in the configuration are carried out
+    for all llms.
+
+    If the LLM is a string, replace it
     by a dict with all the details. The details are taken from the corresponding provider definition in the config
     file, if it exists, otherwise just the API key is taken from the default environment variable.
     The api key is selected in the following way: if the LLM dict speicifies it, use it, otherwise, if the LLM
@@ -128,6 +139,12 @@ def update_llm_config(config):
     corresponding provider definition in the config file, otherwise use the default environment variable.
     In addition, for each llm, update the api_url field by replacing the placeholders ${api_key}, "${user}",
     "${password}", and "${model}" with the actual values.
+
+    Args:
+        config: the configuration dict to update. Note: this is modified in place!
+
+    Returns:
+        the updated configuration dict
     """
     for i, llm in enumerate(config["llms"]):
         if isinstance(llm, str):

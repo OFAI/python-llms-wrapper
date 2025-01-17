@@ -120,12 +120,15 @@ class LLMS:
         """
         Construct updated messages from the query and/or prompt data.
 
-        :param query: A query text, if no prompt is given, a message with this text for role user is created.
-        :param prompt: a dict mapping roles to text templates, where the text template may contain the string "${query}"
-        :param messages: previous messages to include in the new messages
-        :param keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
-            the last keep_n-1 messages are kept.
-        :return: a list of message dictionaries
+        Args:
+            query: A query text, if no prompt is given, a message with this text for role user is created.
+            prompt: a dict mapping roles to text templates, where the text template may contain the string "${query}"
+            messages: previous messages to include in the new messages
+            keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
+                the last keep_n-1 messages are kept.
+
+        Returns:
+            A list of message dictionaries
         """
         if messages is None:
             messages = []
@@ -158,13 +161,16 @@ class LLMS:
         """
         Query the specified LLM with the given messages.
 
-        :param llmalias: the alias/name of the LLM to query
-        :param messages: a list of message dictionaries with role and content keys
-        :param debug: if True, debug logging is enabled
-        :return: a dictionary with keys answer and error and optionally cost-related keys and optionally
-            the full original response. If there is an error, answer is the empty string and error contains the error,
-            otherwise answer contains the response and error is the empty string.
-            The boolean key "ok" is True if there is no error, False otherwise.
+        Args:
+            llmalias: the alias/name of the LLM to query
+            messages: a list of message dictionaries with role and content keys
+            debug: if True, debug logging is enabled
+
+        Returns:
+            A dictionary with keys answer and error and optionally cost-related keys and optionally
+                the full original response. If there is an error, answer is the empty string and error contains the error,
+                otherwise answer contains the response and error is the empty string.
+                The boolean key "ok" is True if there is no error, False otherwise.
         """
         if self.debug:
             debug = True

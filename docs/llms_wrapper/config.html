@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.5">
 <title>llms_wrapper.config API documentation</title>
-<meta name="description" content="Module for reading/writing config files and merging in information from the arguments. The config file can be in
-one of the following formats: json, …">
+<meta name="description" content="Module for reading config files …">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -37,7 +36,8 @@ el.replaceWith(d);
 <h1 class="title">Module <code>llms_wrapper.config</code></h1>
 </header>
 <section id="section-intro">
-<p>Module for reading/writing config files and merging in information from the arguments. The config file can be in
+<p>Module for reading config files.</p>
+<p>The config file can be in
 one of the following formats: json, hjson, yaml, toml. This module only cares about the top-level fields
 "llms" and "providers": all other fields are ignored.</p>
 </section>
@@ -49,14 +49,14 @@ one of the following formats: json, hjson, yaml, toml. This module only cares ab
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="llms_wrapper.config.read_config_file"><code class="name flex">
-<span>def <span class="ident">read_config_file</span></span>(<span>filepath, update=True)</span>
+<span>def <span class="ident">read_config_file</span></span>(<span>filepath: str, update: bool = True) ‑> dict</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def read_config_file(filepath, update=True):
+<pre><code class="python">def read_config_file(filepath: str, update: bool = True) -&gt; dict:
     &#34;&#34;&#34;
     Read a config file in one of these formats: json, hjson, yaml, toml. Return the dict with the configuration.
     This function already checks that the llm-related fields &#34;llms&#34; and &#34;proviers&#34; in the config file are valid.
@@ -90,9 +90,12 @@ one of the following formats: json, hjson, yaml, toml. This module only cares ab
     Note that config files without a &#34;llms&#34; field are allowed and will be treated as if the &#34;llms&#34; field is an empty list.
     The same is true for the &#34;providers&#34; field.
 
-    :param filepath: where to read the config file from
-    :param update: if True, update the LLM information in the config dict for each LLM in the list
-    :return: dict with the configuration
+    Args:
+        filepath: where to read the config file from
+        update: if True, update the LLM information in the config dict for each LLM in the list
+
+    Returns:
+        A dict with the configuration
     &#34;&#34;&#34;
     # read config file as json, yaml or toml, depending on file extension
     if filepath.endswith(&#34;.json&#34;):
@@ -181,21 +184,33 @@ are replaced with the actual values.</li>
 </ul>
 <p>Note that config files without a "llms" field are allowed and will be treated as if the "llms" field is an empty list.
 The same is true for the "providers" field.</p>
-<p>:param filepath: where to read the config file from
-:param update: if True, update the LLM information in the config dict for each LLM in the list
-:return: dict with the configuration</p></div>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filepath</code></strong></dt>
+<dd>where to read the config file from</dd>
+<dt><strong><code>update</code></strong></dt>
+<dd>if True, update the LLM information in the config dict for each LLM in the list</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A dict with the configuration</p></div>
 </dd>
 <dt id="llms_wrapper.config.update_llm_config"><code class="name flex">
-<span>def <span class="ident">update_llm_config</span></span>(<span>config)</span>
+<span>def <span class="ident">update_llm_config</span></span>(<span>config: dict)</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def update_llm_config(config):
+<pre><code class="python">def update_llm_config(config: dict):
     &#34;&#34;&#34;
-    Update the LLM information in the config dict for each LLM in the list. If the LLM is a string, replace it
+    Update the LLM information in the config dict for each LLM in the list.
+
+    This will make sure the information provided in the providers section of the config file
+    is transferred to the llms and that other substitutions in the configuration are carried out
+    for all llms.
+
+    If the LLM is a string, replace it
     by a dict with all the details. The details are taken from the corresponding provider definition in the config
     file, if it exists, otherwise just the API key is taken from the default environment variable.
     The api key is selected in the following way: if the LLM dict speicifies it, use it, otherwise, if the LLM
@@ -204,6 +219,12 @@ The same is true for the "providers" field.</p>
     corresponding provider definition in the config file, otherwise use the default environment variable.
     In addition, for each llm, update the api_url field by replacing the placeholders ${api_key}, &#34;${user}&#34;,
     &#34;${password}&#34;, and &#34;${model}&#34; with the actual values.
+
+    Args:
+        config: the configuration dict to update. Note: this is modified in place!
+
+    Returns:
+        the updated configuration dict
     &#34;&#34;&#34;
     for i, llm in enumerate(config[&#34;llms&#34;]):
         if isinstance(llm, str):
@@ -266,7 +287,11 @@ The same is true for the "providers" field.</p>
         aliases.add(llm[&#34;alias&#34;])
     return config</code></pre>
 </details>
-<div class="desc"><p>Update the LLM information in the config dict for each LLM in the list. If the LLM is a string, replace it
+<div class="desc"><p>Update the LLM information in the config dict for each LLM in the list.</p>
+<p>This will make sure the information provided in the providers section of the config file
+is transferred to the llms and that other substitutions in the configuration are carried out
+for all llms.</p>
+<p>If the LLM is a string, replace it
 by a dict with all the details. The details are taken from the corresponding provider definition in the config
 file, if it exists, otherwise just the API key is taken from the default environment variable.
 The api key is selected in the following way: if the LLM dict speicifies it, use it, otherwise, if the LLM
@@ -274,7 +299,14 @@ dict specifies api_key_env, use the environment variable with that name, otherwi
 the corresponding provider definition in the config file, otherwise use the api_key_env setting from the
 corresponding provider definition in the config file, otherwise use the default environment variable.
 In addition, for each llm, update the api_url field by replacing the placeholders ${api_key}, "${user}",
-"${password}", and "${model}" with the actual values.</p></div>
+"${password}", and "${model}" with the actual values.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>config</code></strong></dt>
+<dd>the configuration dict to update. Note: this is modified in place!</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>the updated configuration dict</p></div>
 </dd>
 </dl>
 </section>

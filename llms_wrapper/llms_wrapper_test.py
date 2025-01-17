@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Module to perform a simple test if one or more LLMs are working
+Module for the llms_wrapper_test command to perform a simple test to check
+if one or more LLMs are working.
 """
 from loguru import logger
 import sys
@@ -17,7 +18,7 @@ Only give the name and no additional text?"""
 DEFAULT_ANSWER = "Albert"
 
 
-def get_args():
+def get_args() -> dict:
     """
     Get the command line arguments
     """
@@ -74,6 +75,7 @@ def equal_response(response, answer):
     leading or trailing spaces.
     """
     return response.replace("\n", " ").replace("  ", " ").strip() == answer
+
 
 def run(config: dict):
     prompt = {}

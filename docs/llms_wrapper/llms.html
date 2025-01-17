@@ -162,12 +162,15 @@ el.replaceWith(d);
         &#34;&#34;&#34;
         Construct updated messages from the query and/or prompt data.
 
-        :param query: A query text, if no prompt is given, a message with this text for role user is created.
-        :param prompt: a dict mapping roles to text templates, where the text template may contain the string &#34;${query}&#34;
-        :param messages: previous messages to include in the new messages
-        :param keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
-            the last keep_n-1 messages are kept.
-        :return: a list of message dictionaries
+        Args:
+            query: A query text, if no prompt is given, a message with this text for role user is created.
+            prompt: a dict mapping roles to text templates, where the text template may contain the string &#34;${query}&#34;
+            messages: previous messages to include in the new messages
+            keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
+                the last keep_n-1 messages are kept.
+
+        Returns:
+            A list of message dictionaries
         &#34;&#34;&#34;
         if messages is None:
             messages = []
@@ -200,13 +203,16 @@ el.replaceWith(d);
         &#34;&#34;&#34;
         Query the specified LLM with the given messages.
 
-        :param llmalias: the alias/name of the LLM to query
-        :param messages: a list of message dictionaries with role and content keys
-        :param debug: if True, debug logging is enabled
-        :return: a dictionary with keys answer and error and optionally cost-related keys and optionally
-            the full original response. If there is an error, answer is the empty string and error contains the error,
-            otherwise answer contains the response and error is the empty string.
-            The boolean key &#34;ok&#34; is True if there is no error, False otherwise.
+        Args:
+            llmalias: the alias/name of the LLM to query
+            messages: a list of message dictionaries with role and content keys
+            debug: if True, debug logging is enabled
+
+        Returns:
+            A dictionary with keys answer and error and optionally cost-related keys and optionally
+                the full original response. If there is an error, answer is the empty string and error contains the error,
+                otherwise answer contains the response and error is the empty string.
+                The boolean key &#34;ok&#34; is True if there is no error, False otherwise.
         &#34;&#34;&#34;
         if self.debug:
             debug = True
@@ -379,12 +385,15 @@ cache, response time etc.</p></div>
     &#34;&#34;&#34;
     Construct updated messages from the query and/or prompt data.
 
-    :param query: A query text, if no prompt is given, a message with this text for role user is created.
-    :param prompt: a dict mapping roles to text templates, where the text template may contain the string &#34;${query}&#34;
-    :param messages: previous messages to include in the new messages
-    :param keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
-        the last keep_n-1 messages are kept.
-    :return: a list of message dictionaries
+    Args:
+        query: A query text, if no prompt is given, a message with this text for role user is created.
+        prompt: a dict mapping roles to text templates, where the text template may contain the string &#34;${query}&#34;
+        messages: previous messages to include in the new messages
+        keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
+            the last keep_n-1 messages are kept.
+
+    Returns:
+        A list of message dictionaries
     &#34;&#34;&#34;
     if messages is None:
         messages = []
@@ -407,12 +416,20 @@ cache, response time etc.</p></div>
     return messages</code></pre>
 </details>
 <div class="desc"><p>Construct updated messages from the query and/or prompt data.</p>
-<p>:param query: A query text, if no prompt is given, a message with this text for role user is created.
-:param prompt: a dict mapping roles to text templates, where the text template may contain the string "${query}"
-:param messages: previous messages to include in the new messages
-:param keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
-the last keep_n-1 messages are kept.
-:return: a list of message dictionaries</p></div>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>query</code></strong></dt>
+<dd>A query text, if no prompt is given, a message with this text for role user is created.</dd>
+<dt><strong><code>prompt</code></strong></dt>
+<dd>a dict mapping roles to text templates, where the text template may contain the string "${query}"</dd>
+<dt><strong><code>messages</code></strong></dt>
+<dd>previous messages to include in the new messages</dd>
+<dt><strong><code>keep_n</code></strong></dt>
+<dd>the number of messages to keep, if None, all messages are kept, otherwise the first message and
+the last keep_n-1 messages are kept.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A list of message dictionaries</p></div>
 </dd>
 <dt id="llms_wrapper.llms.LLMS.max_prompt_tokens"><code class="name flex">
 <span>def <span class="ident">max_prompt_tokens</span></span>(<span>self, llmalias: str) ‑> int</span>
@@ -449,13 +466,16 @@ the last keep_n-1 messages are kept.
     &#34;&#34;&#34;
     Query the specified LLM with the given messages.
 
-    :param llmalias: the alias/name of the LLM to query
-    :param messages: a list of message dictionaries with role and content keys
-    :param debug: if True, debug logging is enabled
-    :return: a dictionary with keys answer and error and optionally cost-related keys and optionally
-        the full original response. If there is an error, answer is the empty string and error contains the error,
-        otherwise answer contains the response and error is the empty string.
-        The boolean key &#34;ok&#34; is True if there is no error, False otherwise.
+    Args:
+        llmalias: the alias/name of the LLM to query
+        messages: a list of message dictionaries with role and content keys
+        debug: if True, debug logging is enabled
+
+    Returns:
+        A dictionary with keys answer and error and optionally cost-related keys and optionally
+            the full original response. If there is an error, answer is the empty string and error contains the error,
+            otherwise answer contains the response and error is the empty string.
+            The boolean key &#34;ok&#34; is True if there is no error, False otherwise.
     &#34;&#34;&#34;
     if self.debug:
         debug = True
@@ -517,10 +537,17 @@ the last keep_n-1 messages are kept.
     return ret</code></pre>
 </details>
 <div class="desc"><p>Query the specified LLM with the given messages.</p>
-<p>:param llmalias: the alias/name of the LLM to query
-:param messages: a list of message dictionaries with role and content keys
-:param debug: if True, debug logging is enabled
-:return: a dictionary with keys answer and error and optionally cost-related keys and optionally
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>llmalias</code></strong></dt>
+<dd>the alias/name of the LLM to query</dd>
+<dt><strong><code>messages</code></strong></dt>
+<dd>a list of message dictionaries with role and content keys</dd>
+<dt><strong><code>debug</code></strong></dt>
+<dd>if True, debug logging is enabled</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A dictionary with keys answer and error and optionally cost-related keys and optionally
 the full original response. If there is an error, answer is the empty string and error contains the error,
 otherwise answer contains the response and error is the empty string.
 The boolean key "ok" is True if there is no error, False otherwise.</p></div>
