@@ -14,4 +14,6 @@ def dict_except(d, keys):
     """
     Return a copy of the dict d, except for the keys in the list keys.
     """
+    if isinstance(keys, str):
+        keys = [keys]
     return {k: v for k, v in d.items() if k not in keys}

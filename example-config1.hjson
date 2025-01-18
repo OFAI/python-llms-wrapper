@@ -4,8 +4,8 @@
       api_key_env: "OPENAI_KEY1"
       temperature: 0
     }
-    { llm: "gemini/gemini-1.5-flash", temperature: 1 }
-    { llm: "gemini/gemini-1.5-flash", temperature: 0 }
+    { llm: "gemini/gemini-1.5-flash", temperature: 1, alias: "geminiflash1" }
+    { llm: "gemini/gemini-1.5-flash", temperature: 0, alias: "geminiflash2" }
 ]
   providers: {
     gemini: {

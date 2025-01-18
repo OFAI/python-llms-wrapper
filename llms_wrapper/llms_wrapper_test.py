@@ -10,12 +10,15 @@ import argparse
 import re
 from llms_wrapper.llms import LLMS
 from llms_wrapper.config import read_config_file, update_llm_config
-from llms_wrapper.utils import pp_config
+from llms_wrapper.utils import pp_config, dict_except
 
 DEFAULT_PROMPT = """What is the first name of Einstein who developed the theory of relativity? 
 Only give the name and no additional text?"""
 
 DEFAULT_ANSWER = "Albert"
+
+logger.remove()
+logger.add(sys.stderr, level="INFO")
 
 
 def get_args() -> dict:
@@ -24,6 +27,7 @@ def get_args() -> dict:
     """
     parser = argparse.ArgumentParser(description='Test llms')
     parser.add_argument('--llms', '-l', nargs="*", type=str, default=[], help='LLMs to use for the queries (or use config)', required=False)
+    parser.add_argument('--use', '-u', nargs="*", type=str, default=[], help='Subset of LLMs to use (all)', required=False)
     parser.add_argument("--prompt", "-p", type=str, help="Prompt text to use (or use default prompt)", required=False)
     parser.add_argument("--answer", "-a", type=str, help="Expected answer (or use default answer)", required=False)
     parser.add_argument("--config", "-c", type=str, help="Config file with the LLM and other info for an experiment, json, jsonl, yaml", required=False)
@@ -35,7 +39,7 @@ def get_args() -> dict:
     parser.add_argument("--logfile", "-f", type=str, help="Log file", required=False)
     args = parser.parse_args()
     for llm in args.llms:
-        if not re.match(r"^[a-zA-Z0-9_\-./]+:[a-zA-Z0-9_\-./]+$", llm):
+        if not re.match(r"^[a-zA-Z0-9_\-./]+/.+$", llm):
             raise Exception(f"Error: 'llms' field must be in the format 'provider:model' in: {llm}")
     # convert the argparse object to a dictionary
     argsconfig = {}
@@ -52,20 +56,31 @@ def get_args() -> dict:
         # merge the args into the config, giving precedence to the args, except for the LLM list, which is merged
         # by adding the args to the config
         oldllm = config.get("llms", [])
-        config.update(argsconfig)
+        config.update(dict_except(argsconfig, ["llms"]))
         # add the llm from the args to the llm from the config, but only if the llm is not already in the config
         mentionedllm = [llm if isinstance(llm, str) else llm["llm"] for llm in config["llms"]]
         for llm in args.llms:
             if llm not in mentionedllm:
+                logger.debug(f"Adding LLM {llm} to config")
                 oldllm.append(llm)
         config["llms"] = oldllm
     else:
         config = argsconfig
     update_llm_config(config)
     config["answer"] = args.answer
+    if len(args.use) > 0:
+        # check that the llms specified are actually to be found in the config
+        aliases = [llm["alias"] for llm in config["llms"]]
+        for llm in args.use:
+            if llm not in aliases:
+                raise Exception(f"Error: LLM {llm} not found in config")
+        config["llms_to_use"] = args.use
+    else:
+        config["llms_to_use"] = None  # use whatever is configured in the config
     # make sure we got at least one llm
     if not config["llms"]:
         raise Exception("Error: No LLMs specified")
+    logger.debug(f"Effective config: {pp_config(config)}")
     return config
 
 
@@ -87,7 +102,11 @@ def run(config: dict):
     log = []
     llms = LLMS(config)
     messages = llms.make_messages(prompt=prompt)
-    for alias in llms.list_aliases():
+    if config["llms_to_use"] is None:
+        llms_to_use = llms.list_aliases()
+    else:
+        llms_to_use = config["llms_to_use"]
+    for alias in llms_to_use:
         llmname = alias
         llm = llms.get(alias)
         n += 1
@@ -96,7 +115,7 @@ def run(config: dict):
             n_ok += 1
         else:
             if config['debug']:
-                apikey = llm['api_key'] if isinstance(llm, dict) else "NONE"
+                apikey = llm.get('api_key') if isinstance(llm, dict) else "NONE"
                 logger.debug(f"Querying LLM {llmname} apikey {apikey}  with prompt {prompt}")
             ret = llms.query(
                 llmname,

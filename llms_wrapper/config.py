@@ -101,7 +101,7 @@ def read_config_file(filepath: str, update: bool = True) -> dict:
             if not 'llm' in llm:
                 raise ValueError(f"Error: Missing 'llm' field in llm config")
             llm = llm["llm"]
-        if not re.match(r"^[a-zA-Z0-9]+/\S+$", llm):
+        if not re.match(r"^[a-zA-Z0-9]+/.+$", llm):
             raise ValueError(f"Error: 'llm' field must be in the format 'provider/model' in line: {llm}")
     for provider, provider_config in config['providers'].items():
         # provider name must be one of the supported providers by litellm
@@ -190,6 +190,7 @@ def update_llm_config(config: dict):
     aliases = set()
     for llm in config["llms"]:
         if llm["alias"] in aliases:
+            print("DEBUG config:", config)
             raise ValueError(f"Error: Duplicate alias {llm['alias']} in LLM list")
         aliases.add(llm["alias"])
     return config
