@@ -9,6 +9,7 @@ from typing import Optional, Dict, List, Union, Tuple
 from copy import deepcopy
 
 from litellm import completion, completion_cost
+from litellm.utils import get_model_info
 from llms_wrapper.utils import dict_except
 
 ROLES = ["user", "assistant", "system"]
@@ -78,11 +79,24 @@ class LLMS:
         """
         return litellm.cost_per_token(self.llms[llmalias]["llm"], prompt_tokens=1, completion_tokens=1)
 
-    def max_prompt_tokens(self, llmalias: str) -> int:
+    def max_output_tokens(self, llmalias: str) -> int:
         """
         Return the maximum number of prompt tokens that can be sent to the model.
         """
         return litellm.get_max_tokens(self.llms[llmalias]["llm"])
+
+    def max_input_tokens(self, llmalias: str) -> Optional[int]:
+        """
+        Return the maximum number of tokens possible in the prompt or None if not known.
+        """
+        try:
+            info = get_model_info(self.llms[llmalias]["llm"])
+            return info["max_input_tokens"]
+        except:
+            # the model is not mapped yet, return None to indicate we do not know
+            return None
+
+
 
     def set_model_attributes(
             self, llmalias: str,
