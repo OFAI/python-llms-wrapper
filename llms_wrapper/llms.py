@@ -4,6 +4,7 @@ Module related to using LLMs.
 import os
 
 import litellm
+import time
 from loguru import logger
 from typing import Optional, Dict, List, Union, Tuple
 from copy import deepcopy
@@ -33,7 +34,8 @@ class LLMS:
             if alias in self.llms:
                 raise ValueError(f"Error: Duplicate LLM alis {alias} in configuration")
             self.llms[alias] = llm
-            self.llms[alias]["cost"] = 0
+            self.llms[alias]["_cost"] = 0
+            self.llms[alias]["_elapsed_time"] = 0
 
     def list_models(self) -> List[Dict]:
         """
@@ -58,6 +60,18 @@ class LLMS:
         Get the LLM configuration object with the given alias.
         """
         return self.llms[item]
+
+    def elapsed(self, llmalias: Union[str, List[str], None] = None):
+        """
+        Return the elapsed time so far for the given llm alias given list of llm aliases
+        or all llms if llmalias is None. Elapsed time is only accumulated for invocations of
+        the query method with return_cost=True.
+        """
+        if llmalias is None:
+            return sum([llm["_elapsed_time"] for llm in self.llms.values()])
+        if isinstance(llmalias, str):
+            return self.llms[llmalias]["_elapsed_time"]
+        return sum([self.llms[alias]["_elapsed_time"] for alias in llmalias])
 
     def cost(self, llmalias: Union[str, List[str], None] = None):
         """
@@ -95,8 +109,6 @@ class LLMS:
         except:
             # the model is not mapped yet, return None to indicate we do not know
             return None
-
-
 
     def set_model_attributes(
             self, llmalias: str,
@@ -201,7 +213,7 @@ class LLMS:
             llm,
             [
                 "llm", "alias", "api_key", "api_url", "user", "password",
-                "api_key_env", "user_env", "password_env", "cost"])
+                "api_key_env", "user_env", "password_env", "_cost", "_elapsed_time"])
         error = None
         if llm.get("api_key"):
             completion_kwargs["api_key"] = llm["api_key"]
@@ -214,11 +226,15 @@ class LLMS:
         if debug:
             logger.debug(f"Calling completion with {completion_kwargs}")
         try:
+            start = time.time()
             response = completion(
                 model=llm["llm"],
                 messages=messages,
                 **completion_kwargs)
+            elapsed = time.time() - start
             logger.debug(f"Full Response: {response}")
+            llm["_elapsed_time"] += elapsed
+            ret["elapsed_time"] = elapsed
             if return_response:
                 ret["response"] = response
                 ret["kwargs"] = completion_kwargs
