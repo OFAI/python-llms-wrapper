@@ -1,4 +1,4 @@
-# python-llsm-wrapper
+# python-llms-wrapper
 
 Python package `llms_wrapper`
 
