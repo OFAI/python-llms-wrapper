@@ -41,7 +41,6 @@ setup(
     ],
     install_requires=[
         "litellm",
-        "loguru",
         "hjson",
     ],
     extras_require={

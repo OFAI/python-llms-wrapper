@@ -5,7 +5,7 @@ import os
 
 import litellm
 import time
-from loguru import logger
+from llms_wrapper.logging import logger
 from typing import Optional, Dict, List, Union, Tuple
 from copy import deepcopy
 
@@ -80,10 +80,10 @@ class LLMS:
         the query method with return_cost=True.
         """
         if llmalias is None:
-            return sum([llm["cost"] for llm in self.llms.values()])
+            return sum([llm["_cost"] for llm in self.llms.values()])
         if isinstance(llmalias, str):
-            return self.llms[llmalias]["cost"]
-        return sum([self.llms[alias]["cost"] for alias in llmalias])
+            return self.llms[llmalias]["_cost"]
+        return sum([self.llms[alias]["_cost"] for alias in llmalias])
 
     def cost_per_token(self, llmalias: str) -> Tuple[float, float]:
         """
@@ -244,7 +244,7 @@ class LLMS:
                     model=llm["llm"],
                     messages=messages,
                 )
-                llm["cost"] += ret["cost"]
+                llm["_cost"] += ret["cost"]
                 usage = response['usage']
                 logger.debug(f"Usage: {usage}")
                 ret["n_completion_tokens"] = usage.completion_tokens

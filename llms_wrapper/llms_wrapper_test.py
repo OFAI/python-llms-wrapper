@@ -4,10 +4,11 @@
 Module for the llms_wrapper_test command to perform a simple test to check
 if one or more LLMs are working.
 """
-from loguru import logger
 import sys
 import argparse
 import re
+from logging import DEBUG
+from llms_wrapper.logging import logger, set_logging_level, add_logging_file
 from llms_wrapper.llms import LLMS
 from llms_wrapper.config import read_config_file, update_llm_config
 from llms_wrapper.utils import pp_config, dict_except
@@ -16,10 +17,6 @@ DEFAULT_PROMPT = """What is the first name of Einstein who developed the theory 
 Only give the name and no additional text?"""
 
 DEFAULT_ANSWER = "Albert"
-
-logger.remove()
-logger.add(sys.stderr, level="INFO")
-
 
 def get_args() -> dict:
     """
@@ -158,15 +155,11 @@ def run(config: dict):
 def main():
     args = get_args()
     if args["logfile"]:
-        logger.add(args["logfile"])
+        add_logging_file(args["logfile"])
     if args["debug"]:
-        logger.remove()
-        logger.add(sys.stderr, level="DEBUG")
+        set_logging_level(DEBUG)
         ppargs = pp_config(args)
         logger.debug(f"Effective arguments: {ppargs}")
-    else:
-        logger.remove()
-        logger.add(sys.stderr, level="INFO")
     run(args)
 
 

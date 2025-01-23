@@ -6,7 +6,7 @@ one of the following formats: json, hjson, yaml, toml. This module only cares ab
 "llms" and "providers": all other fields are ignored.
 
 """
-from loguru import logger
+from llms_wrapper.logging import logger
 import warnings
 
 ## For debugging the stacktrace of the weird litellm warning
@@ -190,7 +190,6 @@ def update_llm_config(config: dict):
     aliases = set()
     for llm in config["llms"]:
         if llm["alias"] in aliases:
-            print("DEBUG config:", config)
             raise ValueError(f"Error: Duplicate alias {llm['alias']} in LLM list")
         aliases.add(llm["alias"])
     return config
