@@ -57,6 +57,8 @@ el.replaceWith(d);
     &#34;&#34;&#34;
     Return a copy of the dict d, except for the keys in the list keys.
     &#34;&#34;&#34;
+    if isinstance(keys, str):
+        keys = [keys]
     return {k: v for k, v in d.items() if k not in keys}</code></pre>
 </details>
 <div class="desc"><p>Return a copy of the dict d, except for the keys in the list keys.</p></div>

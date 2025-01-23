@@ -79,6 +79,7 @@ leading or trailing spaces.</p></div>
     &#34;&#34;&#34;
     parser = argparse.ArgumentParser(description=&#39;Test llms&#39;)
     parser.add_argument(&#39;--llms&#39;, &#39;-l&#39;, nargs=&#34;*&#34;, type=str, default=[], help=&#39;LLMs to use for the queries (or use config)&#39;, required=False)
+    parser.add_argument(&#39;--use&#39;, &#39;-u&#39;, nargs=&#34;*&#34;, type=str, default=[], help=&#39;Subset of LLMs to use (all)&#39;, required=False)
     parser.add_argument(&#34;--prompt&#34;, &#34;-p&#34;, type=str, help=&#34;Prompt text to use (or use default prompt)&#34;, required=False)
     parser.add_argument(&#34;--answer&#34;, &#34;-a&#34;, type=str, help=&#34;Expected answer (or use default answer)&#34;, required=False)
     parser.add_argument(&#34;--config&#34;, &#34;-c&#34;, type=str, help=&#34;Config file with the LLM and other info for an experiment, json, jsonl, yaml&#34;, required=False)
@@ -90,7 +91,7 @@ leading or trailing spaces.</p></div>
     parser.add_argument(&#34;--logfile&#34;, &#34;-f&#34;, type=str, help=&#34;Log file&#34;, required=False)
     args = parser.parse_args()
     for llm in args.llms:
-        if not re.match(r&#34;^[a-zA-Z0-9_\-./]+:[a-zA-Z0-9_\-./]+$&#34;, llm):
+        if not re.match(r&#34;^[a-zA-Z0-9_\-./]+/.+$&#34;, llm):
             raise Exception(f&#34;Error: &#39;llms&#39; field must be in the format &#39;provider:model&#39; in: {llm}&#34;)
     # convert the argparse object to a dictionary
     argsconfig = {}
@@ -107,20 +108,31 @@ leading or trailing spaces.</p></div>
         # merge the args into the config, giving precedence to the args, except for the LLM list, which is merged
         # by adding the args to the config
         oldllm = config.get(&#34;llms&#34;, [])
-        config.update(argsconfig)
+        config.update(dict_except(argsconfig, [&#34;llms&#34;]))
         # add the llm from the args to the llm from the config, but only if the llm is not already in the config
         mentionedllm = [llm if isinstance(llm, str) else llm[&#34;llm&#34;] for llm in config[&#34;llms&#34;]]
         for llm in args.llms:
             if llm not in mentionedllm:
+                logger.debug(f&#34;Adding LLM {llm} to config&#34;)
                 oldllm.append(llm)
         config[&#34;llms&#34;] = oldllm
     else:
         config = argsconfig
     update_llm_config(config)
     config[&#34;answer&#34;] = args.answer
+    if len(args.use) &gt; 0:
+        # check that the llms specified are actually to be found in the config
+        aliases = [llm[&#34;alias&#34;] for llm in config[&#34;llms&#34;]]
+        for llm in args.use:
+            if llm not in aliases:
+                raise Exception(f&#34;Error: LLM {llm} not found in config&#34;)
+        config[&#34;llms_to_use&#34;] = args.use
+    else:
+        config[&#34;llms_to_use&#34;] = None  # use whatever is configured in the config
     # make sure we got at least one llm
     if not config[&#34;llms&#34;]:
         raise Exception(&#34;Error: No LLMs specified&#34;)
+    logger.debug(f&#34;Effective config: {pp_config(config)}&#34;)
     return config</code></pre>
 </details>
 <div class="desc"><p>Get the command line arguments</p></div>
@@ -136,15 +148,11 @@ leading or trailing spaces.</p></div>
 <pre><code class="python">def main():
     args = get_args()
     if args[&#34;logfile&#34;]:
-        logger.add(args[&#34;logfile&#34;])
+        add_logging_file(args[&#34;logfile&#34;])
     if args[&#34;debug&#34;]:
-        logger.remove()
-        logger.add(sys.stderr, level=&#34;DEBUG&#34;)
+        set_logging_level(DEBUG)
         ppargs = pp_config(args)
         logger.debug(f&#34;Effective arguments: {ppargs}&#34;)
-    else:
-        logger.remove()
-        logger.add(sys.stderr, level=&#34;INFO&#34;)
     run(args)</code></pre>
 </details>
 <div class="desc"></div>
@@ -167,7 +175,11 @@ leading or trailing spaces.</p></div>
     log = []
     llms = LLMS(config)
     messages = llms.make_messages(prompt=prompt)
-    for alias in llms.list_aliases():
+    if config[&#34;llms_to_use&#34;] is None:
+        llms_to_use = llms.list_aliases()
+    else:
+        llms_to_use = config[&#34;llms_to_use&#34;]
+    for alias in llms_to_use:
         llmname = alias
         llm = llms.get(alias)
         n += 1
@@ -176,7 +188,7 @@ leading or trailing spaces.</p></div>
             n_ok += 1
         else:
             if config[&#39;debug&#39;]:
-                apikey = llm[&#39;api_key&#39;] if isinstance(llm, dict) else &#34;NONE&#34;
+                apikey = llm.get(&#39;api_key&#39;) if isinstance(llm, dict) else &#34;NONE&#34;
                 logger.debug(f&#34;Querying LLM {llmname} apikey {apikey}  with prompt {prompt}&#34;)
             ret = llms.query(
                 llmname,

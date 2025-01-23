@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.5">
-<title>llms_wrapper API documentation</title>
-<meta name="description" content="">
+<title>llms_wrapper.logging API documentation</title>
+<meta name="description" content="Module to handle logging. This module is used to set up the logging for the entire package. This uses the Python
+logging module, but with a more …">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -33,44 +34,84 @@ el.replaceWith(d);
 <main>
 <article id="content">
 <header>
-<h1 class="title">Package <code>llms_wrapper</code></h1>
+<h1 class="title">Module <code>llms_wrapper.logging</code></h1>
 </header>
 <section id="section-intro">
+<p>Module to handle logging. This module is used to set up the logging for the entire package. This uses the Python
+logging module, but with a more user-friendly interface. Importing this module will provide a looger object
+that is configured to log to stderr with a logging level INFO by default.</p>
+<p>The format of the log messages is:
+"{time} {level}: {message}"</p>
+<p>The module provides a function set_logging_level to update the logging level of all handlers and also provides
+the function add_logging_file to add a file handler to the specified file and the current logging level.
+If set_logging_level is called after a file handler has been added, the logging level of the file handler is
+changed too.</p>
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt><code class="name"><a title="llms_wrapper.config" href="config.html">llms_wrapper.config</a></code></dt>
+<dt id="llms_wrapper.logging.add_logging_file"><code class="name flex">
+<span>def <span class="ident">add_logging_file</span></span>(<span>file: str)</span>
+</code></dt>
 <dd>
-<div class="desc"><p>Module for reading config files …</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_logging_file(file: str):
+    &#34;&#34;&#34;
+    Add a file handler to the specified file and the current logging level.
+    :param file: the file to log to
+    &#34;&#34;&#34;
+    file_handler = logging.FileHandler(file)
+    file_handler.setFormatter(formatter)
+    file_handler.setLevel(logger.level)
+    logger.addHandler(file_handler)</code></pre>
+</details>
+<div class="desc"><p>Add a file handler to the specified file and the current logging level.
+:param file: the file to log to</p></div>
 </dd>
-<dt><code class="name"><a title="llms_wrapper.llms" href="llms.html">llms_wrapper.llms</a></code></dt>
+<dt id="llms_wrapper.logging.handle_exception"><code class="name flex">
+<span>def <span class="ident">handle_exception</span></span>(<span>exc_type, exc_value, exc_traceback)</span>
+</code></dt>
 <dd>
-<div class="desc"><p>Module related to using LLMs.</p></div>
-</dd>
-<dt><code class="name"><a title="llms_wrapper.llms_wrapper_test" href="llms_wrapper_test.html">llms_wrapper.llms_wrapper_test</a></code></dt>
-<dd>
-<div class="desc"><p>Module for the llms_wrapper_test command to perform a simple test to check
-if one or more LLMs are working.</p></div>
-</dd>
-<dt><code class="name"><a title="llms_wrapper.logging" href="logging.html">llms_wrapper.logging</a></code></dt>
-<dd>
-<div class="desc"><p>Module to handle logging. This module is used to set up the logging for the entire package. This uses the Python
-logging module, but with a more …</p></div>
-</dd>
-<dt><code class="name"><a title="llms_wrapper.utils" href="utils.html">llms_wrapper.utils</a></code></dt>
-<dd>
-<div class="desc"><p>Module for various utility functions.</p></div>
-</dd>
-<dt><code class="name"><a title="llms_wrapper.version" href="version.html">llms_wrapper.version</a></code></dt>
-<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    logger.error(&#34;Exception&#34;, exc_info=(exc_type, exc_value, exc_traceback))</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
+<dt id="llms_wrapper.logging.set_logging_level"><code class="name flex">
+<span>def <span class="ident">set_logging_level</span></span>(<span>level: int)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_logging_level(level: int):
+    &#34;&#34;&#34;
+    Set the logging level of all handlers to the specified level.
+    :param level: the logging level to set
+    &#34;&#34;&#34;
+    logger.setLevel(level)
+    for handler in logger.handlers:
+        handler.setLevel(level)</code></pre>
+</details>
+<div class="desc"><p>Set the logging level of all handlers to the specified level.
+:param level: the logging level to set</p></div>
+</dd>
 </dl>
-</section>
-<section>
-</section>
-<section>
 </section>
 <section>
 </section>
@@ -80,14 +121,16 @@ logging module, but with a more …</p></div>
 <ul></ul>
 </div>
 <ul id="index">
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<li><h3>Super-module</h3>
 <ul>
-<li><code><a title="llms_wrapper.config" href="config.html">llms_wrapper.config</a></code></li>
-<li><code><a title="llms_wrapper.llms" href="llms.html">llms_wrapper.llms</a></code></li>
-<li><code><a title="llms_wrapper.llms_wrapper_test" href="llms_wrapper_test.html">llms_wrapper.llms_wrapper_test</a></code></li>
-<li><code><a title="llms_wrapper.logging" href="logging.html">llms_wrapper.logging</a></code></li>
-<li><code><a title="llms_wrapper.utils" href="utils.html">llms_wrapper.utils</a></code></li>
-<li><code><a title="llms_wrapper.version" href="version.html">llms_wrapper.version</a></code></li>
+<li><code><a title="llms_wrapper" href="index.html">llms_wrapper</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="llms_wrapper.logging.add_logging_file" href="#llms_wrapper.logging.add_logging_file">add_logging_file</a></code></li>
+<li><code><a title="llms_wrapper.logging.handle_exception" href="#llms_wrapper.logging.handle_exception">handle_exception</a></code></li>
+<li><code><a title="llms_wrapper.logging.set_logging_level" href="#llms_wrapper.logging.set_logging_level">set_logging_level</a></code></li>
 </ul>
 </li>
 </ul>

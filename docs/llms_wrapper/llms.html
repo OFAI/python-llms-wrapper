@@ -74,7 +74,8 @@ el.replaceWith(d);
             if alias in self.llms:
                 raise ValueError(f&#34;Error: Duplicate LLM alis {alias} in configuration&#34;)
             self.llms[alias] = llm
-            self.llms[alias][&#34;cost&#34;] = 0
+            self.llms[alias][&#34;_cost&#34;] = 0
+            self.llms[alias][&#34;_elapsed_time&#34;] = 0
 
     def list_models(self) -&gt; List[Dict]:
         &#34;&#34;&#34;
@@ -100,6 +101,18 @@ el.replaceWith(d);
         &#34;&#34;&#34;
         return self.llms[item]
 
+    def elapsed(self, llmalias: Union[str, List[str], None] = None):
+        &#34;&#34;&#34;
+        Return the elapsed time so far for the given llm alias given list of llm aliases
+        or all llms if llmalias is None. Elapsed time is only accumulated for invocations of
+        the query method with return_cost=True.
+        &#34;&#34;&#34;
+        if llmalias is None:
+            return sum([llm[&#34;_elapsed_time&#34;] for llm in self.llms.values()])
+        if isinstance(llmalias, str):
+            return self.llms[llmalias][&#34;_elapsed_time&#34;]
+        return sum([self.llms[alias][&#34;_elapsed_time&#34;] for alias in llmalias])
+
     def cost(self, llmalias: Union[str, List[str], None] = None):
         &#34;&#34;&#34;
         Return the cost accumulated so far for the given llm alias given list of llm aliases
@@ -107,10 +120,10 @@ el.replaceWith(d);
         the query method with return_cost=True.
         &#34;&#34;&#34;
         if llmalias is None:
-            return sum([llm[&#34;cost&#34;] for llm in self.llms.values()])
+            return sum([llm[&#34;_cost&#34;] for llm in self.llms.values()])
         if isinstance(llmalias, str):
-            return self.llms[llmalias][&#34;cost&#34;]
-        return sum([self.llms[alias][&#34;cost&#34;] for alias in llmalias])
+            return self.llms[llmalias][&#34;_cost&#34;]
+        return sum([self.llms[alias][&#34;_cost&#34;] for alias in llmalias])
 
     def cost_per_token(self, llmalias: str) -&gt; Tuple[float, float]:
         &#34;&#34;&#34;
@@ -120,11 +133,22 @@ el.replaceWith(d);
         &#34;&#34;&#34;
         return litellm.cost_per_token(self.llms[llmalias][&#34;llm&#34;], prompt_tokens=1, completion_tokens=1)
 
-    def max_prompt_tokens(self, llmalias: str) -&gt; int:
+    def max_output_tokens(self, llmalias: str) -&gt; int:
         &#34;&#34;&#34;
         Return the maximum number of prompt tokens that can be sent to the model.
         &#34;&#34;&#34;
         return litellm.get_max_tokens(self.llms[llmalias][&#34;llm&#34;])
+
+    def max_input_tokens(self, llmalias: str) -&gt; Optional[int]:
+        &#34;&#34;&#34;
+        Return the maximum number of tokens possible in the prompt or None if not known.
+        &#34;&#34;&#34;
+        try:
+            info = get_model_info(self.llms[llmalias][&#34;llm&#34;])
+            return info[&#34;max_input_tokens&#34;]
+        except:
+            # the model is not mapped yet, return None to indicate we do not know
+            return None
 
     def set_model_attributes(
             self, llmalias: str,
@@ -229,7 +253,7 @@ el.replaceWith(d);
             llm,
             [
                 &#34;llm&#34;, &#34;alias&#34;, &#34;api_key&#34;, &#34;api_url&#34;, &#34;user&#34;, &#34;password&#34;,
-                &#34;api_key_env&#34;, &#34;user_env&#34;, &#34;password_env&#34;])
+                &#34;api_key_env&#34;, &#34;user_env&#34;, &#34;password_env&#34;, &#34;_cost&#34;, &#34;_elapsed_time&#34;])
         error = None
         if llm.get(&#34;api_key&#34;):
             completion_kwargs[&#34;api_key&#34;] = llm[&#34;api_key&#34;]
@@ -242,11 +266,15 @@ el.replaceWith(d);
         if debug:
             logger.debug(f&#34;Calling completion with {completion_kwargs}&#34;)
         try:
+            start = time.time()
             response = completion(
                 model=llm[&#34;llm&#34;],
                 messages=messages,
                 **completion_kwargs)
+            elapsed = time.time() - start
             logger.debug(f&#34;Full Response: {response}&#34;)
+            llm[&#34;_elapsed_time&#34;] += elapsed
+            ret[&#34;elapsed_time&#34;] = elapsed
             if return_response:
                 ret[&#34;response&#34;] = response
                 ret[&#34;kwargs&#34;] = completion_kwargs
@@ -256,7 +284,7 @@ el.replaceWith(d);
                     model=llm[&#34;llm&#34;],
                     messages=messages,
                 )
-                llm[&#34;cost&#34;] += ret[&#34;cost&#34;]
+                llm[&#34;_cost&#34;] += ret[&#34;cost&#34;]
                 usage = response[&#39;usage&#39;]
                 logger.debug(f&#34;Usage: {usage}&#34;)
                 ret[&#34;n_completion_tokens&#34;] = usage.completion_tokens
@@ -292,10 +320,10 @@ el.replaceWith(d);
     the query method with return_cost=True.
     &#34;&#34;&#34;
     if llmalias is None:
-        return sum([llm[&#34;cost&#34;] for llm in self.llms.values()])
+        return sum([llm[&#34;_cost&#34;] for llm in self.llms.values()])
     if isinstance(llmalias, str):
-        return self.llms[llmalias][&#34;cost&#34;]
-    return sum([self.llms[alias][&#34;cost&#34;] for alias in llmalias])</code></pre>
+        return self.llms[llmalias][&#34;_cost&#34;]
+    return sum([self.llms[alias][&#34;_cost&#34;] for alias in llmalias])</code></pre>
 </details>
 <div class="desc"><p>Return the cost accumulated so far for the given llm alias given list of llm aliases
 or all llms if llmalias is None. Costs are only accumulated for invocations of
@@ -320,6 +348,30 @@ the query method with return_cost=True.</p></div>
 <div class="desc"><p>Return the estimated cost per prompt and completion token for the given model.
 This may be wrong or cost may get calculated in a different way, e.g. depending on
 cache, response time etc.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.elapsed"><code class="name flex">
+<span>def <span class="ident">elapsed</span></span>(<span>self, llmalias: str | List[str] | None = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def elapsed(self, llmalias: Union[str, List[str], None] = None):
+    &#34;&#34;&#34;
+    Return the elapsed time so far for the given llm alias given list of llm aliases
+    or all llms if llmalias is None. Elapsed time is only accumulated for invocations of
+    the query method with return_cost=True.
+    &#34;&#34;&#34;
+    if llmalias is None:
+        return sum([llm[&#34;_elapsed_time&#34;] for llm in self.llms.values()])
+    if isinstance(llmalias, str):
+        return self.llms[llmalias][&#34;_elapsed_time&#34;]
+    return sum([self.llms[alias][&#34;_elapsed_time&#34;] for alias in llmalias])</code></pre>
+</details>
+<div class="desc"><p>Return the elapsed time so far for the given llm alias given list of llm aliases
+or all llms if llmalias is None. Elapsed time is only accumulated for invocations of
+the query method with return_cost=True.</p></div>
 </dd>
 <dt id="llms_wrapper.llms.LLMS.get"><code class="name flex">
 <span>def <span class="ident">get</span></span>(<span>self, alias: str) ‑> Dict | None</span>
@@ -431,15 +483,36 @@ the last keep_n-1 messages are kept.</dd>
 <h2 id="returns">Returns</h2>
 <p>A list of message dictionaries</p></div>
 </dd>
-<dt id="llms_wrapper.llms.LLMS.max_prompt_tokens"><code class="name flex">
-<span>def <span class="ident">max_prompt_tokens</span></span>(<span>self, llmalias: str) ‑> int</span>
+<dt id="llms_wrapper.llms.LLMS.max_input_tokens"><code class="name flex">
+<span>def <span class="ident">max_input_tokens</span></span>(<span>self, llmalias: str) ‑> int | None</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def max_prompt_tokens(self, llmalias: str) -&gt; int:
+<pre><code class="python">def max_input_tokens(self, llmalias: str) -&gt; Optional[int]:
+    &#34;&#34;&#34;
+    Return the maximum number of tokens possible in the prompt or None if not known.
+    &#34;&#34;&#34;
+    try:
+        info = get_model_info(self.llms[llmalias][&#34;llm&#34;])
+        return info[&#34;max_input_tokens&#34;]
+    except:
+        # the model is not mapped yet, return None to indicate we do not know
+        return None</code></pre>
+</details>
+<div class="desc"><p>Return the maximum number of tokens possible in the prompt or None if not known.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.max_output_tokens"><code class="name flex">
+<span>def <span class="ident">max_output_tokens</span></span>(<span>self, llmalias: str) ‑> int</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def max_output_tokens(self, llmalias: str) -&gt; int:
     &#34;&#34;&#34;
     Return the maximum number of prompt tokens that can be sent to the model.
     &#34;&#34;&#34;
@@ -492,7 +565,7 @@ the last keep_n-1 messages are kept.</dd>
         llm,
         [
             &#34;llm&#34;, &#34;alias&#34;, &#34;api_key&#34;, &#34;api_url&#34;, &#34;user&#34;, &#34;password&#34;,
-            &#34;api_key_env&#34;, &#34;user_env&#34;, &#34;password_env&#34;])
+            &#34;api_key_env&#34;, &#34;user_env&#34;, &#34;password_env&#34;, &#34;_cost&#34;, &#34;_elapsed_time&#34;])
     error = None
     if llm.get(&#34;api_key&#34;):
         completion_kwargs[&#34;api_key&#34;] = llm[&#34;api_key&#34;]
@@ -505,11 +578,15 @@ the last keep_n-1 messages are kept.</dd>
     if debug:
         logger.debug(f&#34;Calling completion with {completion_kwargs}&#34;)
     try:
+        start = time.time()
         response = completion(
             model=llm[&#34;llm&#34;],
             messages=messages,
             **completion_kwargs)
+        elapsed = time.time() - start
         logger.debug(f&#34;Full Response: {response}&#34;)
+        llm[&#34;_elapsed_time&#34;] += elapsed
+        ret[&#34;elapsed_time&#34;] = elapsed
         if return_response:
             ret[&#34;response&#34;] = response
             ret[&#34;kwargs&#34;] = completion_kwargs
@@ -519,7 +596,7 @@ the last keep_n-1 messages are kept.</dd>
                 model=llm[&#34;llm&#34;],
                 messages=messages,
             )
-            llm[&#34;cost&#34;] += ret[&#34;cost&#34;]
+            llm[&#34;_cost&#34;] += ret[&#34;cost&#34;]
             usage = response[&#39;usage&#39;]
             logger.debug(f&#34;Usage: {usage}&#34;)
             ret[&#34;n_completion_tokens&#34;] = usage.completion_tokens
@@ -614,11 +691,13 @@ be set in the configuration file to be passed to the model invocation call.</p><
 <ul class="">
 <li><code><a title="llms_wrapper.llms.LLMS.cost" href="#llms_wrapper.llms.LLMS.cost">cost</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.cost_per_token" href="#llms_wrapper.llms.LLMS.cost_per_token">cost_per_token</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.elapsed" href="#llms_wrapper.llms.LLMS.elapsed">elapsed</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.get" href="#llms_wrapper.llms.LLMS.get">get</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.list_aliases" href="#llms_wrapper.llms.LLMS.list_aliases">list_aliases</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.list_models" href="#llms_wrapper.llms.LLMS.list_models">list_models</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.make_messages" href="#llms_wrapper.llms.LLMS.make_messages">make_messages</a></code></li>
-<li><code><a title="llms_wrapper.llms.LLMS.max_prompt_tokens" href="#llms_wrapper.llms.LLMS.max_prompt_tokens">max_prompt_tokens</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.max_input_tokens" href="#llms_wrapper.llms.LLMS.max_input_tokens">max_input_tokens</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.max_output_tokens" href="#llms_wrapper.llms.LLMS.max_output_tokens">max_output_tokens</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.query" href="#llms_wrapper.llms.LLMS.query">query</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.set_model_attributes" href="#llms_wrapper.llms.LLMS.set_model_attributes">set_model_attributes</a></code></li>
 </ul>
