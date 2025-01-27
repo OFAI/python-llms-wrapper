@@ -15,6 +15,9 @@ from llms_wrapper.utils import dict_except
 
 ROLES = ["user", "assistant", "system"]
 
+## TODO: the digested versions of the LLM configs should be objects, and point to the containing LLMS object
+##     so we can pass around just single LLM objects and run queries etc on them
+
 
 class LLMS:
     """
@@ -28,16 +31,21 @@ class LLMS:
         self.config = deepcopy(config)
         self.debug = debug
         # convert the config into a dictionary of LLM objects where the key is the alias of the LLM
-        self.llms = {}
+        self.llms: Dict[str, "LLM"] = {}
         for llm in self.config["llms"]:
+            if not isinstance(llm, dict):
+                raise ValueError(f"Error: LLM entry is not a dict: {llm}")
             alias = llm["alias"]
             if alias in self.llms:
                 raise ValueError(f"Error: Duplicate LLM alis {alias} in configuration")
+            # make a copy
+            llmdict = deepcopy(llm)
+            llmdict["_cost"] = 0
+            llmdict["_elapsed_time"] = 0
+            llm = LLM(llmdict, self)
             self.llms[alias] = llm
-            self.llms[alias]["_cost"] = 0
-            self.llms[alias]["_elapsed_time"] = 0
 
-    def list_models(self) -> List[Dict]:
+    def list_models(self) -> List["LLM"]:
         """
         Get a list of model configuration objects
         """
@@ -55,7 +63,7 @@ class LLMS:
         """
         return self.llms.get(alias, None)
 
-    def __getitem__(self, item: str) -> Dict:
+    def __getitem__(self, item: str) -> "LLM":
         """
         Get the LLM configuration object with the given alias.
         """
@@ -261,3 +269,39 @@ class LLMS:
             ret["ok"] = False
         return ret
 
+
+# For now, this class simply represents the LLM by the config dict and a pointer to the LLMS object it is contained
+# in. In order to avoid changing any code in the LLMS object where we expect the llm config to be a dict
+# we also implement the __getitem__, __setitem__, and get methods to access the nested dict in the llm object.
+class LLM:
+    def __init__(self, config: Dict, llmsobject: LLMS):
+        self.config = config
+        self.llmsobject = llmsobject
+
+    def __getitem__(self, item: str) -> any:
+        return self.config[item]
+
+    def __setitem__(self, key: str, value: any):
+        self.config[key] = value
+
+    def get(self, item: str, default=None) -> any:
+        return self.config.get(item, default)
+
+    def items(self):
+        return self.config.items()
+
+    def query(
+            self,
+            messages: List[Dict[str, str]],
+            return_cost: bool = False,
+            return_response: bool = False,
+            debug=False,
+    ) -> Dict[str, any]:
+        llmalias = self.config["alias"]
+        return self.llmsobject.query(llmalias, messages, return_cost, return_response, debug)
+
+    def __str__(self):
+        return f"LLM({self.config['alias']})"
+
+    def __repr__(self):
+        return f"LLM({self.config['alias']})"
