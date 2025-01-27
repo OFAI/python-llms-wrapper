@@ -305,3 +305,29 @@ class LLM:
 
     def __repr__(self):
         return f"LLM({self.config['alias']})"
+
+    # other methods which get delegated to the parent LLMS object
+    def make_messages(self, query: Optional[str] = None, prompt: Optional[Dict[str, str]] = None,
+                      messages: Optional[List[Dict[str, str]]] = None, keep_n: Optional[int] = None) -> List[Dict[str, str]]:
+        return self.llmsobject.make_messages(query, prompt, messages, keep_n)
+
+    def cost_per_token(self) -> Tuple[float, float]:
+        return self.llmsobject.cost_per_token(self.config["alias"])
+
+    def max_output_tokens(self) -> int:
+        return self.llmsobject.max_output_tokens(self.config["alias"])
+
+    def max_input_tokens(self) -> Optional[int]:
+        return self.llmsobject.max_input_tokens(self.config["alias"])
+
+    def set_model_attributes(self, input_cost_per_token: float, output_cost_per_token: float,
+                             input_cost_per_second: float, max_prompt_tokens: int):
+        return self.llmsobject.set_model_attributes(self.config["alias"], input_cost_per_token, output_cost_per_token,
+                                                   input_cost_per_second, max_prompt_tokens)
+
+    def elapsed(self):
+        return self.llmsobject.elapsed(self.config["alias"])
+
+    def cost(self):
+        return self.llmsobject.cost(self.config["alias"])
+
