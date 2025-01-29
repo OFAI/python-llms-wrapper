@@ -47,6 +47,218 @@ el.replaceWith(d);
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="llms_wrapper.llms.LLM"><code class="flex name class">
+<span>class <span class="ident">LLM</span></span>
+<span>(</span><span>config: Dict,<br>llmsobject: <a title="llms_wrapper.llms.LLMS" href="#llms_wrapper.llms.LLMS">LLMS</a>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LLM:
+    def __init__(self, config: Dict, llmsobject: LLMS):
+        self.config = config
+        self.llmsobject = llmsobject
+
+    def __getitem__(self, item: str) -&gt; any:
+        return self.config[item]
+
+    def __setitem__(self, key: str, value: any):
+        self.config[key] = value
+
+    def get(self, item: str, default=None) -&gt; any:
+        return self.config.get(item, default)
+
+    def items(self):
+        return self.config.items()
+
+    def query(
+            self,
+            messages: List[Dict[str, str]],
+            return_cost: bool = False,
+            return_response: bool = False,
+            debug=False,
+    ) -&gt; Dict[str, any]:
+        llmalias = self.config[&#34;alias&#34;]
+        return self.llmsobject.query(llmalias, messages, return_cost, return_response, debug)
+
+    def __str__(self):
+        return f&#34;LLM({self.config[&#39;alias&#39;]})&#34;
+
+    def __repr__(self):
+        return f&#34;LLM({self.config[&#39;alias&#39;]})&#34;
+
+    # other methods which get delegated to the parent LLMS object
+    def make_messages(self, query: Optional[str] = None, prompt: Optional[Dict[str, str]] = None,
+                      messages: Optional[List[Dict[str, str]]] = None, keep_n: Optional[int] = None) -&gt; List[Dict[str, str]]:
+        return self.llmsobject.make_messages(query, prompt, messages, keep_n)
+
+    def cost_per_token(self) -&gt; Tuple[float, float]:
+        return self.llmsobject.cost_per_token(self.config[&#34;alias&#34;])
+
+    def max_output_tokens(self) -&gt; int:
+        return self.llmsobject.max_output_tokens(self.config[&#34;alias&#34;])
+
+    def max_input_tokens(self) -&gt; Optional[int]:
+        return self.llmsobject.max_input_tokens(self.config[&#34;alias&#34;])
+
+    def set_model_attributes(self, input_cost_per_token: float, output_cost_per_token: float,
+                             input_cost_per_second: float, max_prompt_tokens: int):
+        return self.llmsobject.set_model_attributes(self.config[&#34;alias&#34;], input_cost_per_token, output_cost_per_token,
+                                                   input_cost_per_second, max_prompt_tokens)
+
+    def elapsed(self):
+        return self.llmsobject.elapsed(self.config[&#34;alias&#34;])
+
+    def cost(self):
+        return self.llmsobject.cost(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+<h3>Methods</h3>
+<dl>
+<dt id="llms_wrapper.llms.LLM.cost"><code class="name flex">
+<span>def <span class="ident">cost</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cost(self):
+    return self.llmsobject.cost(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.cost_per_token"><code class="name flex">
+<span>def <span class="ident">cost_per_token</span></span>(<span>self) ‑> Tuple[float, float]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cost_per_token(self) -&gt; Tuple[float, float]:
+    return self.llmsobject.cost_per_token(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.elapsed"><code class="name flex">
+<span>def <span class="ident">elapsed</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def elapsed(self):
+    return self.llmsobject.elapsed(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, item: str, default=None) ‑> <built-in function any></span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get(self, item: str, default=None) -&gt; any:
+    return self.config.get(item, default)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.items"><code class="name flex">
+<span>def <span class="ident">items</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def items(self):
+    return self.config.items()</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.make_messages"><code class="name flex">
+<span>def <span class="ident">make_messages</span></span>(<span>self,<br>query: str | None = None,<br>prompt: Dict[str, str] | None = None,<br>messages: List[Dict[str, str]] | None = None,<br>keep_n: int | None = None) ‑> List[Dict[str, str]]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def make_messages(self, query: Optional[str] = None, prompt: Optional[Dict[str, str]] = None,
+                  messages: Optional[List[Dict[str, str]]] = None, keep_n: Optional[int] = None) -&gt; List[Dict[str, str]]:
+    return self.llmsobject.make_messages(query, prompt, messages, keep_n)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.max_input_tokens"><code class="name flex">
+<span>def <span class="ident">max_input_tokens</span></span>(<span>self) ‑> int | None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def max_input_tokens(self) -&gt; Optional[int]:
+    return self.llmsobject.max_input_tokens(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.max_output_tokens"><code class="name flex">
+<span>def <span class="ident">max_output_tokens</span></span>(<span>self) ‑> int</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def max_output_tokens(self) -&gt; int:
+    return self.llmsobject.max_output_tokens(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.query"><code class="name flex">
+<span>def <span class="ident">query</span></span>(<span>self,<br>messages: List[Dict[str, str]],<br>return_cost: bool = False,<br>return_response: bool = False,<br>debug=False) ‑> Dict[str, <built-in function any>]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def query(
+        self,
+        messages: List[Dict[str, str]],
+        return_cost: bool = False,
+        return_response: bool = False,
+        debug=False,
+) -&gt; Dict[str, any]:
+    llmalias = self.config[&#34;alias&#34;]
+    return self.llmsobject.query(llmalias, messages, return_cost, return_response, debug)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.set_model_attributes"><code class="name flex">
+<span>def <span class="ident">set_model_attributes</span></span>(<span>self,<br>input_cost_per_token: float,<br>output_cost_per_token: float,<br>input_cost_per_second: float,<br>max_prompt_tokens: int)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_model_attributes(self, input_cost_per_token: float, output_cost_per_token: float,
+                         input_cost_per_second: float, max_prompt_tokens: int):
+    return self.llmsobject.set_model_attributes(self.config[&#34;alias&#34;], input_cost_per_token, output_cost_per_token,
+                                               input_cost_per_second, max_prompt_tokens)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
 <dt id="llms_wrapper.llms.LLMS"><code class="flex name class">
 <span>class <span class="ident">LLMS</span></span>
 <span>(</span><span>config: Dict, debug: bool = False)</span>
@@ -68,16 +280,21 @@ el.replaceWith(d);
         self.config = deepcopy(config)
         self.debug = debug
         # convert the config into a dictionary of LLM objects where the key is the alias of the LLM
-        self.llms = {}
+        self.llms: Dict[str, &#34;LLM&#34;] = {}
         for llm in self.config[&#34;llms&#34;]:
+            if not isinstance(llm, dict):
+                raise ValueError(f&#34;Error: LLM entry is not a dict: {llm}&#34;)
             alias = llm[&#34;alias&#34;]
             if alias in self.llms:
                 raise ValueError(f&#34;Error: Duplicate LLM alis {alias} in configuration&#34;)
+            # make a copy
+            llmdict = deepcopy(llm)
+            llmdict[&#34;_cost&#34;] = 0
+            llmdict[&#34;_elapsed_time&#34;] = 0
+            llm = LLM(llmdict, self)
             self.llms[alias] = llm
-            self.llms[alias][&#34;_cost&#34;] = 0
-            self.llms[alias][&#34;_elapsed_time&#34;] = 0
 
-    def list_models(self) -&gt; List[Dict]:
+    def list_models(self) -&gt; List[&#34;LLM&#34;]:
         &#34;&#34;&#34;
         Get a list of model configuration objects
         &#34;&#34;&#34;
@@ -95,7 +312,7 @@ el.replaceWith(d);
         &#34;&#34;&#34;
         return self.llms.get(alias, None)
 
-    def __getitem__(self, item: str) -&gt; Dict:
+    def __getitem__(self, item: str) -&gt; &#34;LLM&#34;:
         &#34;&#34;&#34;
         Get the LLM configuration object with the given alias.
         &#34;&#34;&#34;
@@ -406,14 +623,14 @@ the query method with return_cost=True.</p></div>
 <div class="desc"><p>List the (unique) alias names in the configuration.</p></div>
 </dd>
 <dt id="llms_wrapper.llms.LLMS.list_models"><code class="name flex">
-<span>def <span class="ident">list_models</span></span>(<span>self) ‑> List[Dict]</span>
+<span>def <span class="ident">list_models</span></span>(<span>self) ‑> List[<a title="llms_wrapper.llms.LLM" href="#llms_wrapper.llms.LLM">LLM</a>]</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def list_models(self) -&gt; List[Dict]:
+<pre><code class="python">def list_models(self) -&gt; List[&#34;LLM&#34;]:
     &#34;&#34;&#34;
     Get a list of model configuration objects
     &#34;&#34;&#34;
@@ -686,6 +903,21 @@ be set in the configuration file to be passed to the model invocation call.</p><
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
+<li>
+<h4><code><a title="llms_wrapper.llms.LLM" href="#llms_wrapper.llms.LLM">LLM</a></code></h4>
+<ul class="">
+<li><code><a title="llms_wrapper.llms.LLM.cost" href="#llms_wrapper.llms.LLM.cost">cost</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.cost_per_token" href="#llms_wrapper.llms.LLM.cost_per_token">cost_per_token</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.elapsed" href="#llms_wrapper.llms.LLM.elapsed">elapsed</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.get" href="#llms_wrapper.llms.LLM.get">get</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.items" href="#llms_wrapper.llms.LLM.items">items</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.make_messages" href="#llms_wrapper.llms.LLM.make_messages">make_messages</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.max_input_tokens" href="#llms_wrapper.llms.LLM.max_input_tokens">max_input_tokens</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.max_output_tokens" href="#llms_wrapper.llms.LLM.max_output_tokens">max_output_tokens</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.query" href="#llms_wrapper.llms.LLM.query">query</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.set_model_attributes" href="#llms_wrapper.llms.LLM.set_model_attributes">set_model_attributes</a></code></li>
+</ul>
+</li>
 <li>
 <h4><code><a title="llms_wrapper.llms.LLMS" href="#llms_wrapper.llms.LLMS">LLMS</a></code></h4>
 <ul class="">
