@@ -208,10 +208,11 @@ class LLMS:
             # name of the type from the argspec annotation information, if not specified there, assume string
             argtypes = []
             for idx, aname in enumerate(argspec.args):
-                if aname in doc.params:
+                if idx < len(doc.params):
                     argtypes.append(doc.params[idx].type_name)
-                elif argspec.annotations.get(aname):
-                    argtypes.append(argspec.annotations[aname].__name__)
+                # it seems proper python types are not supported?
+                # elif argspec.annotations.get(aname):
+                #     argtypes.append(argspec.annotations[aname].__name__)
                 else:
                     argtypes.append("string")
             argdescs = []
@@ -220,11 +221,12 @@ class LLMS:
                     argdescs.append(doc.params[idx].description)
                 else:
                     raise ValueError(f"Error: Missing description for parameter {aname} in doc of function {func.__name__}")
+            desc = doc.short_description + "\n\n" + doc.long_description
             tools.append({
                 "type": "function",
                 "function": {
                     "name": func.__name__,
-                    "description": doc.long_description,
+                    "description": desc,
                     "parameters": {
                         "type": "object",
                         "properties": {
@@ -313,7 +315,8 @@ class LLMS:
             completion_kwargs["api_key"] = os.getenv(llm["api_key_env"])
         if llm.get("api_url"):
             completion_kwargs["api_base"] = llm["api_url"]
-
+        if tools is not None:
+            completion_kwargs["tools"] = tools
         ret = {}
         if debug:
             logger.debug(f"Calling completion with {completion_kwargs}")
@@ -342,9 +345,15 @@ class LLMS:
                 ret["n_completion_tokens"] = usage.completion_tokens
                 ret["n_prompt_tokens"] = usage.prompt_tokens
                 ret["n_total_tokens"] = usage.total_tokens
-            ret["answer"] = response['choices'][0]['message']['content']
+            response_message = response['choices'][0]['message']
+            ret["answer"] = response_message['content']
             ret["error"] = ""
             ret["ok"] = True
+            # TODO: if feasable handle all tool calling here or in a separate method which does
+            #   all the tool calling steps (up to a specified maximum).
+            if tools is not None:
+                ret["tool_calls"] = response_message.tool_calls
+                ret["response_message"] = response_message
         except Exception as e:
             ret["error"] = str(e)
             if debug:
@@ -377,12 +386,19 @@ class LLM:
     def query(
             self,
             messages: List[Dict[str, str]],
+            tools: Optional[List[Dict]] = None,
             return_cost: bool = False,
             return_response: bool = False,
             debug=False,
     ) -> Dict[str, any]:
         llmalias = self.config["alias"]
-        return self.llmsobject.query(llmalias, messages, return_cost, return_response, debug)
+        return self.llmsobject.query(
+            llmalias,
+            messages=messages,
+            tools=tools,
+            return_cost=return_cost,
+            return_response=return_response,
+            debug=debug)
 
     def __str__(self):
         return f"LLM({self.config['alias']})"
