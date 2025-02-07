@@ -1,4 +1,5 @@
 litellm
 hjson
+docstring_parser
 pdoc3
 pytest

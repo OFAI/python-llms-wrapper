@@ -5,12 +5,15 @@ import os
 
 import litellm
 import time
+import inspect
+import docstring_parser
 from llms_wrapper.logging import logger
-from typing import Optional, Dict, List, Union, Tuple
+from typing import Optional, Dict, List, Union, Tuple, Callable
 from copy import deepcopy
 
 from litellm import completion, completion_cost
-from litellm.utils import get_model_info
+from litellm.utils import get_model_info, get_supported_openai_params, supports_pdf_input,  supports_response_schema
+from litellm.utils import supports_function_calling, supports_parallel_function_calling
 from llms_wrapper.utils import dict_except
 
 ROLES = ["user", "assistant", "system"]
@@ -146,8 +149,10 @@ class LLMS:
             }
         )
 
+    @staticmethod
     def make_messages(
-            self, query: Optional[str] = None, prompt: Optional[Dict[str, str]] = None,
+            query: Optional[str] = None,
+            prompt: Optional[Dict[str, str]] = None,
             messages: Optional[List[Dict[str, str]]] = None,
             keep_n: Optional[int] = None,
     ) -> List[Dict[str, str]]:
@@ -184,10 +189,89 @@ class LLMS:
             messages = messages[:1] + messages[-keep_n:]
         return messages
 
+    @staticmethod
+    def make_tooling(functions: Union[Callable, List[Callable]]) -> List[Dict]:
+        """
+        Automatically create the tooling descriptions for a function or list of functions, based on the
+        function(s) documentation strings.
+        """
+        if not isinstance(functions, list):
+            functions = [functions]
+        tools = []
+        for func in functions:
+            if not callable(func):
+                raise ValueError(f"Error: {func} is not callable")
+            doc = docstring_parser.parse(func.__doc__)
+            argspec = inspect.getfullargspec(func)
+            nrequired = len(argspec.args) - len(argspec.defaults) if argspec.defaults else len(argspec.args)
+            # for each parameter get the type as specified in the docstring, if not specified, get the
+            # name of the type from the argspec annotation information, if not specified there, assume string
+            argtypes = []
+            for idx, aname in enumerate(argspec.args):
+                if aname in doc.params:
+                    argtypes.append(doc.params[idx].type_name)
+                elif argspec.annotations.get(aname):
+                    argtypes.append(argspec.annotations[aname].__name__)
+                else:
+                    argtypes.append("string")
+            argdescs = []
+            for idx, aname in enumerate(argspec.args):
+                if idx < len(doc.params):
+                    argdescs.append(doc.params[idx].description)
+                else:
+                    raise ValueError(f"Error: Missing description for parameter {aname} in doc of function {func.__name__}")
+            tools.append({
+                "type": "function",
+                "function": {
+                    "name": func.__name__,
+                    "description": doc.long_description,
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            doc.params[i].arg_name: {
+                                "type": argtypes[i],
+                                "description": argdescs[i],
+                            } for i in range(len(argspec.args))
+                        },
+                        "required": [param.arg_name for param in doc.params[:nrequired]],
+                    },
+                },
+            })
+        return tools
+
+    def supports_response_format(self, llmalias: str) -> bool:
+        """
+        Check if the model supports the response format parameters. This usually just indicates support
+        for response_format "json".
+        """
+        params = get_supported_openai_params(model=self.llms[llmalias]["llm"],
+                                             custom_llm_provider=self.llms[llmalias].get("custom_provider"))
+        return "response_format" in params
+
+    def supports_json_schema(self, llmalias: str) -> bool:
+        """
+        Check if the model supports the json_schema parameter
+        """
+        return supports_response_schema(model=self.llms[llmalias]["llm"],
+                                        custom_llm_provider=self.llms[llmalias].get("custom_provider"))
+
+    def supports_function_calling(self, llmalias: str, parallel=False) -> bool:
+        """
+        Check if the model supports function calling
+        """
+        if parallel:
+            return supports_parallel_function_calling(
+                model=self.llms[llmalias]["llm"],
+                )
+        return supports_function_calling(
+            model=self.llms[llmalias]["llm"],
+            custom_llm_provider=self.llms[llmalias].get("custom_provider"))
+
     def query(
             self,
             llmalias: str,
             messages: List[Dict[str, str]],
+            tools: Optional[List[Dict]] = None,
             return_cost: bool = False,
             return_response: bool = False,
             debug=False,
@@ -330,4 +414,13 @@ class LLM:
 
     def cost(self):
         return self.llmsobject.cost(self.config["alias"])
+
+    def supports_response_format(self) -> bool:
+        return self.llmsobject.supports_response_format(self.config["alias"])
+
+    def supports_json_schema(self) -> bool:
+        return self.llmsobject.supports_json_schema(self.config["alias"])
+
+    def supports_function_calling(self, parallel=False) -> bool:
+        return self.llmsobject.supports_function_calling(self.config["alias"], parallel)
 
