@@ -42,6 +42,7 @@ setup(
     install_requires=[
         "litellm",
         "hjson",
+        "docstring_parser", 
     ],
     extras_require={
         "dev": [ "pdoc3", "pytest", "pytest-cov", "ipython", "jupyter", "jupyterlab", "ipykernel", "notebook" ],
