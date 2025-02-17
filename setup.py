@@ -42,6 +42,7 @@ setup(
     install_requires=[
         "litellm",
         "hjson",
+        "loguru",
         "docstring_parser", 
     ],
     extras_require={

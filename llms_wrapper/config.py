@@ -6,7 +6,6 @@ one of the following formats: json, hjson, yaml, toml. This module only cares ab
 "llms" and "providers": all other fields are ignored.
 
 """
-from llms_wrapper.logging import logger
 import warnings
 
 ## For debugging the stacktrace of the weird litellm warning

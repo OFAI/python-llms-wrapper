@@ -4,11 +4,10 @@
 Module for the llms_wrapper_test command to perform a simple test to check
 if one or more LLMs are working.
 """
-import sys
 import argparse
 import re
-from logging import DEBUG
-from llms_wrapper.logging import logger, set_logging_level, add_logging_file
+from loguru import logger
+from llms_wrapper.logging import configure_logging
 from llms_wrapper.llms import LLMS
 from llms_wrapper.config import read_config_file, update_llm_config
 from llms_wrapper.utils import pp_config, dict_except
@@ -18,10 +17,12 @@ Only give the name and no additional text?"""
 
 DEFAULT_ANSWER = "Albert"
 
+
 def get_args() -> dict:
     """
     Get the command line arguments
     """
+    print("ENTERING get_args")
     parser = argparse.ArgumentParser(description='Test llms')
     parser.add_argument('--llms', '-l', nargs="*", type=str, default=[], help='LLMs to use for the queries (or use config)', required=False)
     parser.add_argument('--use', '-u', nargs="*", type=str, default=[], help='Subset of LLMs to use (all)', required=False)
@@ -35,13 +36,21 @@ def get_args() -> dict:
     parser.add_argument("--show_cost", action="store_true", help="Show token counts and cost", required=False)
     parser.add_argument("--logfile", "-f", type=str, help="Log file", required=False)
     args = parser.parse_args()
+    print("after parse_args")
+    loglevel1 = "INFO"
+    if args.debug:
+        loglevel1 = "DEBUG"
+    print("before configure_logging")
+    configure_logging(level=loglevel1, logfile=args.logfile)
+    # logger.enable("llms_wrapper")
+    # TODO: for testing, remove once logging works properly
+    logger.info("Logging configured")
     for llm in args.llms:
         if not re.match(r"^[a-zA-Z0-9_\-./]+/.+$", llm):
             raise Exception(f"Error: 'llms' field must be in the format 'provider:model' in: {llm}")
     # convert the argparse object to a dictionary
     argsconfig = {}
     argsconfig.update(vars(args))
-
     # if a config file is specified, read the config file using our config reading function and update the arguments.
     # The config data may contain:
     # - input: used only if not specified in the command line arguments
@@ -64,6 +73,7 @@ def get_args() -> dict:
     else:
         config = argsconfig
     update_llm_config(config)
+
     config["answer"] = args.answer
     if len(args.use) > 0:
         # check that the llms specified are actually to be found in the config
@@ -78,6 +88,8 @@ def get_args() -> dict:
     if not config["llms"]:
         raise Exception("Error: No LLMs specified")
     logger.debug(f"Effective config: {pp_config(config)}")
+    ppargs = pp_config(config)
+    logger.debug(f"Effective arguments: {ppargs}")
     return config
 
 
@@ -90,6 +102,7 @@ def equal_response(response, answer):
 
 
 def run(config: dict):
+    logger.info("Running LLM test")
     prompt = {}
     prompt[config['role']] = config['prompt'] if config['prompt'] else DEFAULT_PROMPT
     answer = config['answer'] if config['answer'] else DEFAULT_ANSWER
@@ -103,6 +116,9 @@ def run(config: dict):
         llms_to_use = llms.list_aliases()
     else:
         llms_to_use = config["llms_to_use"]
+    if len(llms_to_use) == 0:
+        logger.warning("No LLMs to use")
+        return
     for alias in llms_to_use:
         llmname = alias
         llm = llms.get(alias)
@@ -153,16 +169,14 @@ def run(config: dict):
 
 
 def main():
+    print("Entering main()")
     args = get_args()
-    if args["logfile"]:
-        add_logging_file(args["logfile"])
-    if args["debug"]:
-        set_logging_level(DEBUG)
-        ppargs = pp_config(args)
-        logger.debug(f"Effective arguments: {ppargs}")
+    print("After get_args()")
     run(args)
 
 
 if __name__ == '__main__':
-    logger.enable()
+    print("Entering if __main__")
+    logger.enable("llms_wrapper")
+    print("Before main()")
     main()

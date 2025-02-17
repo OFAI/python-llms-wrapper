@@ -2,24 +2,23 @@
 Module related to using LLMs.
 """
 import os
-
+import warnings
+# TODO: Remove after https://github.com/BerriAI/litellm/issues/7560 is fixed
+warnings.filterwarnings("ignore", category=UserWarning, module="pydantic._internal._config")
 import litellm
 import time
 import inspect
 import docstring_parser
-from llms_wrapper.logging import logger
+from loguru import logger
 from typing import Optional, Dict, List, Union, Tuple, Callable
 from copy import deepcopy
 
 from litellm import completion, completion_cost
-from litellm.utils import get_model_info, get_supported_openai_params, supports_pdf_input,  supports_response_schema
+from litellm.utils import get_model_info, get_supported_openai_params, supports_response_schema
 from litellm.utils import supports_function_calling, supports_parallel_function_calling
 from llms_wrapper.utils import dict_except
 
 ROLES = ["user", "assistant", "system"]
-
-## TODO: the digested versions of the LLM configs should be objects, and point to the containing LLMS object
-##     so we can pass around just single LLM objects and run queries etc on them
 
 
 class LLMS:

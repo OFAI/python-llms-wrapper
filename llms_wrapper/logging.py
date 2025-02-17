@@ -12,50 +12,37 @@ If set_logging_level is called after a file handler has been added, the logging 
 changed too.
 """
 import sys
-import logging
+from loguru import logger
 
-# create a logger object
-logger = logging.getLogger("llms_wrapper")
-# set the logging level to INFO
-logger.setLevel(logging.INFO)
-# create a handler to log to stderr
-handler = logging.StreamHandler(sys.stderr)
-# create a formatter to format the log messages
-formatter = logging.Formatter("{asctime} {levelname} {filename}/{funcName}:{lineno}: {message}", datefmt='%Y-%m-%d %H:%M:%S', style="{")
-# set the formatter for the handler
-handler.setFormatter(formatter)
-# add the handler to the logger
-logger.addHandler(handler)
+DEFAULT_LOGGING_LEVEL = "INFO"
+DEFAULT_LOGGING_FORMAT = "{time} {level} {module}: {message}"
+
+def configure_logging(level=None, logfile=None, format=None, enable=True):
+    """
+    Configure loguru logging sinks. This removes the default sink and adds one for stderr and, if a logfile
+    is specified, one for the logfile, both for the specified level. The format of the log messages can be
+    specified with the format parameter or the default format is used.
+    """
+    logger.remove()
+    if level is None:
+        level = DEFAULT_LOGGING_LEVEL
+    if format is None:
+        format = DEFAULT_LOGGING_FORMAT
+    logger.add(sys.stderr, level=level, format=format)
+    if logfile is not None:
+        logger.add(logfile, level=level, format=format)
+    sys.excepthook = handle_exception
+    if enable:
+        logger.enable("llms_wrapper")
+
 
 # Define a custom exception handler
 def handle_exception(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
-    logger.error("Exception", exc_info=(exc_type, exc_value, exc_traceback))
+    logger.opt(exception=(exc_type, exc_value, exc_traceback)).error("Unhandled exception")
 
-# Set the custom exception handler as the default
-sys.excepthook = handle_exception
-
-def set_logging_level(level: int):
-    """
-    Set the logging level of all handlers to the specified level.
-    :param level: the logging level to set
-    """
-    logger.setLevel(level)
-    for handler in logger.handlers:
-        handler.setLevel(level)
-
-
-def add_logging_file(file: str):
-    """
-    Add a file handler to the specified file and the current logging level.
-    :param file: the file to log to
-    """
-    file_handler = logging.FileHandler(file)
-    file_handler.setFormatter(formatter)
-    file_handler.setLevel(logger.level)
-    logger.addHandler(file_handler)
 
 
 
