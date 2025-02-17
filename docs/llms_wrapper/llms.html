@@ -76,12 +76,19 @@ el.replaceWith(d);
     def query(
             self,
             messages: List[Dict[str, str]],
+            tools: Optional[List[Dict]] = None,
             return_cost: bool = False,
             return_response: bool = False,
             debug=False,
     ) -&gt; Dict[str, any]:
         llmalias = self.config[&#34;alias&#34;]
-        return self.llmsobject.query(llmalias, messages, return_cost, return_response, debug)
+        return self.llmsobject.query(
+            llmalias,
+            messages=messages,
+            tools=tools,
+            return_cost=return_cost,
+            return_response=return_response,
+            debug=debug)
 
     def __str__(self):
         return f&#34;LLM({self.config[&#39;alias&#39;]})&#34;
@@ -112,7 +119,16 @@ el.replaceWith(d);
         return self.llmsobject.elapsed(self.config[&#34;alias&#34;])
 
     def cost(self):
-        return self.llmsobject.cost(self.config[&#34;alias&#34;])</code></pre>
+        return self.llmsobject.cost(self.config[&#34;alias&#34;])
+
+    def supports_response_format(self) -&gt; bool:
+        return self.llmsobject.supports_response_format(self.config[&#34;alias&#34;])
+
+    def supports_json_schema(self) -&gt; bool:
+        return self.llmsobject.supports_json_schema(self.config[&#34;alias&#34;])
+
+    def supports_function_calling(self, parallel=False) -&gt; bool:
+        return self.llmsobject.supports_function_calling(self.config[&#34;alias&#34;], parallel)</code></pre>
 </details>
 <div class="desc"></div>
 <h3>Methods</h3>
@@ -223,7 +239,7 @@ el.replaceWith(d);
 <div class="desc"></div>
 </dd>
 <dt id="llms_wrapper.llms.LLM.query"><code class="name flex">
-<span>def <span class="ident">query</span></span>(<span>self,<br>messages: List[Dict[str, str]],<br>return_cost: bool = False,<br>return_response: bool = False,<br>debug=False) ‑> Dict[str, <built-in function any>]</span>
+<span>def <span class="ident">query</span></span>(<span>self,<br>messages: List[Dict[str, str]],<br>tools: List[Dict] | None = None,<br>return_cost: bool = False,<br>return_response: bool = False,<br>debug=False) ‑> Dict[str, <built-in function any>]</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -233,12 +249,19 @@ el.replaceWith(d);
 <pre><code class="python">def query(
         self,
         messages: List[Dict[str, str]],
+        tools: Optional[List[Dict]] = None,
         return_cost: bool = False,
         return_response: bool = False,
         debug=False,
 ) -&gt; Dict[str, any]:
     llmalias = self.config[&#34;alias&#34;]
-    return self.llmsobject.query(llmalias, messages, return_cost, return_response, debug)</code></pre>
+    return self.llmsobject.query(
+        llmalias,
+        messages=messages,
+        tools=tools,
+        return_cost=return_cost,
+        return_response=return_response,
+        debug=debug)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -254,6 +277,45 @@ el.replaceWith(d);
                          input_cost_per_second: float, max_prompt_tokens: int):
     return self.llmsobject.set_model_attributes(self.config[&#34;alias&#34;], input_cost_per_token, output_cost_per_token,
                                                input_cost_per_second, max_prompt_tokens)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.supports_function_calling"><code class="name flex">
+<span>def <span class="ident">supports_function_calling</span></span>(<span>self, parallel=False) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def supports_function_calling(self, parallel=False) -&gt; bool:
+    return self.llmsobject.supports_function_calling(self.config[&#34;alias&#34;], parallel)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.supports_json_schema"><code class="name flex">
+<span>def <span class="ident">supports_json_schema</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def supports_json_schema(self) -&gt; bool:
+    return self.llmsobject.supports_json_schema(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.supports_response_format"><code class="name flex">
+<span>def <span class="ident">supports_response_format</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def supports_response_format(self) -&gt; bool:
+    return self.llmsobject.supports_response_format(self.config[&#34;alias&#34;])</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -395,8 +457,10 @@ el.replaceWith(d);
             }
         )
 
+    @staticmethod
     def make_messages(
-            self, query: Optional[str] = None, prompt: Optional[Dict[str, str]] = None,
+            query: Optional[str] = None,
+            prompt: Optional[Dict[str, str]] = None,
             messages: Optional[List[Dict[str, str]]] = None,
             keep_n: Optional[int] = None,
     ) -&gt; List[Dict[str, str]]:
@@ -433,10 +497,91 @@ el.replaceWith(d);
             messages = messages[:1] + messages[-keep_n:]
         return messages
 
+    @staticmethod
+    def make_tooling(functions: Union[Callable, List[Callable]]) -&gt; List[Dict]:
+        &#34;&#34;&#34;
+        Automatically create the tooling descriptions for a function or list of functions, based on the
+        function(s) documentation strings.
+        &#34;&#34;&#34;
+        if not isinstance(functions, list):
+            functions = [functions]
+        tools = []
+        for func in functions:
+            if not callable(func):
+                raise ValueError(f&#34;Error: {func} is not callable&#34;)
+            doc = docstring_parser.parse(func.__doc__)
+            argspec = inspect.getfullargspec(func)
+            nrequired = len(argspec.args) - len(argspec.defaults) if argspec.defaults else len(argspec.args)
+            # for each parameter get the type as specified in the docstring, if not specified, get the
+            # name of the type from the argspec annotation information, if not specified there, assume string
+            argtypes = []
+            for idx, aname in enumerate(argspec.args):
+                if idx &lt; len(doc.params):
+                    argtypes.append(doc.params[idx].type_name)
+                # it seems proper python types are not supported?
+                # elif argspec.annotations.get(aname):
+                #     argtypes.append(argspec.annotations[aname].__name__)
+                else:
+                    argtypes.append(&#34;string&#34;)
+            argdescs = []
+            for idx, aname in enumerate(argspec.args):
+                if idx &lt; len(doc.params):
+                    argdescs.append(doc.params[idx].description)
+                else:
+                    raise ValueError(f&#34;Error: Missing description for parameter {aname} in doc of function {func.__name__}&#34;)
+            desc = doc.short_description + &#34;\n\n&#34; + doc.long_description
+            tools.append({
+                &#34;type&#34;: &#34;function&#34;,
+                &#34;function&#34;: {
+                    &#34;name&#34;: func.__name__,
+                    &#34;description&#34;: desc,
+                    &#34;parameters&#34;: {
+                        &#34;type&#34;: &#34;object&#34;,
+                        &#34;properties&#34;: {
+                            doc.params[i].arg_name: {
+                                &#34;type&#34;: argtypes[i],
+                                &#34;description&#34;: argdescs[i],
+                            } for i in range(len(argspec.args))
+                        },
+                        &#34;required&#34;: [param.arg_name for param in doc.params[:nrequired]],
+                    },
+                },
+            })
+        return tools
+
+    def supports_response_format(self, llmalias: str) -&gt; bool:
+        &#34;&#34;&#34;
+        Check if the model supports the response format parameters. This usually just indicates support
+        for response_format &#34;json&#34;.
+        &#34;&#34;&#34;
+        params = get_supported_openai_params(model=self.llms[llmalias][&#34;llm&#34;],
+                                             custom_llm_provider=self.llms[llmalias].get(&#34;custom_provider&#34;))
+        return &#34;response_format&#34; in params
+
+    def supports_json_schema(self, llmalias: str) -&gt; bool:
+        &#34;&#34;&#34;
+        Check if the model supports the json_schema parameter
+        &#34;&#34;&#34;
+        return supports_response_schema(model=self.llms[llmalias][&#34;llm&#34;],
+                                        custom_llm_provider=self.llms[llmalias].get(&#34;custom_provider&#34;))
+
+    def supports_function_calling(self, llmalias: str, parallel=False) -&gt; bool:
+        &#34;&#34;&#34;
+        Check if the model supports function calling
+        &#34;&#34;&#34;
+        if parallel:
+            return supports_parallel_function_calling(
+                model=self.llms[llmalias][&#34;llm&#34;],
+                )
+        return supports_function_calling(
+            model=self.llms[llmalias][&#34;llm&#34;],
+            custom_llm_provider=self.llms[llmalias].get(&#34;custom_provider&#34;))
+
     def query(
             self,
             llmalias: str,
             messages: List[Dict[str, str]],
+            tools: Optional[List[Dict]] = None,
             return_cost: bool = False,
             return_response: bool = False,
             debug=False,
@@ -478,7 +623,8 @@ el.replaceWith(d);
             completion_kwargs[&#34;api_key&#34;] = os.getenv(llm[&#34;api_key_env&#34;])
         if llm.get(&#34;api_url&#34;):
             completion_kwargs[&#34;api_base&#34;] = llm[&#34;api_url&#34;]
-
+        if tools is not None:
+            completion_kwargs[&#34;tools&#34;] = tools
         ret = {}
         if debug:
             logger.debug(f&#34;Calling completion with {completion_kwargs}&#34;)
@@ -507,9 +653,15 @@ el.replaceWith(d);
                 ret[&#34;n_completion_tokens&#34;] = usage.completion_tokens
                 ret[&#34;n_prompt_tokens&#34;] = usage.prompt_tokens
                 ret[&#34;n_total_tokens&#34;] = usage.total_tokens
-            ret[&#34;answer&#34;] = response[&#39;choices&#39;][0][&#39;message&#39;][&#39;content&#39;]
+            response_message = response[&#39;choices&#39;][0][&#39;message&#39;]
+            ret[&#34;answer&#34;] = response_message[&#39;content&#39;]
             ret[&#34;error&#34;] = &#34;&#34;
             ret[&#34;ok&#34;] = True
+            # TODO: if feasable handle all tool calling here or in a separate method which does
+            #   all the tool calling steps (up to a specified maximum).
+            if tools is not None:
+                ret[&#34;tool_calls&#34;] = response_message.tool_calls
+                ret[&#34;response_message&#34;] = response_message
         except Exception as e:
             ret[&#34;error&#34;] = str(e)
             if debug:
@@ -520,6 +672,136 @@ el.replaceWith(d);
 </details>
 <div class="desc"><p>Class that represents a preconfigured set of large language modelservices.</p>
 <p>Initialize the LLMS object with the given configuration.</p></div>
+<h3>Static methods</h3>
+<dl>
+<dt id="llms_wrapper.llms.LLMS.make_messages"><code class="name flex">
+<span>def <span class="ident">make_messages</span></span>(<span>query: str | None = None,<br>prompt: Dict[str, str] | None = None,<br>messages: List[Dict[str, str]] | None = None,<br>keep_n: int | None = None) ‑> List[Dict[str, str]]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def make_messages(
+        query: Optional[str] = None,
+        prompt: Optional[Dict[str, str]] = None,
+        messages: Optional[List[Dict[str, str]]] = None,
+        keep_n: Optional[int] = None,
+) -&gt; List[Dict[str, str]]:
+    &#34;&#34;&#34;
+    Construct updated messages from the query and/or prompt data.
+
+    Args:
+        query: A query text, if no prompt is given, a message with this text for role user is created.
+        prompt: a dict mapping roles to text templates, where the text template may contain the string &#34;${query}&#34;
+        messages: previous messages to include in the new messages
+        keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
+            the last keep_n-1 messages are kept.
+
+    Returns:
+        A list of message dictionaries
+    &#34;&#34;&#34;
+    if messages is None:
+        messages = []
+    if query is None and prompt is None:
+        raise ValueError(&#34;Error: Both query and prompt are None&#34;)
+    if query is None:
+        # convert the prompt as is to messages
+        for role, content in prompt.items():
+            if content and role in ROLES:
+                messages.append(dict(role=role, content=content))
+    elif prompt is None:
+        messages.append({&#34;content&#34;: query, &#34;role&#34;: &#34;user&#34;})
+    else:
+        for role, content in prompt.items():
+            if content and role in ROLES:
+                messages.append(dict(role=role, content=content.replace(&#34;${query}&#34;, query)))
+    # if we have more than keep_n messages, remove oldest message but the first so that we have keep_n messages
+    if keep_n is not None and len(messages) &gt; keep_n:
+        messages = messages[:1] + messages[-keep_n:]
+    return messages</code></pre>
+</details>
+<div class="desc"><p>Construct updated messages from the query and/or prompt data.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>query</code></strong></dt>
+<dd>A query text, if no prompt is given, a message with this text for role user is created.</dd>
+<dt><strong><code>prompt</code></strong></dt>
+<dd>a dict mapping roles to text templates, where the text template may contain the string "${query}"</dd>
+<dt><strong><code>messages</code></strong></dt>
+<dd>previous messages to include in the new messages</dd>
+<dt><strong><code>keep_n</code></strong></dt>
+<dd>the number of messages to keep, if None, all messages are kept, otherwise the first message and
+the last keep_n-1 messages are kept.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A list of message dictionaries</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.make_tooling"><code class="name flex">
+<span>def <span class="ident">make_tooling</span></span>(<span>functions: Callable | List[Callable]) ‑> List[Dict]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def make_tooling(functions: Union[Callable, List[Callable]]) -&gt; List[Dict]:
+    &#34;&#34;&#34;
+    Automatically create the tooling descriptions for a function or list of functions, based on the
+    function(s) documentation strings.
+    &#34;&#34;&#34;
+    if not isinstance(functions, list):
+        functions = [functions]
+    tools = []
+    for func in functions:
+        if not callable(func):
+            raise ValueError(f&#34;Error: {func} is not callable&#34;)
+        doc = docstring_parser.parse(func.__doc__)
+        argspec = inspect.getfullargspec(func)
+        nrequired = len(argspec.args) - len(argspec.defaults) if argspec.defaults else len(argspec.args)
+        # for each parameter get the type as specified in the docstring, if not specified, get the
+        # name of the type from the argspec annotation information, if not specified there, assume string
+        argtypes = []
+        for idx, aname in enumerate(argspec.args):
+            if idx &lt; len(doc.params):
+                argtypes.append(doc.params[idx].type_name)
+            # it seems proper python types are not supported?
+            # elif argspec.annotations.get(aname):
+            #     argtypes.append(argspec.annotations[aname].__name__)
+            else:
+                argtypes.append(&#34;string&#34;)
+        argdescs = []
+        for idx, aname in enumerate(argspec.args):
+            if idx &lt; len(doc.params):
+                argdescs.append(doc.params[idx].description)
+            else:
+                raise ValueError(f&#34;Error: Missing description for parameter {aname} in doc of function {func.__name__}&#34;)
+        desc = doc.short_description + &#34;\n\n&#34; + doc.long_description
+        tools.append({
+            &#34;type&#34;: &#34;function&#34;,
+            &#34;function&#34;: {
+                &#34;name&#34;: func.__name__,
+                &#34;description&#34;: desc,
+                &#34;parameters&#34;: {
+                    &#34;type&#34;: &#34;object&#34;,
+                    &#34;properties&#34;: {
+                        doc.params[i].arg_name: {
+                            &#34;type&#34;: argtypes[i],
+                            &#34;description&#34;: argdescs[i],
+                        } for i in range(len(argspec.args))
+                    },
+                    &#34;required&#34;: [param.arg_name for param in doc.params[:nrequired]],
+                },
+            },
+        })
+    return tools</code></pre>
+</details>
+<div class="desc"><p>Automatically create the tooling descriptions for a function or list of functions, based on the
+function(s) documentation strings.</p></div>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="llms_wrapper.llms.LLMS.cost"><code class="name flex">
@@ -638,68 +920,6 @@ the query method with return_cost=True.</p></div>
 </details>
 <div class="desc"><p>Get a list of model configuration objects</p></div>
 </dd>
-<dt id="llms_wrapper.llms.LLMS.make_messages"><code class="name flex">
-<span>def <span class="ident">make_messages</span></span>(<span>self,<br>query: str | None = None,<br>prompt: Dict[str, str] | None = None,<br>messages: List[Dict[str, str]] | None = None,<br>keep_n: int | None = None) ‑> List[Dict[str, str]]</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def make_messages(
-        self, query: Optional[str] = None, prompt: Optional[Dict[str, str]] = None,
-        messages: Optional[List[Dict[str, str]]] = None,
-        keep_n: Optional[int] = None,
-) -&gt; List[Dict[str, str]]:
-    &#34;&#34;&#34;
-    Construct updated messages from the query and/or prompt data.
-
-    Args:
-        query: A query text, if no prompt is given, a message with this text for role user is created.
-        prompt: a dict mapping roles to text templates, where the text template may contain the string &#34;${query}&#34;
-        messages: previous messages to include in the new messages
-        keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
-            the last keep_n-1 messages are kept.
-
-    Returns:
-        A list of message dictionaries
-    &#34;&#34;&#34;
-    if messages is None:
-        messages = []
-    if query is None and prompt is None:
-        raise ValueError(&#34;Error: Both query and prompt are None&#34;)
-    if query is None:
-        # convert the prompt as is to messages
-        for role, content in prompt.items():
-            if content and role in ROLES:
-                messages.append(dict(role=role, content=content))
-    elif prompt is None:
-        messages.append({&#34;content&#34;: query, &#34;role&#34;: &#34;user&#34;})
-    else:
-        for role, content in prompt.items():
-            if content and role in ROLES:
-                messages.append(dict(role=role, content=content.replace(&#34;${query}&#34;, query)))
-    # if we have more than keep_n messages, remove oldest message but the first so that we have keep_n messages
-    if keep_n is not None and len(messages) &gt; keep_n:
-        messages = messages[:1] + messages[-keep_n:]
-    return messages</code></pre>
-</details>
-<div class="desc"><p>Construct updated messages from the query and/or prompt data.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>query</code></strong></dt>
-<dd>A query text, if no prompt is given, a message with this text for role user is created.</dd>
-<dt><strong><code>prompt</code></strong></dt>
-<dd>a dict mapping roles to text templates, where the text template may contain the string "${query}"</dd>
-<dt><strong><code>messages</code></strong></dt>
-<dd>previous messages to include in the new messages</dd>
-<dt><strong><code>keep_n</code></strong></dt>
-<dd>the number of messages to keep, if None, all messages are kept, otherwise the first message and
-the last keep_n-1 messages are kept.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>A list of message dictionaries</p></div>
-</dd>
 <dt id="llms_wrapper.llms.LLMS.max_input_tokens"><code class="name flex">
 <span>def <span class="ident">max_input_tokens</span></span>(<span>self, llmalias: str) ‑> int | None</span>
 </code></dt>
@@ -738,7 +958,7 @@ the last keep_n-1 messages are kept.</dd>
 <div class="desc"><p>Return the maximum number of prompt tokens that can be sent to the model.</p></div>
 </dd>
 <dt id="llms_wrapper.llms.LLMS.query"><code class="name flex">
-<span>def <span class="ident">query</span></span>(<span>self,<br>llmalias: str,<br>messages: List[Dict[str, str]],<br>return_cost: bool = False,<br>return_response: bool = False,<br>debug=False) ‑> Dict[str, <built-in function any>]</span>
+<span>def <span class="ident">query</span></span>(<span>self,<br>llmalias: str,<br>messages: List[Dict[str, str]],<br>tools: List[Dict] | None = None,<br>return_cost: bool = False,<br>return_response: bool = False,<br>debug=False) ‑> Dict[str, <built-in function any>]</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -749,6 +969,7 @@ the last keep_n-1 messages are kept.</dd>
         self,
         llmalias: str,
         messages: List[Dict[str, str]],
+        tools: Optional[List[Dict]] = None,
         return_cost: bool = False,
         return_response: bool = False,
         debug=False,
@@ -790,7 +1011,8 @@ the last keep_n-1 messages are kept.</dd>
         completion_kwargs[&#34;api_key&#34;] = os.getenv(llm[&#34;api_key_env&#34;])
     if llm.get(&#34;api_url&#34;):
         completion_kwargs[&#34;api_base&#34;] = llm[&#34;api_url&#34;]
-
+    if tools is not None:
+        completion_kwargs[&#34;tools&#34;] = tools
     ret = {}
     if debug:
         logger.debug(f&#34;Calling completion with {completion_kwargs}&#34;)
@@ -819,9 +1041,15 @@ the last keep_n-1 messages are kept.</dd>
             ret[&#34;n_completion_tokens&#34;] = usage.completion_tokens
             ret[&#34;n_prompt_tokens&#34;] = usage.prompt_tokens
             ret[&#34;n_total_tokens&#34;] = usage.total_tokens
-        ret[&#34;answer&#34;] = response[&#39;choices&#39;][0][&#39;message&#39;][&#39;content&#39;]
+        response_message = response[&#39;choices&#39;][0][&#39;message&#39;]
+        ret[&#34;answer&#34;] = response_message[&#39;content&#39;]
         ret[&#34;error&#34;] = &#34;&#34;
         ret[&#34;ok&#34;] = True
+        # TODO: if feasable handle all tool calling here or in a separate method which does
+        #   all the tool calling steps (up to a specified maximum).
+        if tools is not None:
+            ret[&#34;tool_calls&#34;] = response_message.tool_calls
+            ret[&#34;response_message&#34;] = response_message
     except Exception as e:
         ret[&#34;error&#34;] = str(e)
         if debug:
@@ -886,6 +1114,65 @@ The boolean key "ok" is True if there is no error, False otherwise.</p></div>
 <p>NOTE: instead of using this method, the same parameters can alos
 be set in the configuration file to be passed to the model invocation call.</p></div>
 </dd>
+<dt id="llms_wrapper.llms.LLMS.supports_function_calling"><code class="name flex">
+<span>def <span class="ident">supports_function_calling</span></span>(<span>self, llmalias: str, parallel=False) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def supports_function_calling(self, llmalias: str, parallel=False) -&gt; bool:
+    &#34;&#34;&#34;
+    Check if the model supports function calling
+    &#34;&#34;&#34;
+    if parallel:
+        return supports_parallel_function_calling(
+            model=self.llms[llmalias][&#34;llm&#34;],
+            )
+    return supports_function_calling(
+        model=self.llms[llmalias][&#34;llm&#34;],
+        custom_llm_provider=self.llms[llmalias].get(&#34;custom_provider&#34;))</code></pre>
+</details>
+<div class="desc"><p>Check if the model supports function calling</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.supports_json_schema"><code class="name flex">
+<span>def <span class="ident">supports_json_schema</span></span>(<span>self, llmalias: str) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def supports_json_schema(self, llmalias: str) -&gt; bool:
+    &#34;&#34;&#34;
+    Check if the model supports the json_schema parameter
+    &#34;&#34;&#34;
+    return supports_response_schema(model=self.llms[llmalias][&#34;llm&#34;],
+                                    custom_llm_provider=self.llms[llmalias].get(&#34;custom_provider&#34;))</code></pre>
+</details>
+<div class="desc"><p>Check if the model supports the json_schema parameter</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.supports_response_format"><code class="name flex">
+<span>def <span class="ident">supports_response_format</span></span>(<span>self, llmalias: str) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def supports_response_format(self, llmalias: str) -&gt; bool:
+    &#34;&#34;&#34;
+    Check if the model supports the response format parameters. This usually just indicates support
+    for response_format &#34;json&#34;.
+    &#34;&#34;&#34;
+    params = get_supported_openai_params(model=self.llms[llmalias][&#34;llm&#34;],
+                                         custom_llm_provider=self.llms[llmalias].get(&#34;custom_provider&#34;))
+    return &#34;response_format&#34; in params</code></pre>
+</details>
+<div class="desc"><p>Check if the model supports the response format parameters. This usually just indicates support
+for response_format "json".</p></div>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -916,6 +1203,9 @@ be set in the configuration file to be passed to the model invocation call.</p><
 <li><code><a title="llms_wrapper.llms.LLM.max_output_tokens" href="#llms_wrapper.llms.LLM.max_output_tokens">max_output_tokens</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLM.query" href="#llms_wrapper.llms.LLM.query">query</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLM.set_model_attributes" href="#llms_wrapper.llms.LLM.set_model_attributes">set_model_attributes</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.supports_function_calling" href="#llms_wrapper.llms.LLM.supports_function_calling">supports_function_calling</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.supports_json_schema" href="#llms_wrapper.llms.LLM.supports_json_schema">supports_json_schema</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.supports_response_format" href="#llms_wrapper.llms.LLM.supports_response_format">supports_response_format</a></code></li>
 </ul>
 </li>
 <li>
@@ -928,10 +1218,14 @@ be set in the configuration file to be passed to the model invocation call.</p><
 <li><code><a title="llms_wrapper.llms.LLMS.list_aliases" href="#llms_wrapper.llms.LLMS.list_aliases">list_aliases</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.list_models" href="#llms_wrapper.llms.LLMS.list_models">list_models</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.make_messages" href="#llms_wrapper.llms.LLMS.make_messages">make_messages</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.make_tooling" href="#llms_wrapper.llms.LLMS.make_tooling">make_tooling</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.max_input_tokens" href="#llms_wrapper.llms.LLMS.max_input_tokens">max_input_tokens</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.max_output_tokens" href="#llms_wrapper.llms.LLMS.max_output_tokens">max_output_tokens</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.query" href="#llms_wrapper.llms.LLMS.query">query</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.set_model_attributes" href="#llms_wrapper.llms.LLMS.set_model_attributes">set_model_attributes</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.supports_function_calling" href="#llms_wrapper.llms.LLMS.supports_function_calling">supports_function_calling</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.supports_json_schema" href="#llms_wrapper.llms.LLMS.supports_json_schema">supports_json_schema</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.supports_response_format" href="#llms_wrapper.llms.LLMS.supports_response_format">supports_response_format</a></code></li>
 </ul>
 </li>
 </ul>

@@ -77,6 +77,7 @@ leading or trailing spaces.</p></div>
     &#34;&#34;&#34;
     Get the command line arguments
     &#34;&#34;&#34;
+    print(&#34;ENTERING get_args&#34;)
     parser = argparse.ArgumentParser(description=&#39;Test llms&#39;)
     parser.add_argument(&#39;--llms&#39;, &#39;-l&#39;, nargs=&#34;*&#34;, type=str, default=[], help=&#39;LLMs to use for the queries (or use config)&#39;, required=False)
     parser.add_argument(&#39;--use&#39;, &#39;-u&#39;, nargs=&#34;*&#34;, type=str, default=[], help=&#39;Subset of LLMs to use (all)&#39;, required=False)
@@ -90,13 +91,21 @@ leading or trailing spaces.</p></div>
     parser.add_argument(&#34;--show_cost&#34;, action=&#34;store_true&#34;, help=&#34;Show token counts and cost&#34;, required=False)
     parser.add_argument(&#34;--logfile&#34;, &#34;-f&#34;, type=str, help=&#34;Log file&#34;, required=False)
     args = parser.parse_args()
+    print(&#34;after parse_args&#34;)
+    loglevel1 = &#34;INFO&#34;
+    if args.debug:
+        loglevel1 = &#34;DEBUG&#34;
+    print(&#34;before configure_logging&#34;)
+    configure_logging(level=loglevel1, logfile=args.logfile)
+    # logger.enable(&#34;llms_wrapper&#34;)
+    # TODO: for testing, remove once logging works properly
+    logger.info(&#34;Logging configured&#34;)
     for llm in args.llms:
         if not re.match(r&#34;^[a-zA-Z0-9_\-./]+/.+$&#34;, llm):
             raise Exception(f&#34;Error: &#39;llms&#39; field must be in the format &#39;provider:model&#39; in: {llm}&#34;)
     # convert the argparse object to a dictionary
     argsconfig = {}
     argsconfig.update(vars(args))
-
     # if a config file is specified, read the config file using our config reading function and update the arguments.
     # The config data may contain:
     # - input: used only if not specified in the command line arguments
@@ -119,6 +128,7 @@ leading or trailing spaces.</p></div>
     else:
         config = argsconfig
     update_llm_config(config)
+
     config[&#34;answer&#34;] = args.answer
     if len(args.use) &gt; 0:
         # check that the llms specified are actually to be found in the config
@@ -133,6 +143,8 @@ leading or trailing spaces.</p></div>
     if not config[&#34;llms&#34;]:
         raise Exception(&#34;Error: No LLMs specified&#34;)
     logger.debug(f&#34;Effective config: {pp_config(config)}&#34;)
+    ppargs = pp_config(config)
+    logger.debug(f&#34;Effective arguments: {ppargs}&#34;)
     return config</code></pre>
 </details>
 <div class="desc"><p>Get the command line arguments</p></div>
@@ -146,13 +158,9 @@ leading or trailing spaces.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def main():
+    print(&#34;Entering main()&#34;)
     args = get_args()
-    if args[&#34;logfile&#34;]:
-        add_logging_file(args[&#34;logfile&#34;])
-    if args[&#34;debug&#34;]:
-        set_logging_level(DEBUG)
-        ppargs = pp_config(args)
-        logger.debug(f&#34;Effective arguments: {ppargs}&#34;)
+    print(&#34;After get_args()&#34;)
     run(args)</code></pre>
 </details>
 <div class="desc"></div>
@@ -166,6 +174,7 @@ leading or trailing spaces.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def run(config: dict):
+    logger.info(&#34;Running LLM test&#34;)
     prompt = {}
     prompt[config[&#39;role&#39;]] = config[&#39;prompt&#39;] if config[&#39;prompt&#39;] else DEFAULT_PROMPT
     answer = config[&#39;answer&#39;] if config[&#39;answer&#39;] else DEFAULT_ANSWER
@@ -179,6 +188,9 @@ leading or trailing spaces.</p></div>
         llms_to_use = llms.list_aliases()
     else:
         llms_to_use = config[&#34;llms_to_use&#34;]
+    if len(llms_to_use) == 0:
+        logger.warning(&#34;No LLMs to use&#34;)
+        return
     for alias in llms_to_use:
         llmname = alias
         llm = llms.get(alias)
