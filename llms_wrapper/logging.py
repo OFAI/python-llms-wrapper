@@ -1,15 +1,9 @@
 # -*- coding: utf-8
 """
-Module to handle logging. This module is used to set up the logging for the entire package. This uses the Python
-logging module, but with a more user-friendly interface. Importing this module will provide a looger object
-that is configured to log to stderr with a logging level INFO by default.
-
-The format of the log messages is:  "{time} {level}: {message}"
-
-The module provides a function set_logging_level to update the logging level of all handlers and also provides
-the function add_logging_file to add a file handler to the specified file and the current logging level.
-If set_logging_level is called after a file handler has been added, the logging level of the file handler is
-changed too.
+Module to handle logging. This module is used to set up the logging for the entire package. 
+NOTE: by default, loguru logging is disabled for the package (see __init__.py). To enable logging,
+a client of this library must setup its own logging configuration and enable logging for this package
+using logger.enable("llms_wrapper"). 
 """
 import sys
 from loguru import logger
