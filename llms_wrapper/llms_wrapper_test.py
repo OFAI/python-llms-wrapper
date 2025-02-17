@@ -7,7 +7,7 @@ if one or more LLMs are working.
 import argparse
 import re
 from loguru import logger
-from llms_wrapper.logging import configure_logging
+from llms_wrapper.log import configure_logging
 from llms_wrapper.llms import LLMS
 from llms_wrapper.config import read_config_file, update_llm_config
 from llms_wrapper.utils import pp_config, dict_except
