@@ -19,4 +19,7 @@ def dict_except(d, keys, ignore_underscored=True):
     if ignore_underscored:
         keys = [k for k in keys if not k.startswith("_") and k not in keys]
     else:
-        return {k: v for k, v in d.items() if k not in keys}
+        keys = [k for k in keys if k not in keys]
+    if not keys:
+        return d
+    return {k: v for k, v in d.items() if k not in keys}
