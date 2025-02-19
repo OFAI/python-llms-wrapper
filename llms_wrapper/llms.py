@@ -18,7 +18,19 @@ from litellm.utils import get_model_info, get_supported_openai_params, supports_
 from litellm.utils import supports_function_calling, supports_parallel_function_calling
 from llms_wrapper.utils import dict_except
 
+# roles to consider in messages for replacing variables in the content
 ROLES = ["user", "assistant", "system"]
+
+# fields in the config to NOT pass on to the LLM
+KNOWN_LLM_CONFIG_FIELDS = [
+    "llm", "alias", "api_key", "api_url", "user", "password",
+    "api_key_env", "user_env", "password_env",
+    "api_key_env", "user_env", "password_env",
+    "cost_per_prompt_token",
+    "cost_per_output_token",
+    "max_output_tokens",
+    "max_input_tokens",
+]
 
 
 class LLMS:
@@ -37,10 +49,9 @@ class LLMS:
         for llm in self.config["llms"]:
             if not isinstance(llm, dict):
                 raise ValueError(f"Error: LLM entry is not a dict: {llm}")
-            alias = llm["alias"]
+            alias = llm.get("alias", llm["llm"])
             if alias in self.llms:
                 raise ValueError(f"Error: Duplicate LLM alis {alias} in configuration")
-            # make a copy
             llmdict = deepcopy(llm)
             llmdict["_cost"] = 0
             llmdict["_elapsed_time"] = 0
@@ -95,30 +106,53 @@ class LLMS:
             return self.llms[llmalias]["_cost"]
         return sum([self.llms[alias]["_cost"] for alias in llmalias])
 
-    def cost_per_token(self, llmalias: str) -> Tuple[float, float]:
+    def cost_per_token(self, llmalias: str) -> Tuple[Optional[float], Optional[float]]:
         """
         Return the estimated cost per prompt and completion token for the given model.
         This may be wrong or cost may get calculated in a different way, e.g. depending on
         cache, response time etc.
+        If no cost is known this returns 0.0, 0.0
         """
-        return litellm.cost_per_token(self.llms[llmalias]["llm"], prompt_tokens=1, completion_tokens=1)
+        llm = self.llms[llmalias]
+        cc = llm.get("cost_per_prompt_token")
+        cp = llm.get("cost_per_completion_token")
+        if cc is None or cp is None:
+            try:
+                tmpcp, tmpcc = litellm.cost_per_token(self.llms[llmalias]["llm"], prompt_tokens=1, completion_tokens=1)
+            except:
+                tmpcp, tmpcc = None, None
+            if cc is None:
+                cc = tmpcc
+            if cp is None:
+                cp = tmpcp
+        return cc, cp
 
-    def max_output_tokens(self, llmalias: str) -> int:
+    def max_output_tokens(self, llmalias: str) -> Optional[int]:
         """
         Return the maximum number of prompt tokens that can be sent to the model.
         """
-        return litellm.get_max_tokens(self.llms[llmalias]["llm"])
+        llm = self.llms[llmalias]
+        ret = llm.get("max_output_tokens")
+        if ret is None:
+            try:
+                ret = litellm.get_max_tokens(self.llms[llmalias]["llm"])
+            except:
+                ret = None
+        return ret
 
     def max_input_tokens(self, llmalias: str) -> Optional[int]:
         """
         Return the maximum number of tokens possible in the prompt or None if not known.
         """
-        try:
-            info = get_model_info(self.llms[llmalias]["llm"])
-            return info["max_input_tokens"]
-        except:
-            # the model is not mapped yet, return None to indicate we do not know
-            return None
+        llm = self.llms[llmalias]
+        ret = llm.get("max_input_tokens")
+        if ret is None:
+            try:
+                info = get_model_info(self.llms[llmalias]["llm"])
+                ret = info.get("max_tokens")
+            except:
+                ret = None
+        return ret
 
     def set_model_attributes(
             self, llmalias: str,
@@ -247,7 +281,8 @@ class LLMS:
         """
         params = get_supported_openai_params(model=self.llms[llmalias]["llm"],
                                              custom_llm_provider=self.llms[llmalias].get("custom_provider"))
-        return "response_format" in params
+        ret = "response_format" in params
+        return ret
 
     def supports_json_schema(self, llmalias: str) -> bool:
         """
@@ -304,9 +339,9 @@ class LLMS:
         # prepare the keyword arguments for colling completion
         completion_kwargs = dict_except(
             llm,
-            [
-                "llm", "alias", "api_key", "api_url", "user", "password",
-                "api_key_env", "user_env", "password_env", "_cost", "_elapsed_time"])
+            KNOWN_LLM_CONFIG_FIELDS,
+            ignore_underscored=True
+        )
         error = None
         if llm.get("api_key"):
             completion_kwargs["api_key"] = llm["api_key"]

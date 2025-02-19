@@ -102,6 +102,9 @@ def read_config_file(filepath: str, update: bool = True) -> dict:
             llm = llm["llm"]
         if not re.match(r"^[a-zA-Z0-9]+/.+$", llm):
             raise ValueError(f"Error: 'llm' field must be in the format 'provider/model' in line: {llm}")
+        # add known additional configuration fields: these can get specified using a name like e.g. cost_per_prompt_token
+        # but get stored in the config as _cost_per_prompt_token to avoid passing them to the LLM.
+        # All other fields, i.e. fields with unknown names are passed to the LLM as is.
     for provider, provider_config in config['providers'].items():
         # provider name must be one of the supported providers by litellm
         if provider not in LITELLM_CHAT_PROVIDERS:
