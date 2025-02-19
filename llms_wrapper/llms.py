@@ -7,6 +7,7 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic._internal._config")
 import litellm
 import time
+import traceback
 import inspect
 import docstring_parser
 from loguru import logger
@@ -331,7 +332,7 @@ class LLMS:
         if debug:
             #  litellm.set_verbose = True    ## deprecated!
             os.environ['LITELLM_LOG'] = 'DEBUG'
-        llm = self.llms[llmalias]
+        llm = self.llms[llmalias].config
         if not messages:
             raise ValueError(f"Error: No messages to send to the LLM: {llmalias}, messages: {messages}")
         if debug:
@@ -340,9 +341,8 @@ class LLMS:
         completion_kwargs = dict_except(
             llm,
             KNOWN_LLM_CONFIG_FIELDS,
-            ignore_underscored=True
+            ignore_underscored=True,
         )
-        error = None
         if llm.get("api_key"):
             completion_kwargs["api_key"] = llm["api_key"]
         elif llm.get("api_key_env"):
@@ -389,7 +389,9 @@ class LLMS:
                 ret["tool_calls"] = response_message.tool_calls
                 ret["response_message"] = response_message
         except Exception as e:
-            ret["error"] = str(e)
+            tb = traceback.extract_tb(e.__traceback__)
+            filename, lineno, funcname, text = tb[-1]
+            ret["error"] = str(e) + f" in {filename}:{lineno} {funcname}"
             if debug:
                 logger.error(f"Returning error: {e}")
             ret["answer"] = ""

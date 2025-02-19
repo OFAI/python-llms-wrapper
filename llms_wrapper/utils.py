@@ -10,16 +10,12 @@ def pp_config(config):
     """
     return json.dumps(config, indent=4, sort_keys=True)
 
-def dict_except(d, keys, ignore_underscored=True):
+def dict_except(d: dict, keys, ignore_underscored=True):
     """
     Return a copy of the dict d, except for the keys in the list keys.
     """
     if isinstance(keys, str):
         keys = [keys]
     if ignore_underscored:
-        keys = [k for k in keys if not k.startswith("_") and k not in keys]
-    else:
-        keys = [k for k in keys if k not in keys]
-    if not keys:
-        return d
+        keys = [k for k in d.keys() if k.startswith("_")] + keys
     return {k: v for k, v in d.items() if k not in keys}
