@@ -312,6 +312,7 @@ class LLMS:
             return_cost: bool = False,
             return_response: bool = False,
             debug=False,
+            **kwargs,
     ) -> Dict[str, any]:
         """
         Query the specified LLM with the given messages.
@@ -319,7 +320,11 @@ class LLMS:
         Args:
             llmalias: the alias/name of the LLM to query
             messages: a list of message dictionaries with role and content keys
+            tools: TBD
+            return_cost: whether or not LLM invocation costs should get returned
+            return_response: whether or not the complete reponse should get returned
             debug: if True, debug logging is enabled
+            kwargs: any additional keyword arguments to pass on to the LLM 
 
         Returns:
             A dictionary with keys answer and error and optionally cost-related keys and optionally
@@ -352,6 +357,8 @@ class LLMS:
         if tools is not None:
             completion_kwargs["tools"] = tools
         ret = {}
+        if kwargs:
+            completion_kwargs.update(kwargs)
         if debug:
             logger.debug(f"Calling completion with {completion_kwargs}")
         try:
@@ -426,6 +433,7 @@ class LLM:
             return_cost: bool = False,
             return_response: bool = False,
             debug=False,
+            **kwargs,
     ) -> Dict[str, any]:
         llmalias = self.config["alias"]
         return self.llmsobject.query(
@@ -434,7 +442,7 @@ class LLM:
             tools=tools,
             return_cost=return_cost,
             return_response=return_response,
-            debug=debug)
+            debug=debug, **kwargs)
 
     def __str__(self):
         return f"LLM({self.config['alias']})"
