@@ -1,7 +1,7 @@
 {
   llms: [
     { llm: "openai/gpt-4o"
-      api_key_env: "OPENAI_KEY1"
+      api_key_env: "MY_OPENAI_API_KEY"
       temperature: 0
     }
     { llm: "gemini/gemini-1.5-flash", temperature: 1, alias: "geminiflash1" }
@@ -9,7 +9,8 @@
 ]
   providers: {
     gemini: {
-      api_key_env: "GEMINI_KEY1"
+      api_key_env: "MY_GEMINI_API_KEY"
     }
   }
+  use_phoenix: ["http://0.0.0.0:6006/v1/traces", "llms_wrapper_test"]
 }

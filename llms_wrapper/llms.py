@@ -39,12 +39,32 @@ class LLMS:
     Class that represents a preconfigured set of large language modelservices.
     """
 
-    def __init__(self, config: Dict, debug: bool = False):
+    def __init__(self, config: Dict, debug: bool = False, use_phoenix: Optional[Union[str | Tuple[str, str]]] = None):
         """
         Initialize the LLMS object with the given configuration.
+
+        Use phoenix is either None or the URI of the phoenix endpoing or a tuple with the URI and the
+        project name (so far this only works for local phoenix instances). Default URI for a local installation
+        is "http://0.0.0.0:6006/v1/traces"
         """
         self.config = deepcopy(config)
         self.debug = debug
+        if not use_phoenix and config.get("use_phoenix"):
+            use_phoenix = config["use_phoenix"]
+        if use_phoenix:
+            if isinstance(use_phoenix, str):
+                use_phoenix = (use_phoenix, "default")
+                print("importing")
+            from phoenix.otel import register
+            from openinference.instrumentation.litellm import LiteLLMInstrumentor
+            # register
+            tracer_provider = register(
+                project_name=use_phoenix[1],  # Default is 'default'
+                auto_instrument=True,  # Auto-instrument your app based on installed OI dependencies
+                endpoint=use_phoenix[0],
+            )
+            # instrument
+            LiteLLMInstrumentor().instrument(tracer_provider=tracer_provider)
         # convert the config into a dictionary of LLM objects where the key is the alias of the LLM
         self.llms: Dict[str, "LLM"] = {}
         for llm in self.config["llms"]:
@@ -363,7 +383,7 @@ class LLMS:
             logger.debug(f"Calling completion with {completion_kwargs}")
         try:
             start = time.time()
-            response = completion(
+            response = litellm.completion(
                 model=llm["llm"],
                 messages=messages,
                 **completion_kwargs)

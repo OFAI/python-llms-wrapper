@@ -4,3 +4,5 @@ loguru
 docstring_parser
 pdoc3
 pytest
+arize-phoenix-otel
+openinference-instrumentation-litellm
