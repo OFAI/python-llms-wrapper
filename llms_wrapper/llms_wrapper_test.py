@@ -4,6 +4,7 @@
 Module for the llms_wrapper_test command to perform a simple test to check
 if one or more LLMs are working.
 """
+import sys
 import argparse
 import re
 from loguru import logger
@@ -11,6 +12,7 @@ from llms_wrapper.log import configure_logging
 from llms_wrapper.llms import LLMS
 from llms_wrapper.config import read_config_file, update_llm_config
 from llms_wrapper.utils import pp_config, dict_except
+from llms_wrapper.version import __version__
 
 DEFAULT_PROMPT = """What is the first name of Einstein who developed the theory of relativity? 
 Only give the name and no additional text?"""
@@ -22,7 +24,6 @@ def get_args() -> dict:
     """
     Get the command line arguments
     """
-    print("ENTERING get_args")
     parser = argparse.ArgumentParser(description='Test llms')
     parser.add_argument('--llms', '-l', nargs="*", type=str, default=[], help='LLMs to use for the queries (or use config)', required=False)
     parser.add_argument('--use', '-u', nargs="*", type=str, default=[], help='Subset of LLMs to use (all)', required=False)
@@ -35,12 +36,14 @@ def get_args() -> dict:
     parser.add_argument("--show_response", action="store_true", help="Show thefull  response from the LLM", required=False)
     parser.add_argument("--show_cost", action="store_true", help="Show token counts and cost", required=False)
     parser.add_argument("--logfile", "-f", type=str, help="Log file", required=False)
+    parser.add_argument("--version", action="store_true", help="Show version and exit")
     args = parser.parse_args()
-    print("after parse_args")
+    if args.version:
+        print("llms_wrapper version:", __version__)
+        sys.exit()
     loglevel1 = "INFO"
     if args.debug:
         loglevel1 = "DEBUG"
-    print("before configure_logging")
     configure_logging(level=loglevel1, logfile=args.logfile)
     # logger.enable("llms_wrapper")
     # TODO: for testing, remove once logging works properly
@@ -169,14 +172,10 @@ def run(config: dict):
 
 
 def main():
-    print("Entering main()")
     args = get_args()
-    print("After get_args()")
     run(args)
 
 
 if __name__ == '__main__':
-    print("Entering if __main__")
     logger.enable("llms_wrapper")
-    print("Before main()")
     main()
