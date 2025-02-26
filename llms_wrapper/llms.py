@@ -18,6 +18,7 @@ from litellm import completion, completion_cost
 from litellm.utils import get_model_info, get_supported_openai_params, supports_response_schema
 from litellm.utils import supports_function_calling, supports_parallel_function_calling
 from llms_wrapper.utils import dict_except
+from llms_wrapper.model_list import model_list
 
 # roles to consider in messages for replacing variables in the content
 ROLES = ["user", "assistant", "system"]
@@ -78,6 +79,12 @@ class LLMS:
             llmdict["_elapsed_time"] = 0
             llm = LLM(llmdict, self)
             self.llms[alias] = llm
+
+    def known_models(self, provider=None) -> List[str]:
+        """
+        Get a list of known models.
+        """
+        return model_list(provider)
 
     def list_models(self) -> List["LLM"]:
         """

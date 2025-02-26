@@ -80,6 +80,7 @@ el.replaceWith(d);
             return_cost: bool = False,
             return_response: bool = False,
             debug=False,
+            **kwargs,
     ) -&gt; Dict[str, any]:
         llmalias = self.config[&#34;alias&#34;]
         return self.llmsobject.query(
@@ -88,7 +89,7 @@ el.replaceWith(d);
             tools=tools,
             return_cost=return_cost,
             return_response=return_response,
-            debug=debug)
+            debug=debug, **kwargs)
 
     def __str__(self):
         return f&#34;LLM({self.config[&#39;alias&#39;]})&#34;
@@ -239,7 +240,7 @@ el.replaceWith(d);
 <div class="desc"></div>
 </dd>
 <dt id="llms_wrapper.llms.LLM.query"><code class="name flex">
-<span>def <span class="ident">query</span></span>(<span>self,<br>messages: List[Dict[str, str]],<br>tools: List[Dict] | None = None,<br>return_cost: bool = False,<br>return_response: bool = False,<br>debug=False) ‑> Dict[str, <built-in function any>]</span>
+<span>def <span class="ident">query</span></span>(<span>self,<br>messages: List[Dict[str, str]],<br>tools: List[Dict] | None = None,<br>return_cost: bool = False,<br>return_response: bool = False,<br>debug=False,<br>**kwargs) ‑> Dict[str, <built-in function any>]</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -253,6 +254,7 @@ el.replaceWith(d);
         return_cost: bool = False,
         return_response: bool = False,
         debug=False,
+        **kwargs,
 ) -&gt; Dict[str, any]:
     llmalias = self.config[&#34;alias&#34;]
     return self.llmsobject.query(
@@ -261,7 +263,7 @@ el.replaceWith(d);
         tools=tools,
         return_cost=return_cost,
         return_response=return_response,
-        debug=debug)</code></pre>
+        debug=debug, **kwargs)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -323,7 +325,7 @@ el.replaceWith(d);
 </dd>
 <dt id="llms_wrapper.llms.LLMS"><code class="flex name class">
 <span>class <span class="ident">LLMS</span></span>
-<span>(</span><span>config: Dict, debug: bool = False)</span>
+<span>(</span><span>config: Dict,<br>debug: bool = False,<br>use_phoenix: str | Tuple[str, str] | None = None)</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -335,26 +337,51 @@ el.replaceWith(d);
     Class that represents a preconfigured set of large language modelservices.
     &#34;&#34;&#34;
 
-    def __init__(self, config: Dict, debug: bool = False):
+    def __init__(self, config: Dict, debug: bool = False, use_phoenix: Optional[Union[str | Tuple[str, str]]] = None):
         &#34;&#34;&#34;
         Initialize the LLMS object with the given configuration.
+
+        Use phoenix is either None or the URI of the phoenix endpoing or a tuple with the URI and the
+        project name (so far this only works for local phoenix instances). Default URI for a local installation
+        is &#34;http://0.0.0.0:6006/v1/traces&#34;
         &#34;&#34;&#34;
         self.config = deepcopy(config)
         self.debug = debug
+        if not use_phoenix and config.get(&#34;use_phoenix&#34;):
+            use_phoenix = config[&#34;use_phoenix&#34;]
+        if use_phoenix:
+            if isinstance(use_phoenix, str):
+                use_phoenix = (use_phoenix, &#34;default&#34;)
+                print(&#34;importing&#34;)
+            from phoenix.otel import register
+            from openinference.instrumentation.litellm import LiteLLMInstrumentor
+            # register
+            tracer_provider = register(
+                project_name=use_phoenix[1],  # Default is &#39;default&#39;
+                auto_instrument=True,  # Auto-instrument your app based on installed OI dependencies
+                endpoint=use_phoenix[0],
+            )
+            # instrument
+            LiteLLMInstrumentor().instrument(tracer_provider=tracer_provider)
         # convert the config into a dictionary of LLM objects where the key is the alias of the LLM
         self.llms: Dict[str, &#34;LLM&#34;] = {}
         for llm in self.config[&#34;llms&#34;]:
             if not isinstance(llm, dict):
                 raise ValueError(f&#34;Error: LLM entry is not a dict: {llm}&#34;)
-            alias = llm[&#34;alias&#34;]
+            alias = llm.get(&#34;alias&#34;, llm[&#34;llm&#34;])
             if alias in self.llms:
                 raise ValueError(f&#34;Error: Duplicate LLM alis {alias} in configuration&#34;)
-            # make a copy
             llmdict = deepcopy(llm)
             llmdict[&#34;_cost&#34;] = 0
             llmdict[&#34;_elapsed_time&#34;] = 0
             llm = LLM(llmdict, self)
             self.llms[alias] = llm
+
+    def known_models(self, provider=None) -&gt; List[str]:
+        &#34;&#34;&#34;
+        Get a list of known models.
+        &#34;&#34;&#34;
+        return model_list(provider)
 
     def list_models(self) -&gt; List[&#34;LLM&#34;]:
         &#34;&#34;&#34;
@@ -404,30 +431,53 @@ el.replaceWith(d);
             return self.llms[llmalias][&#34;_cost&#34;]
         return sum([self.llms[alias][&#34;_cost&#34;] for alias in llmalias])
 
-    def cost_per_token(self, llmalias: str) -&gt; Tuple[float, float]:
+    def cost_per_token(self, llmalias: str) -&gt; Tuple[Optional[float], Optional[float]]:
         &#34;&#34;&#34;
         Return the estimated cost per prompt and completion token for the given model.
         This may be wrong or cost may get calculated in a different way, e.g. depending on
         cache, response time etc.
+        If no cost is known this returns 0.0, 0.0
         &#34;&#34;&#34;
-        return litellm.cost_per_token(self.llms[llmalias][&#34;llm&#34;], prompt_tokens=1, completion_tokens=1)
+        llm = self.llms[llmalias]
+        cc = llm.get(&#34;cost_per_prompt_token&#34;)
+        cp = llm.get(&#34;cost_per_completion_token&#34;)
+        if cc is None or cp is None:
+            try:
+                tmpcp, tmpcc = litellm.cost_per_token(self.llms[llmalias][&#34;llm&#34;], prompt_tokens=1, completion_tokens=1)
+            except:
+                tmpcp, tmpcc = None, None
+            if cc is None:
+                cc = tmpcc
+            if cp is None:
+                cp = tmpcp
+        return cc, cp
 
-    def max_output_tokens(self, llmalias: str) -&gt; int:
+    def max_output_tokens(self, llmalias: str) -&gt; Optional[int]:
         &#34;&#34;&#34;
         Return the maximum number of prompt tokens that can be sent to the model.
         &#34;&#34;&#34;
-        return litellm.get_max_tokens(self.llms[llmalias][&#34;llm&#34;])
+        llm = self.llms[llmalias]
+        ret = llm.get(&#34;max_output_tokens&#34;)
+        if ret is None:
+            try:
+                ret = litellm.get_max_tokens(self.llms[llmalias][&#34;llm&#34;])
+            except:
+                ret = None
+        return ret
 
     def max_input_tokens(self, llmalias: str) -&gt; Optional[int]:
         &#34;&#34;&#34;
         Return the maximum number of tokens possible in the prompt or None if not known.
         &#34;&#34;&#34;
-        try:
-            info = get_model_info(self.llms[llmalias][&#34;llm&#34;])
-            return info[&#34;max_input_tokens&#34;]
-        except:
-            # the model is not mapped yet, return None to indicate we do not know
-            return None
+        llm = self.llms[llmalias]
+        ret = llm.get(&#34;max_input_tokens&#34;)
+        if ret is None:
+            try:
+                info = get_model_info(self.llms[llmalias][&#34;llm&#34;])
+                ret = info.get(&#34;max_tokens&#34;)
+            except:
+                ret = None
+        return ret
 
     def set_model_attributes(
             self, llmalias: str,
@@ -556,7 +606,8 @@ el.replaceWith(d);
         &#34;&#34;&#34;
         params = get_supported_openai_params(model=self.llms[llmalias][&#34;llm&#34;],
                                              custom_llm_provider=self.llms[llmalias].get(&#34;custom_provider&#34;))
-        return &#34;response_format&#34; in params
+        ret = &#34;response_format&#34; in params
+        return ret
 
     def supports_json_schema(self, llmalias: str) -&gt; bool:
         &#34;&#34;&#34;
@@ -585,6 +636,7 @@ el.replaceWith(d);
             return_cost: bool = False,
             return_response: bool = False,
             debug=False,
+            **kwargs,
     ) -&gt; Dict[str, any]:
         &#34;&#34;&#34;
         Query the specified LLM with the given messages.
@@ -592,7 +644,11 @@ el.replaceWith(d);
         Args:
             llmalias: the alias/name of the LLM to query
             messages: a list of message dictionaries with role and content keys
+            tools: TBD
+            return_cost: whether or not LLM invocation costs should get returned
+            return_response: whether or not the complete reponse should get returned
             debug: if True, debug logging is enabled
+            kwargs: any additional keyword arguments to pass on to the LLM 
 
         Returns:
             A dictionary with keys answer and error and optionally cost-related keys and optionally
@@ -605,7 +661,7 @@ el.replaceWith(d);
         if debug:
             #  litellm.set_verbose = True    ## deprecated!
             os.environ[&#39;LITELLM_LOG&#39;] = &#39;DEBUG&#39;
-        llm = self.llms[llmalias]
+        llm = self.llms[llmalias].config
         if not messages:
             raise ValueError(f&#34;Error: No messages to send to the LLM: {llmalias}, messages: {messages}&#34;)
         if debug:
@@ -613,10 +669,9 @@ el.replaceWith(d);
         # prepare the keyword arguments for colling completion
         completion_kwargs = dict_except(
             llm,
-            [
-                &#34;llm&#34;, &#34;alias&#34;, &#34;api_key&#34;, &#34;api_url&#34;, &#34;user&#34;, &#34;password&#34;,
-                &#34;api_key_env&#34;, &#34;user_env&#34;, &#34;password_env&#34;, &#34;_cost&#34;, &#34;_elapsed_time&#34;])
-        error = None
+            KNOWN_LLM_CONFIG_FIELDS,
+            ignore_underscored=True,
+        )
         if llm.get(&#34;api_key&#34;):
             completion_kwargs[&#34;api_key&#34;] = llm[&#34;api_key&#34;]
         elif llm.get(&#34;api_key_env&#34;):
@@ -626,11 +681,13 @@ el.replaceWith(d);
         if tools is not None:
             completion_kwargs[&#34;tools&#34;] = tools
         ret = {}
+        if kwargs:
+            completion_kwargs.update(kwargs)
         if debug:
             logger.debug(f&#34;Calling completion with {completion_kwargs}&#34;)
         try:
             start = time.time()
-            response = completion(
+            response = litellm.completion(
                 model=llm[&#34;llm&#34;],
                 messages=messages,
                 **completion_kwargs)
@@ -663,7 +720,9 @@ el.replaceWith(d);
                 ret[&#34;tool_calls&#34;] = response_message.tool_calls
                 ret[&#34;response_message&#34;] = response_message
         except Exception as e:
-            ret[&#34;error&#34;] = str(e)
+            tb = traceback.extract_tb(e.__traceback__)
+            filename, lineno, funcname, text = tb[-1]
+            ret[&#34;error&#34;] = str(e) + f&#34; in {filename}:{lineno} {funcname}&#34;
             if debug:
                 logger.error(f&#34;Returning error: {e}&#34;)
             ret[&#34;answer&#34;] = &#34;&#34;
@@ -671,7 +730,10 @@ el.replaceWith(d);
         return ret</code></pre>
 </details>
 <div class="desc"><p>Class that represents a preconfigured set of large language modelservices.</p>
-<p>Initialize the LLMS object with the given configuration.</p></div>
+<p>Initialize the LLMS object with the given configuration.</p>
+<p>Use phoenix is either None or the URI of the phoenix endpoing or a tuple with the URI and the
+project name (so far this only works for local phoenix instances). Default URI for a local installation
+is "http://0.0.0.0:6006/v1/traces"</p></div>
 <h3>Static methods</h3>
 <dl>
 <dt id="llms_wrapper.llms.LLMS.make_messages"><code class="name flex">
@@ -829,24 +891,38 @@ or all llms if llmalias is None. Costs are only accumulated for invocations of
 the query method with return_cost=True.</p></div>
 </dd>
 <dt id="llms_wrapper.llms.LLMS.cost_per_token"><code class="name flex">
-<span>def <span class="ident">cost_per_token</span></span>(<span>self, llmalias: str) ‑> Tuple[float, float]</span>
+<span>def <span class="ident">cost_per_token</span></span>(<span>self, llmalias: str) ‑> Tuple[float | None, float | None]</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def cost_per_token(self, llmalias: str) -&gt; Tuple[float, float]:
+<pre><code class="python">def cost_per_token(self, llmalias: str) -&gt; Tuple[Optional[float], Optional[float]]:
     &#34;&#34;&#34;
     Return the estimated cost per prompt and completion token for the given model.
     This may be wrong or cost may get calculated in a different way, e.g. depending on
     cache, response time etc.
+    If no cost is known this returns 0.0, 0.0
     &#34;&#34;&#34;
-    return litellm.cost_per_token(self.llms[llmalias][&#34;llm&#34;], prompt_tokens=1, completion_tokens=1)</code></pre>
+    llm = self.llms[llmalias]
+    cc = llm.get(&#34;cost_per_prompt_token&#34;)
+    cp = llm.get(&#34;cost_per_completion_token&#34;)
+    if cc is None or cp is None:
+        try:
+            tmpcp, tmpcc = litellm.cost_per_token(self.llms[llmalias][&#34;llm&#34;], prompt_tokens=1, completion_tokens=1)
+        except:
+            tmpcp, tmpcc = None, None
+        if cc is None:
+            cc = tmpcc
+        if cp is None:
+            cp = tmpcp
+    return cc, cp</code></pre>
 </details>
 <div class="desc"><p>Return the estimated cost per prompt and completion token for the given model.
 This may be wrong or cost may get calculated in a different way, e.g. depending on
-cache, response time etc.</p></div>
+cache, response time etc.
+If no cost is known this returns 0.0, 0.0</p></div>
 </dd>
 <dt id="llms_wrapper.llms.LLMS.elapsed"><code class="name flex">
 <span>def <span class="ident">elapsed</span></span>(<span>self, llmalias: str | List[str] | None = None)</span>
@@ -887,6 +963,22 @@ the query method with return_cost=True.</p></div>
     return self.llms.get(alias, None)</code></pre>
 </details>
 <div class="desc"><p>Get the LLM configuration object with the given alias.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.known_models"><code class="name flex">
+<span>def <span class="ident">known_models</span></span>(<span>self, provider=None) ‑> List[str]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def known_models(self, provider=None) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Get a list of known models.
+    &#34;&#34;&#34;
+    return model_list(provider)</code></pre>
+</details>
+<div class="desc"><p>Get a list of known models.</p></div>
 </dd>
 <dt id="llms_wrapper.llms.LLMS.list_aliases"><code class="name flex">
 <span>def <span class="ident">list_aliases</span></span>(<span>self) ‑> List[str]</span>
@@ -932,33 +1024,43 @@ the query method with return_cost=True.</p></div>
     &#34;&#34;&#34;
     Return the maximum number of tokens possible in the prompt or None if not known.
     &#34;&#34;&#34;
-    try:
-        info = get_model_info(self.llms[llmalias][&#34;llm&#34;])
-        return info[&#34;max_input_tokens&#34;]
-    except:
-        # the model is not mapped yet, return None to indicate we do not know
-        return None</code></pre>
+    llm = self.llms[llmalias]
+    ret = llm.get(&#34;max_input_tokens&#34;)
+    if ret is None:
+        try:
+            info = get_model_info(self.llms[llmalias][&#34;llm&#34;])
+            ret = info.get(&#34;max_tokens&#34;)
+        except:
+            ret = None
+    return ret</code></pre>
 </details>
 <div class="desc"><p>Return the maximum number of tokens possible in the prompt or None if not known.</p></div>
 </dd>
 <dt id="llms_wrapper.llms.LLMS.max_output_tokens"><code class="name flex">
-<span>def <span class="ident">max_output_tokens</span></span>(<span>self, llmalias: str) ‑> int</span>
+<span>def <span class="ident">max_output_tokens</span></span>(<span>self, llmalias: str) ‑> int | None</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def max_output_tokens(self, llmalias: str) -&gt; int:
+<pre><code class="python">def max_output_tokens(self, llmalias: str) -&gt; Optional[int]:
     &#34;&#34;&#34;
     Return the maximum number of prompt tokens that can be sent to the model.
     &#34;&#34;&#34;
-    return litellm.get_max_tokens(self.llms[llmalias][&#34;llm&#34;])</code></pre>
+    llm = self.llms[llmalias]
+    ret = llm.get(&#34;max_output_tokens&#34;)
+    if ret is None:
+        try:
+            ret = litellm.get_max_tokens(self.llms[llmalias][&#34;llm&#34;])
+        except:
+            ret = None
+    return ret</code></pre>
 </details>
 <div class="desc"><p>Return the maximum number of prompt tokens that can be sent to the model.</p></div>
 </dd>
 <dt id="llms_wrapper.llms.LLMS.query"><code class="name flex">
-<span>def <span class="ident">query</span></span>(<span>self,<br>llmalias: str,<br>messages: List[Dict[str, str]],<br>tools: List[Dict] | None = None,<br>return_cost: bool = False,<br>return_response: bool = False,<br>debug=False) ‑> Dict[str, <built-in function any>]</span>
+<span>def <span class="ident">query</span></span>(<span>self,<br>llmalias: str,<br>messages: List[Dict[str, str]],<br>tools: List[Dict] | None = None,<br>return_cost: bool = False,<br>return_response: bool = False,<br>debug=False,<br>**kwargs) ‑> Dict[str, <built-in function any>]</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -973,6 +1075,7 @@ the query method with return_cost=True.</p></div>
         return_cost: bool = False,
         return_response: bool = False,
         debug=False,
+        **kwargs,
 ) -&gt; Dict[str, any]:
     &#34;&#34;&#34;
     Query the specified LLM with the given messages.
@@ -980,7 +1083,11 @@ the query method with return_cost=True.</p></div>
     Args:
         llmalias: the alias/name of the LLM to query
         messages: a list of message dictionaries with role and content keys
+        tools: TBD
+        return_cost: whether or not LLM invocation costs should get returned
+        return_response: whether or not the complete reponse should get returned
         debug: if True, debug logging is enabled
+        kwargs: any additional keyword arguments to pass on to the LLM 
 
     Returns:
         A dictionary with keys answer and error and optionally cost-related keys and optionally
@@ -993,7 +1100,7 @@ the query method with return_cost=True.</p></div>
     if debug:
         #  litellm.set_verbose = True    ## deprecated!
         os.environ[&#39;LITELLM_LOG&#39;] = &#39;DEBUG&#39;
-    llm = self.llms[llmalias]
+    llm = self.llms[llmalias].config
     if not messages:
         raise ValueError(f&#34;Error: No messages to send to the LLM: {llmalias}, messages: {messages}&#34;)
     if debug:
@@ -1001,10 +1108,9 @@ the query method with return_cost=True.</p></div>
     # prepare the keyword arguments for colling completion
     completion_kwargs = dict_except(
         llm,
-        [
-            &#34;llm&#34;, &#34;alias&#34;, &#34;api_key&#34;, &#34;api_url&#34;, &#34;user&#34;, &#34;password&#34;,
-            &#34;api_key_env&#34;, &#34;user_env&#34;, &#34;password_env&#34;, &#34;_cost&#34;, &#34;_elapsed_time&#34;])
-    error = None
+        KNOWN_LLM_CONFIG_FIELDS,
+        ignore_underscored=True,
+    )
     if llm.get(&#34;api_key&#34;):
         completion_kwargs[&#34;api_key&#34;] = llm[&#34;api_key&#34;]
     elif llm.get(&#34;api_key_env&#34;):
@@ -1014,11 +1120,13 @@ the query method with return_cost=True.</p></div>
     if tools is not None:
         completion_kwargs[&#34;tools&#34;] = tools
     ret = {}
+    if kwargs:
+        completion_kwargs.update(kwargs)
     if debug:
         logger.debug(f&#34;Calling completion with {completion_kwargs}&#34;)
     try:
         start = time.time()
-        response = completion(
+        response = litellm.completion(
             model=llm[&#34;llm&#34;],
             messages=messages,
             **completion_kwargs)
@@ -1051,7 +1159,9 @@ the query method with return_cost=True.</p></div>
             ret[&#34;tool_calls&#34;] = response_message.tool_calls
             ret[&#34;response_message&#34;] = response_message
     except Exception as e:
-        ret[&#34;error&#34;] = str(e)
+        tb = traceback.extract_tb(e.__traceback__)
+        filename, lineno, funcname, text = tb[-1]
+        ret[&#34;error&#34;] = str(e) + f&#34; in {filename}:{lineno} {funcname}&#34;
         if debug:
             logger.error(f&#34;Returning error: {e}&#34;)
         ret[&#34;answer&#34;] = &#34;&#34;
@@ -1065,8 +1175,16 @@ the query method with return_cost=True.</p></div>
 <dd>the alias/name of the LLM to query</dd>
 <dt><strong><code>messages</code></strong></dt>
 <dd>a list of message dictionaries with role and content keys</dd>
+<dt><strong><code>tools</code></strong></dt>
+<dd>TBD</dd>
+<dt><strong><code>return_cost</code></strong></dt>
+<dd>whether or not LLM invocation costs should get returned</dd>
+<dt><strong><code>return_response</code></strong></dt>
+<dd>whether or not the complete reponse should get returned</dd>
 <dt><strong><code>debug</code></strong></dt>
 <dd>if True, debug logging is enabled</dd>
+<dt><strong><code>kwargs</code></strong></dt>
+<dd>any additional keyword arguments to pass on to the LLM </dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>A dictionary with keys answer and error and optionally cost-related keys and optionally
@@ -1168,7 +1286,8 @@ be set in the configuration file to be passed to the model invocation call.</p><
     &#34;&#34;&#34;
     params = get_supported_openai_params(model=self.llms[llmalias][&#34;llm&#34;],
                                          custom_llm_provider=self.llms[llmalias].get(&#34;custom_provider&#34;))
-    return &#34;response_format&#34; in params</code></pre>
+    ret = &#34;response_format&#34; in params
+    return ret</code></pre>
 </details>
 <div class="desc"><p>Check if the model supports the response format parameters. This usually just indicates support
 for response_format "json".</p></div>
@@ -1215,6 +1334,7 @@ for response_format "json".</p></div>
 <li><code><a title="llms_wrapper.llms.LLMS.cost_per_token" href="#llms_wrapper.llms.LLMS.cost_per_token">cost_per_token</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.elapsed" href="#llms_wrapper.llms.LLMS.elapsed">elapsed</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.get" href="#llms_wrapper.llms.LLMS.get">get</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.known_models" href="#llms_wrapper.llms.LLMS.known_models">known_models</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.list_aliases" href="#llms_wrapper.llms.LLMS.list_aliases">list_aliases</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.list_models" href="#llms_wrapper.llms.LLMS.list_models">list_models</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.make_messages" href="#llms_wrapper.llms.LLMS.make_messages">make_messages</a></code></li>

@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.5">
-<title>llms_wrapper.utils API documentation</title>
-<meta name="description" content="Module for various utility functions.">
+<title>llms_wrapper.log API documentation</title>
+<meta name="description" content="Module to handle logging. This module is used to set up the logging for the entire package.
+NOTE: by default, loguru logging is disabled for the …">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -33,10 +34,13 @@ el.replaceWith(d);
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>llms_wrapper.utils</code></h1>
+<h1 class="title">Module <code>llms_wrapper.log</code></h1>
 </header>
 <section id="section-intro">
-<p>Module for various utility functions.</p>
+<p>Module to handle logging. This module is used to set up the logging for the entire package.
+NOTE: by default, loguru logging is disabled for the package (see <strong>init</strong>.py). To enable logging,
+a client of this library must setup its own logging configuration and enable logging for this package
+using logger.enable("llms_wrapper").</p>
 </section>
 <section>
 </section>
@@ -45,41 +49,51 @@ el.replaceWith(d);
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="llms_wrapper.utils.dict_except"><code class="name flex">
-<span>def <span class="ident">dict_except</span></span>(<span>d: dict, keys, ignore_underscored=True)</span>
+<dt id="llms_wrapper.log.configure_logging"><code class="name flex">
+<span>def <span class="ident">configure_logging</span></span>(<span>level=None, logfile=None, format=None, enable=True)</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def dict_except(d: dict, keys, ignore_underscored=True):
+<pre><code class="python">def configure_logging(level=None, logfile=None, format=None, enable=True):
     &#34;&#34;&#34;
-    Return a copy of the dict d, except for the keys in the list keys.
+    Configure loguru logging sinks. This removes the default sink and adds one for stderr and, if a logfile
+    is specified, one for the logfile, both for the specified level. The format of the log messages can be
+    specified with the format parameter or the default format is used.
     &#34;&#34;&#34;
-    if isinstance(keys, str):
-        keys = [keys]
-    if ignore_underscored:
-        keys = [k for k in d.keys() if k.startswith(&#34;_&#34;)] + keys
-    return {k: v for k, v in d.items() if k not in keys}</code></pre>
+    logger.remove()
+    if level is None:
+        level = DEFAULT_LOGGING_LEVEL
+    if format is None:
+        format = DEFAULT_LOGGING_FORMAT
+    logger.add(sys.stderr, level=level, format=format)
+    if logfile is not None:
+        logger.add(logfile, level=level, format=format)
+    sys.excepthook = handle_exception
+    if enable:
+        logger.enable(&#34;llms_wrapper&#34;)</code></pre>
 </details>
-<div class="desc"><p>Return a copy of the dict d, except for the keys in the list keys.</p></div>
+<div class="desc"><p>Configure loguru logging sinks. This removes the default sink and adds one for stderr and, if a logfile
+is specified, one for the logfile, both for the specified level. The format of the log messages can be
+specified with the format parameter or the default format is used.</p></div>
 </dd>
-<dt id="llms_wrapper.utils.pp_config"><code class="name flex">
-<span>def <span class="ident">pp_config</span></span>(<span>config)</span>
+<dt id="llms_wrapper.log.handle_exception"><code class="name flex">
+<span>def <span class="ident">handle_exception</span></span>(<span>exc_type, exc_value, exc_traceback)</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def pp_config(config):
-    &#34;&#34;&#34;
-    Pretty print the config dict
-    &#34;&#34;&#34;
-    return json.dumps(config, indent=4, sort_keys=True)</code></pre>
+<pre><code class="python">def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    logger.opt(exception=(exc_type, exc_value, exc_traceback)).error(&#34;Unhandled exception&#34;)</code></pre>
 </details>
-<div class="desc"><p>Pretty print the config dict</p></div>
+<div class="desc"></div>
 </dd>
 </dl>
 </section>
@@ -98,8 +112,8 @@ el.replaceWith(d);
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="llms_wrapper.utils.dict_except" href="#llms_wrapper.utils.dict_except">dict_except</a></code></li>
-<li><code><a title="llms_wrapper.utils.pp_config" href="#llms_wrapper.utils.pp_config">pp_config</a></code></li>
+<li><code><a title="llms_wrapper.log.configure_logging" href="#llms_wrapper.log.configure_logging">configure_logging</a></code></li>
+<li><code><a title="llms_wrapper.log.handle_exception" href="#llms_wrapper.log.handle_exception">handle_exception</a></code></li>
 </ul>
 </li>
 </ul>

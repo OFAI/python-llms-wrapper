@@ -77,7 +77,6 @@ leading or trailing spaces.</p></div>
     &#34;&#34;&#34;
     Get the command line arguments
     &#34;&#34;&#34;
-    print(&#34;ENTERING get_args&#34;)
     parser = argparse.ArgumentParser(description=&#39;Test llms&#39;)
     parser.add_argument(&#39;--llms&#39;, &#39;-l&#39;, nargs=&#34;*&#34;, type=str, default=[], help=&#39;LLMs to use for the queries (or use config)&#39;, required=False)
     parser.add_argument(&#39;--use&#39;, &#39;-u&#39;, nargs=&#34;*&#34;, type=str, default=[], help=&#39;Subset of LLMs to use (all)&#39;, required=False)
@@ -90,12 +89,14 @@ leading or trailing spaces.</p></div>
     parser.add_argument(&#34;--show_response&#34;, action=&#34;store_true&#34;, help=&#34;Show thefull  response from the LLM&#34;, required=False)
     parser.add_argument(&#34;--show_cost&#34;, action=&#34;store_true&#34;, help=&#34;Show token counts and cost&#34;, required=False)
     parser.add_argument(&#34;--logfile&#34;, &#34;-f&#34;, type=str, help=&#34;Log file&#34;, required=False)
+    parser.add_argument(&#34;--version&#34;, action=&#34;store_true&#34;, help=&#34;Show version and exit&#34;)
     args = parser.parse_args()
-    print(&#34;after parse_args&#34;)
+    if args.version:
+        print(&#34;llms_wrapper version:&#34;, __version__)
+        sys.exit()
     loglevel1 = &#34;INFO&#34;
     if args.debug:
         loglevel1 = &#34;DEBUG&#34;
-    print(&#34;before configure_logging&#34;)
     configure_logging(level=loglevel1, logfile=args.logfile)
     # logger.enable(&#34;llms_wrapper&#34;)
     # TODO: for testing, remove once logging works properly
@@ -158,9 +159,7 @@ leading or trailing spaces.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def main():
-    print(&#34;Entering main()&#34;)
     args = get_args()
-    print(&#34;After get_args()&#34;)
     run(args)</code></pre>
 </details>
 <div class="desc"></div>

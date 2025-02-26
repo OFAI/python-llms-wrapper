@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.5">
-<title>llms_wrapper.utils API documentation</title>
-<meta name="description" content="Module for various utility functions.">
+<title>llms_wrapper.model_list API documentation</title>
+<meta name="description" content="Module which implements an approach to find the available models for a provider, trying to use the
+underlying API if possible, and falling back to …">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -33,10 +34,11 @@ el.replaceWith(d);
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>llms_wrapper.utils</code></h1>
+<h1 class="title">Module <code>llms_wrapper.model_list</code></h1>
 </header>
 <section id="section-intro">
-<p>Module for various utility functions.</p>
+<p>Module which implements an approach to find the available models for a provider, trying to use the
+underlying API if possible, and falling back to direct HTTP requests if necessary.</p>
 </section>
 <section>
 </section>
@@ -45,41 +47,87 @@ el.replaceWith(d);
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="llms_wrapper.utils.dict_except"><code class="name flex">
-<span>def <span class="ident">dict_except</span></span>(<span>d: dict, keys, ignore_underscored=True)</span>
+<dt id="llms_wrapper.model_list.model_list"><code class="name flex">
+<span>def <span class="ident">model_list</span></span>(<span>provider, api_key=None)</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def dict_except(d: dict, keys, ignore_underscored=True):
+<pre><code class="python">def model_list(provider, api_key=None):
     &#34;&#34;&#34;
-    Return a copy of the dict d, except for the keys in the list keys.
+    Return a list of models available for the given provider. If the provider is not recognized,
+    or the underlying API is not available, return None.
+
+    api_key should not be necessary but parameter is present if an alternate method to get the list
+    requires it
     &#34;&#34;&#34;
-    if isinstance(keys, str):
-        keys = [keys]
-    if ignore_underscored:
-        keys = [k for k in d.keys() if k.startswith(&#34;_&#34;)] + keys
-    return {k: v for k, v in d.items() if k not in keys}</code></pre>
+    if provider == &#34;openai&#34;:
+        try:
+            from openai import OpenAI
+            client = OpenAI()
+            return client.models.list()
+        except ImportError:
+            return None
+    elif provider == &#34;gemini&#34;:
+        try:
+            return litellm.gemini_models
+        except ImportError:
+            return None
+    elif provider == &#34;anthropic&#34;:
+        try:
+            return litellm.anthropic_models
+        except ImportError:
+            return None
+    elif provider == &#34;mistral&#34;:
+        try:
+            return litellm.mistral_chat_models
+        except ImportError:
+            return None
+    elif provider == &#34;xai&#34;:
+        try:
+            return litellm.xai_models
+        except ImportError:
+            return None
+    elif provider == &#34;groq&#34;:
+        try:
+            return litellm.groq_models
+        except ImportError:
+            return None
+    elif provider == &#34;palm&#34;:
+        try:
+            return litellm.palm_models
+        except ImportError:
+            return None
+    elif provider == &#34;perplexity&#34;:
+        try:
+            return litellm.perplexity_models
+        except ImportError:
+            return None
+    if provider is None or provider == &#34;&#34;:
+        # for now use all the models from all providers as known to litellm
+        ret = []
+        alist = [n for n in litellm.__dict__.keys() if n.endswith(&#34;models&#34;)]
+        for a in alist:
+            if a in [
+                &#34;caching_with_models&#34;, &#34;add_known_models&#34;,
+                &#34;ahealth_check_wildcard_models&#34;, &#34;all_embedding_models&#34;
+            ]:
+                continue
+            tmp = getattr(litellm, a)
+            if not isinstance(tmp, list):
+                continue
+            tmp = [f&#34;{a}/{m}&#34; for m in tmp]
+            ret += tmp
+        return ret
+    else:
+        return None</code></pre>
 </details>
-<div class="desc"><p>Return a copy of the dict d, except for the keys in the list keys.</p></div>
-</dd>
-<dt id="llms_wrapper.utils.pp_config"><code class="name flex">
-<span>def <span class="ident">pp_config</span></span>(<span>config)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def pp_config(config):
-    &#34;&#34;&#34;
-    Pretty print the config dict
-    &#34;&#34;&#34;
-    return json.dumps(config, indent=4, sort_keys=True)</code></pre>
-</details>
-<div class="desc"><p>Pretty print the config dict</p></div>
+<div class="desc"><p>Return a list of models available for the given provider. If the provider is not recognized,
+or the underlying API is not available, return None.</p>
+<p>api_key should not be necessary but parameter is present if an alternate method to get the list
+requires it</p></div>
 </dd>
 </dl>
 </section>
@@ -98,8 +146,7 @@ el.replaceWith(d);
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="llms_wrapper.utils.dict_except" href="#llms_wrapper.utils.dict_except">dict_except</a></code></li>
-<li><code><a title="llms_wrapper.utils.pp_config" href="#llms_wrapper.utils.pp_config">pp_config</a></code></li>
+<li><code><a title="llms_wrapper.model_list.model_list" href="#llms_wrapper.model_list.model_list">model_list</a></code></li>
 </ul>
 </li>
 </ul>
