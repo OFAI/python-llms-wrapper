@@ -339,6 +339,7 @@ class LLMS:
             return_cost: bool = False,
             return_response: bool = False,
             debug=False,
+            litellm_debug=None,
             **kwargs,
     ) -> Dict[str, any]:
         """
@@ -351,6 +352,7 @@ class LLMS:
             return_cost: whether or not LLM invocation costs should get returned
             return_response: whether or not the complete reponse should get returned
             debug: if True, debug logging is enabled
+            litellm_debug: if True, litellm debug logging is enabled, if False, disabled, if None, use debug setting
             kwargs: any additional keyword arguments to pass on to the LLM 
 
         Returns:
@@ -361,7 +363,7 @@ class LLMS:
         """
         if self.debug:
             debug = True
-        if debug:
+        if litellm_debug is None and debug or litellm_debug:
             #  litellm.set_verbose = True    ## deprecated!
             os.environ['LITELLM_LOG'] = 'DEBUG'
         llm = self.llms[llmalias].config
@@ -387,7 +389,7 @@ class LLMS:
         if kwargs:
             completion_kwargs.update(kwargs)
         if debug:
-            logger.debug(f"Calling completion with {completion_kwargs}")
+            logger.debug(f"Calling completion with kwargs {completion_kwargs}")
         try:
             start = time.time()
             response = litellm.completion(
