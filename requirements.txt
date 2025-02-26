@@ -1,4 +1,5 @@
 litellm
+tenacity
 hjson
 loguru
 docstring_parser

@@ -7,7 +7,7 @@ import re
 from setuptools import setup, find_packages
 
 if sys.version_info < (3, 11):
-    sys.exit("ERROR: ragability requires Python 3.11+")
+    sys.exit("ERROR: llms_wrapper requires Python 3.11+")
 
 here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, "README.md")) as f:
@@ -41,6 +41,7 @@ setup(
     ],
     install_requires=[
         "litellm",
+        "tenacity",
         "hjson",
         "loguru",
         "docstring_parser", 
