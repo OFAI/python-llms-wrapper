@@ -7,3 +7,4 @@ pdoc3
 pytest
 arize-phoenix-otel
 openinference-instrumentation-litellm
+ipykernel

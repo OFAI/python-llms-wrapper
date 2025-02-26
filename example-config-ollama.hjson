@@ -1,0 +1,8 @@
+{
+  llms: [
+    { llm: "ollama/llama3"
+      temperature: 0
+      api_url: "http://localhost:11434"
+    }
+]
+}
