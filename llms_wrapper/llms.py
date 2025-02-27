@@ -68,7 +68,7 @@ class LLMS:
             # register
             tracer_provider = register(
                 project_name=use_phoenix[1],  # Default is 'default'
-                auto_instrument=True,  # Auto-instrument your app based on installed OI dependencies
+                # auto_instrument=True,  # Auto-instrument your app based on installed OI dependencies
                 endpoint=use_phoenix[0],
             )
             # instrument
