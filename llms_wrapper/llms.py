@@ -25,13 +25,20 @@ ROLES = ["user", "assistant", "system"]
 
 # fields in the config to NOT pass on to the LLM
 KNOWN_LLM_CONFIG_FIELDS = [
-    "llm", "alias", "api_key", "api_url", "user", "password",
-    "api_key_env", "user_env", "password_env",
+    "llm", "alias",
+    "api_key",   # we pass this on separately, if necessary
+    "api_url",
+    "user",
+    "password",
+    "api_key_env",
+    "user_env",
+    "password_env",
     "api_key_env", "user_env", "password_env",
     "cost_per_prompt_token",
     "cost_per_output_token",
     "max_output_tokens",
     "max_input_tokens",
+    "use_phoenix",
 ]
 
 
