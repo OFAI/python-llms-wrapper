@@ -159,6 +159,8 @@ def update_llm_config(config: dict):
                     "llm": llm,
                 }
         else:
+            if "/" not in llm["llm"]:
+                raise ValueError(f"Error: LLM entry in config file must be in the format 'provider/model'")
             provider, model = llm["llm"].split("/", 1)
             provider_config = config.get("providers", {}).get(provider, {})
             for key in provider_config:
