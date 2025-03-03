@@ -413,11 +413,15 @@ class LLMS:
                 ret["response"] = response
                 ret["kwargs"] = completion_kwargs
             if return_cost:
-                ret["cost"] = completion_cost(
-                    completion_response=response,
-                    model=llm["llm"],
-                    messages=messages,
-                )
+                try:
+                    ret["cost"] = completion_cost(
+                        completion_response=response,
+                        model=llm["llm"],
+                        messages=messages,
+                    )
+                except Exception as e:
+                    logger.debug(f"Error in completion_cost for model {llm['llm']}: {e}")
+                    ret["cost"] = 0.0
                 llm["_cost"] += ret["cost"]
                 usage = response['usage']
                 logger.debug(f"Usage: {usage}")
