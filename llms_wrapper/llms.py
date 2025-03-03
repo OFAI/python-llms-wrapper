@@ -423,6 +423,7 @@ class LLMS:
                 ret["n_prompt_tokens"] = usage.prompt_tokens
                 ret["n_total_tokens"] = usage.total_tokens
             response_message = response['choices'][0]['message']
+            ret["finish_reason"] = response['choices'][0].get('finish_reason', "UNKNOWN")
             ret["answer"] = response_message['content']
             ret["error"] = ""
             ret["ok"] = True
