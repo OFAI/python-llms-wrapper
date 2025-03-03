@@ -170,7 +170,9 @@ class LLMS:
         ret = llm.get("max_output_tokens")
         if ret is None:
             try:
-                ret = litellm.get_max_tokens(self.llms[llmalias]["llm"])
+                # ret = litellm.get_max_tokens(self.llms[llmalias]["llm"])
+                info = get_model_info(self.llms[llmalias]["llm"])
+                ret = info.get("max_output_tokens")
             except:
                 ret = None
         return ret
@@ -184,7 +186,7 @@ class LLMS:
         if ret is None:
             try:
                 info = get_model_info(self.llms[llmalias]["llm"])
-                ret = info.get("max_tokens")
+                ret = info.get("max_input_tokens")
             except:
                 ret = None
         return ret
