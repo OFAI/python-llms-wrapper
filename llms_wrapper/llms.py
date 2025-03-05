@@ -47,7 +47,7 @@ class LLMS:
     Class that represents a preconfigured set of large language modelservices.
     """
 
-    def __init__(self, config: Dict, debug: bool = False, use_phoenix: Optional[Union[str | Tuple[str, str]]] = None):
+    def __init__(self, config: Dict = None, debug: bool = False, use_phoenix: Optional[Union[str | Tuple[str, str]]] = None):
         """
         Initialize the LLMS object with the given configuration.
 
@@ -55,6 +55,8 @@ class LLMS:
         project name (so far this only works for local phoenix instances). Default URI for a local installation
         is "http://0.0.0.0:6006/v1/traces"
         """
+        if config is None:
+            config = dict(llms=[])
         self.config = deepcopy(config)
         self.debug = debug
         if not use_phoenix and config.get("use_phoenix"):
@@ -128,6 +130,26 @@ class LLMS:
         if isinstance(llmalias, str):
             return self.llms[llmalias]["_elapsed_time"]
         return sum([self.llms[alias]["_elapsed_time"] for alias in llmalias])
+    
+    def get_llm_info(self, llmalias: str, name: str) -> any:
+        """
+        For convenience, any parameter with a name staring with an underscore can be used to configure 
+        our own properties of the LLM object. This method returns the value of the given parameter name of None
+        if not defined, where the name should not include the leading underscore.
+        """
+        return self.llms[llmalias].config.get("_"+name, None)
+    
+    def default_max_tokens(self, llmalias: str) -> int:
+        """
+        Return the default maximum number of tokens that the LLM will produce. This is sometimes smaller thant the actual
+        max_tokens, but not supported by LiteLLM, so we use whatever is configured in the config and fall back
+        to the actual max_tokens if not defined.
+        """
+        ret = self.llms[llmalias].config.get("default_max_tokens")
+        if ret is None:
+            ret = self.max_output_tokens(llmalias)
+        return ret
+    
 
     def cost(self, llmalias: Union[str, List[str], None] = None):
         """
@@ -146,14 +168,21 @@ class LLMS:
         Return the estimated cost per prompt and completion token for the given model.
         This may be wrong or cost may get calculated in a different way, e.g. depending on
         cache, response time etc.
+        If the model is not in the configuration, this makes and attempt to just get the cost as 
+        defined by the LiteLLM backend.
         If no cost is known this returns 0.0, 0.0
         """
-        llm = self.llms[llmalias]
-        cc = llm.get("cost_per_prompt_token")
-        cp = llm.get("cost_per_completion_token")
+        llm = self.llms.get(llmalias)
+        cc, cp = None, None
+        if llm is not None:
+            cc = llm.get("cost_per_prompt_token")
+            cp = llm.get("cost_per_completion_token")
+            llmname = llm["llm"]
+        else:
+            llmname = llmalias
         if cc is None or cp is None:
             try:
-                tmpcp, tmpcc = litellm.cost_per_token(self.llms[llmalias]["llm"], prompt_tokens=1, completion_tokens=1)
+                tmpcp, tmpcc = litellm.cost_per_token(llmname, prompt_tokens=1, completion_tokens=1)
             except:
                 tmpcp, tmpcc = None, None
             if cc is None:
@@ -166,12 +195,17 @@ class LLMS:
         """
         Return the maximum number of prompt tokens that can be sent to the model.
         """
-        llm = self.llms[llmalias]
-        ret = llm.get("max_output_tokens")
+        llm = self.llms.get(llmalias)
+        ret = None
+        if llm is not None:
+            llmname = llm["llm"]
+            ret = llm.get("max_output_tokens")
+        else:
+            llmname = llmalias
         if ret is None:
             try:
                 # ret = litellm.get_max_tokens(self.llms[llmalias]["llm"])
-                info = get_model_info(self.llms[llmalias]["llm"])
+                info = get_model_info(llmname)
                 ret = info.get("max_output_tokens")
             except:
                 ret = None
@@ -181,11 +215,16 @@ class LLMS:
         """
         Return the maximum number of tokens possible in the prompt or None if not known.
         """
-        llm = self.llms[llmalias]
-        ret = llm.get("max_input_tokens")
+        llm = self.llms.get(llmalias)
+        ret = None
+        if llm is not None:
+            ret = llm.get("max_input_tokens")
+            llmname = llm["llm"]
+        else:
+            llmname = llmalias
         if ret is None:
             try:
-                info = get_model_info(self.llms[llmalias]["llm"])
+                info = get_model_info(llmname)
                 ret = info.get("max_input_tokens")
             except:
                 ret = None
