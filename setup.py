@@ -56,7 +56,8 @@ setup(
     packages=find_packages(),
     # test_suite="tests",
     entry_points={"console_scripts": [
-       "llms_wrapper_test=llms_wrapper.llms_wrapper_test:main",
+        "llms_wrapper_test=llms_wrapper.llms_wrapper_test:main",
+        "llms_wrapper_llminfo=llms_wrapper.llms_wrapper_llminfo:main",
     ]},
     classifiers=[
         # "Development Status :: 6 - Mature",

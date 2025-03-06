@@ -32,7 +32,7 @@ def get_args() -> dict:
     parser.add_argument("--config", "-c", type=str, help="Config file with the LLM and other info for an experiment, json, jsonl, yaml", required=False)
     parser.add_argument('--role', '-r', choices=["user", "system", "assistant"], default="user", help='Role to use for the prompt', required=False)
     parser.add_argument("--dry-run", "-n", action="store_true", help="Dry run, do not actually run the queries", required=False)
-    parser.add_argument("--debug", "-d", action="store_true", help="Debug mode", required=False)
+    parser.add_argument("--debug", action="store_true", help="Debug mode", required=False)
     parser.add_argument("--show_response", action="store_true", help="Show thefull  response from the LLM", required=False)
     parser.add_argument("--show_cost", action="store_true", help="Show token counts and cost", required=False)
     parser.add_argument("--logfile", "-f", type=str, help="Log file", required=False)
@@ -50,7 +50,7 @@ def get_args() -> dict:
     logger.info("Logging configured")
     for llm in args.llms:
         if not re.match(r"^[a-zA-Z0-9_\-./]+/.+$", llm):
-            raise Exception(f"Error: 'llms' field must be in the format 'provider:model' in: {llm}")
+            raise Exception(f"Error: 'llms' field must be in the format 'provider/model' in: {llm}")
     # convert the argparse object to a dictionary
     argsconfig = {}
     argsconfig.update(vars(args))

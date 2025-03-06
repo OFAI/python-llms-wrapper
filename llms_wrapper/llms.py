@@ -450,6 +450,9 @@ class LLMS:
             ret["elapsed_time"] = elapsed
             if return_response:
                 ret["response"] = response
+                # prevent the api key from leaking out
+                if "api_key" in completion_kwargs:
+                    del completion_kwargs["api_key"]
                 ret["kwargs"] = completion_kwargs
             if return_cost:
                 try:
@@ -468,6 +471,8 @@ class LLMS:
                 ret["n_prompt_tokens"] = usage.prompt_tokens
                 ret["n_total_tokens"] = usage.total_tokens
             response_message = response['choices'][0]['message']
+            # Does not seem to work see https://github.com/BerriAI/litellm/issues/389
+            # ret["response_ms"] = response["response_ms"]
             ret["finish_reason"] = response['choices'][0].get('finish_reason', "UNKNOWN")
             ret["answer"] = response_message['content']
             ret["error"] = ""
