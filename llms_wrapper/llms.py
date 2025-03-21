@@ -39,6 +39,7 @@ KNOWN_LLM_CONFIG_FIELDS = [
     "max_output_tokens",
     "max_input_tokens",
     "use_phoenix",
+    "min_delay",   # minimum delay between queries for that model
 ]
 
 
@@ -85,6 +86,7 @@ class LLMS:
                 raise ValueError(f"Error: Duplicate LLM alis {alias} in configuration")
             llmdict = deepcopy(llm)
             llmdict["_cost"] = 0
+            llmdict["_last_request_time"] = 0
             llmdict["_elapsed_time"] = 0
             llm = LLM(llmdict, self)
             self.llms[alias] = llm
@@ -262,6 +264,7 @@ class LLMS:
     def make_messages(
             query: Optional[str] = None,
             prompt: Optional[Dict[str, str]] = None,
+            message: Optional[Dict[str, str]] = None,
             messages: Optional[List[Dict[str, str]]] = None,
             keep_n: Optional[int] = None,
     ) -> List[Dict[str, str]]:
@@ -269,8 +272,15 @@ class LLMS:
         Construct updated messages from the query and/or prompt data.
 
         Args:
-            query: A query text, if no prompt is given, a message with this text for role user is created.
+            query: A query text, if no prompt or message is given, a message with this text for role user is created.
+                Otherwise, this string is used to replace "${query}" in the prompt content if that is a string.
             prompt: a dict mapping roles to text templates, where the text template may contain the string "${query}"
+                A prompt looks like this: {"user": "What is the capital of ${query}?", "system": "Be totally helpful!"}
+                If prompt is specified, the query string is used to replace "${query}" in the prompt content.
+            message: a message to use as is; if messages is given, this message is added to messages and the
+                combination is sent to the LLM, if messages is None, this message is sent as is.
+                A message looks like this: {"role": "user", "content": "What is the capital of France?"}
+                If message is specified, query and prompt are ignored.
             messages: previous messages to include in the new messages
             keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
                 the last keep_n-1 messages are kept.
@@ -280,19 +290,23 @@ class LLMS:
         """
         if messages is None:
             messages = []
-        if query is None and prompt is None:
-            raise ValueError("Error: Both query and prompt are None")
-        if query is None:
-            # convert the prompt as is to messages
-            for role, content in prompt.items():
-                if content and role in ROLES:
-                    messages.append(dict(role=role, content=content))
-        elif prompt is None:
-            messages.append({"content": query, "role": "user"})
+        if query is None and prompt is None and message is None:
+            raise ValueError("Error: All of query and prompt and message are None")
+        if message is not None:
+            messages.append(message)
+            return messages
+        elif prompt is not None:
+            if query:
+                for role, content in prompt.items():
+                    if content and role in ROLES:
+                        messages.append(dict(role=role, content=content.replace("${query}", query)))
+            else:
+                # convert the prompt as is to messages
+                for role, content in prompt.items():
+                    if content and role in ROLES:
+                        messages.append(dict(role=role, content=content))
         else:
-            for role, content in prompt.items():
-                if content and role in ROLES:
-                    messages.append(dict(role=role, content=content.replace("${query}", query)))
+            messages.append({"content": query, "role": "user"})
         # if we have more than keep_n messages, remove oldest message but the first so that we have keep_n messages
         if keep_n is not None and len(messages) > keep_n:
             messages = messages[:1] + messages[-keep_n:]
@@ -379,6 +393,15 @@ class LLMS:
             model=self.llms[llmalias]["llm"],
             custom_llm_provider=self.llms[llmalias].get("custom_provider"))
 
+    def supports_file_upload(self, llmalias: str) -> bool:
+        """
+        Check if the model supports file upload
+
+        NOTE: LiteLLM itself does not seem to support this, so we set this false by default and add specific
+        models or providers where we know it works.
+        """
+        return False
+
     def query(
             self,
             llmalias: str,
@@ -435,9 +458,19 @@ class LLMS:
             completion_kwargs["tools"] = tools
         ret = {}
         if kwargs:
-            completion_kwargs.update(kwargs)
+            completion_kwargs.update(dict_except(kwargs,  KNOWN_LLM_CONFIG_FIELDS, ignore_underscored=True))
         if debug:
             logger.debug(f"Calling completion with kwargs {completion_kwargs}")
+        # if we have min_delay set, we look at the _last_request_time for the LLM and caclulate the time
+        # to wait until we can send the next request and then just wait
+        min_delay = llm.get("min_delay", kwargs.get("min_delay", 0.0))
+        if min_delay > 0:
+            elapsed = time.time() - llm["_last_request_time"]
+            if elapsed < min_delay:
+                time.sleep(min_delay - elapsed)
+        llm["_last_request_time"] = time.time()
+        if "min_delay" in completion_kwargs:
+            raise ValueError("Error: min_delay should not be passed as a keyword argument")
         try:
             start = time.time()
             response = litellm.completion(
