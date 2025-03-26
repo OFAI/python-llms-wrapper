@@ -14,7 +14,7 @@ from loguru import logger
 from typing import Optional, Dict, List, Union, Tuple, Callable
 from copy import deepcopy
 
-from litellm import completion, completion_cost
+from litellm import completion, completion_cost, token_counter
 from litellm.utils import get_model_info, get_supported_openai_params, supports_response_schema
 from litellm.utils import supports_function_calling, supports_parallel_function_calling
 from llms_wrapper.utils import dict_except
@@ -402,6 +402,15 @@ class LLMS:
         """
         return False
 
+    def count_tokens(self, llmalias: str, messages: List[Dict[str, str]]) -> int:
+        """
+        Count the number of tokens in the given messages. If messages is a string, convert it to a
+        single user message first.
+        """
+        if isinstance(messages, str):
+            messages = [{"role": "user", "content": messages}]
+        return token_counter(model=self.llms[llmalias]["llm"], messages=messages)
+
     def query(
             self,
             llmalias: str,
@@ -604,3 +613,8 @@ class LLM:
     def supports_function_calling(self, parallel=False) -> bool:
         return self.llmsobject.supports_function_calling(self.config["alias"], parallel)
 
+    def supports_file_upload(self) -> bool:
+        return self.llmsobject.supports_file_upload(self.config["alias"])
+
+    def count_tokens(self, messages: List[Dict[str, str]]) -> int:
+        return self.llmsobject.count_tokens(self.config["alias"], messages)
