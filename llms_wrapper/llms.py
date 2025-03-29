@@ -402,7 +402,7 @@ class LLMS:
         """
         return False
 
-    def count_tokens(self, llmalias: str, messages: List[Dict[str, str]]) -> int:
+    def count_tokens(self, llmalias: Union[str, List[Dict[str, any]]], messages: List[Dict[str, any]]) -> int:
         """
         Count the number of tokens in the given messages. If messages is a string, convert it to a
         single user message first.
