@@ -337,6 +337,49 @@ class LLMS:
         """
         Automatically create the tooling descriptions for a function or list of functions, based on the
         function(s) documentation strings.
+
+        The documentation string for each of the functions should be in in a format supported
+        by the docstring_parser package (Google, Numpy, or ReST).
+
+        The description of the function should be given in detail and in a way that will
+        be useful to the LLM. The same goes for the description of each of the arguments for
+        the function.       
+
+        With the ReST docustring format, use :param argname: description followed by 
+        a new line, then the type of the argument specified via :type argname: type. 
+        Specify the description of the return value via :returns: description followed
+        by a new line, then the type of the return value specified via :rtype: type.
+        The description should have one summary line, followed by a blank line then 
+        followed by the detailed description text.  
+
+        IMPORTANT: the standard python type names are not supported, instead use the json 
+        schema types: string, number, integer, boolean, array, object, null. object can be 
+        used to specify a dictionary type.
+        If you need to specify complex nested types, avoid using this method and instead
+        create the tooling descriptions directly, using a nested json schema e.g. 
+        to specify a list of dictionaries with the key 'name' of type string and 'age' of type integer:
+        ```
+        {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "age": {"type": "integer"}
+                },
+                "required": ["name", "age"]
+            }
+            "description": "A list of people with their name and age"
+        }
+        ```
+        See https://platform.openai.com/docs/guides/function-calling
+
+        Args:
+            functions: a function or list of functions. The function(s) documentation strings are parsed
+                to create the tooling descriptions.
+
+        Returns:
+            A list of tool dictionaries, each dictionary describing a tool.
         """
         if not isinstance(functions, list):
             functions = [functions]
@@ -449,10 +492,12 @@ class LLMS:
         Args:
             llmalias: the alias/name of the LLM to query
             messages: a list of message dictionaries with role and content keys
-            tools: TBD
+            tools: a list of tool dictionaries, each dictionary describing a tool. 
+                See https://docs.litellm.ai/docs/completion/function_call for the format. 
+                However, this can be created using the `make_tooling` function.
             return_cost: whether or not LLM invocation costs should get returned
             return_response: whether or not the complete reponse should get returned
-            debug: if True, debug logging is enabled
+            debug: if True, emits debug messages to aid development and debugging
             litellm_debug: if True, litellm debug logging is enabled, if False, disabled, if None, use debug setting
             kwargs: any additional keyword arguments to pass on to the LLM 
 
