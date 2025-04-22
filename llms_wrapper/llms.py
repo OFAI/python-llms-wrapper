@@ -6,6 +6,7 @@ import warnings
 # TODO: Remove after https://github.com/BerriAI/litellm/issues/7560 is fixed
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic._internal._config")
 import litellm
+import json
 import time
 import traceback
 import inspect
@@ -42,6 +43,25 @@ KNOWN_LLM_CONFIG_FIELDS = [
     "min_delay",   # minimum delay between queries for that model
 ]
 
+
+def toolnames2funcs(tools):
+    fmap = {}
+    for tool in tools:
+        name = tool["function"]["name"]
+        func = get_func_by_name(name)
+        if func is None:
+            raise Exception(f"Function {name} not found")
+        fmap[name] = func
+    return fmap
+
+def get_func_by_name(name):
+    # Walk up the call stack
+    for frame_info in inspect.stack():
+        frame = frame_info.frame
+        func = frame.f_locals.get(name) or frame.f_globals.get(name)
+        if callable(func):
+            return func
+    return None  # Not found
 
 class LLMS:
     """
@@ -420,6 +440,7 @@ class LLMS:
             return_response: bool = False,
             debug=False,
             litellm_debug=None,
+            recursive_call_info: Optional[Dict[str, any]] = None,  
             **kwargs,
     ) -> Dict[str, any]:
         """
@@ -457,6 +478,8 @@ class LLMS:
             KNOWN_LLM_CONFIG_FIELDS,
             ignore_underscored=True,
         )
+        if recursive_call_info is None:
+            recursive_call_info = {}            
         if llm.get("api_key"):
             completion_kwargs["api_key"] = llm["api_key"]
         elif llm.get("api_key_env"):
@@ -464,12 +487,29 @@ class LLMS:
         if llm.get("api_url"):
             completion_kwargs["api_base"] = llm["api_url"]
         if tools is not None:
+            # add tooling-related arguments to completion_kwargs
             completion_kwargs["tools"] = tools
+            if not self.supports_function_calling(llmalias):
+                # see https://docs.litellm.ai/docs/completion/function_call#function-calling-for-models-wout-function-calling-support
+                litellm.add_function_to_prompt = True
+            else:
+                if "tool_choice"  not in completion_kwargs:
+                    # this is the default, but lets be explicit
+                    completion_kwargs["tool_choice"] = "auto"  
+                # Not known/supported by litellm, apparently
+                # if "parallel_tool_choice" not in completion_kwargs:
+                #     completion_kwargs["parallel_tool_choice"] = True 
+            fmap = toolnames2funcs(tools)
+        else:
+            fmap = {}
         ret = {}
+        # before adding the kwargs, save the recursive_call_info and remove it from kwargs
+        if debug:
+            print(f"DEBUG: Received recursive call info: {recursive_call_info}")
         if kwargs:
             completion_kwargs.update(dict_except(kwargs,  KNOWN_LLM_CONFIG_FIELDS, ignore_underscored=True))
         if debug:
-            logger.debug(f"Calling completion with kwargs {completion_kwargs}")
+            print(f"DEBUG: Calling completion with kwargs {completion_kwargs}")
         # if we have min_delay set, we look at the _last_request_time for the LLM and caclulate the time
         # to wait until we can send the next request and then just wait
         min_delay = llm.get("min_delay", kwargs.get("min_delay", 0.0))
@@ -481,7 +521,13 @@ class LLMS:
         if "min_delay" in completion_kwargs:
             raise ValueError("Error: min_delay should not be passed as a keyword argument")
         try:
-            start = time.time()
+            # if we have been called recursively and the recursive_call_info has a start time, 
+            # use that as the start time
+            if recursive_call_info.get("start") is not None:
+                start = recursive_call_info["start"]
+            else:
+                start = time.time()
+                recursive_call_info["start"] = start
             response = litellm.completion(
                 model=llm["llm"],
                 messages=messages,
@@ -503,6 +549,8 @@ class LLMS:
                         model=llm["llm"],
                         messages=messages,
                     )
+                    if debug:
+                        print(f"DEBUG: cost for this call {ret['cost']}")
                 except Exception as e:
                     logger.debug(f"Error in completion_cost for model {llm['llm']}: {e}")
                     ret["cost"] = 0.0
@@ -512,6 +560,22 @@ class LLMS:
                 ret["n_completion_tokens"] = usage.completion_tokens
                 ret["n_prompt_tokens"] = usage.prompt_tokens
                 ret["n_total_tokens"] = usage.total_tokens
+                # add the cost and tokens from the recursive call info, if available
+                if recursive_call_info.get("cost") is not None:
+                    ret["cost"] += recursive_call_info["cost"]
+                    if debug:
+                        print(f"DEBUG: cost for this and previous calls {ret['cost']}")
+                if recursive_call_info.get("n_completion_tokens") is not None:
+                    ret["n_completion_tokens"] += recursive_call_info["n_completion_tokens"]
+                if recursive_call_info.get("n_prompt_tokens") is not None:
+                    ret["n_prompt_tokens"] += recursive_call_info["n_prompt_tokens"]
+                if recursive_call_info.get("n_total_tokens") is not None:
+                    ret["n_total_tokens"] += recursive_call_info["n_total_tokens"]
+                recursive_call_info["cost"] = ret["cost"]
+                recursive_call_info["n_completion_tokens"] = ret["n_completion_tokens"]
+                recursive_call_info["n_prompt_tokens"] = ret["n_prompt_tokens"]
+                recursive_call_info["n_total_tokens"] = ret["n_total_tokens"]
+                    
             response_message = response['choices'][0]['message']
             # Does not seem to work see https://github.com/BerriAI/litellm/issues/389
             # ret["response_ms"] = response["response_ms"]
@@ -521,9 +585,70 @@ class LLMS:
             ret["ok"] = True
             # TODO: if feasable handle all tool calling here or in a separate method which does
             #   all the tool calling steps (up to a specified maximum).
+            if debug:
+                print(f"DEBUG: checking for tool_calls: {response_message}, have tools: {tools is not None}")
             if tools is not None:
-                ret["tool_calls"] = response_message.tool_calls
-                ret["response_message"] = response_message
+                if hasattr(response_message, "tool_calls") and response_message.tool_calls is not None:
+                    tool_calls = response_message.tool_calls
+                else:
+                    tool_calls = []
+                if debug:
+                    print(f"DEBUG: got {len(tool_calls)} tool calls:")
+                    for tool_call in tool_calls:
+                        print(f"DEBUG: {tool_call}")
+                if len(tool_calls) > 0:   # not an empty list
+                    if debug:
+                        print(f"DEBUG: appending response message: {response_message}")
+                    messages.append(response_message)
+                    for tool_call in tool_calls:
+                        function_name = tool_call.function.name
+                        if debug:
+                            print(f"DEBUG: tool call {function_name}")
+                        fun2call = fmap.get(function_name)
+                        if fun2call is None:
+                            ret["error"] = f"Unknown tooling function name: {function_name}"
+                            ret["answer"] = ""
+                            ret["ok"] = False
+                            return ret
+                        function_args = json.loads(tool_call.function.arguments)
+                        try:
+                            if debug:
+                                print(f"DEBUG: calling {function_name} with args {function_args}")
+                            function_response = fun2call(**function_args)
+                            if debug:
+                                print(f"DEBUG: got response {function_response}")
+                        except Exception as e:
+                            tb = traceback.extract_tb(e.__traceback__)
+                            filename, lineno, funcname, text = tb[-1]
+                            if debug:
+                                print(f"DEBUG: function call got error {e}")
+                            ret["error"] = f"Error executing tool function {function_name}: {str(e)} in {filename}:{lineno} {funcname}"
+                            if debug:
+                                logger.error(f"Returning error: {e}")
+                            ret["answer"] = ""
+                            ret["ok"] = False
+                            return ret
+                        messages.append(
+                            dict(
+                                tool_call_id=tool_call.id, 
+                                role="tool", name=function_name, 
+                                content=json.dumps(function_response)))
+                    # recursively call query
+                    if debug:
+                        print(f"DEBUG: recursively calling query with messages:")
+                        for idx, msg in enumerate(messages):
+                            print(f"DEBUG: Message {idx}: {msg}")
+                        print(f"DEBUG: recursively_call_info is {recursive_call_info}")                    
+                    return self.query(
+                        llmalias, 
+                        messages, 
+                        tools=tools, 
+                        return_cost=return_cost, 
+                        return_response=return_response, 
+                        debug=debug, 
+                        litellm_debug=litellm_debug, 
+                        recursive_call_info=recursive_call_info,
+                        **kwargs)
         except Exception as e:
             tb = traceback.extract_tb(e.__traceback__)
             filename, lineno, funcname, text = tb[-1]
