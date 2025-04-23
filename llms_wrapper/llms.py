@@ -12,7 +12,8 @@ import traceback
 import inspect
 import docstring_parser
 from loguru import logger
-from typing import Optional, Dict, List, Union, Tuple, Callable
+import typing
+from typing import Optional, Dict, List, Union, Tuple, Callable, get_args, get_origin
 from copy import deepcopy
 
 from litellm import completion, completion_cost, token_counter
@@ -45,6 +46,18 @@ KNOWN_LLM_CONFIG_FIELDS = [
 
 
 def toolnames2funcs(tools):
+    """
+    Convert a list of tool names to a dictionary of functions.
+    
+    Args:
+        tools: List of tools, each with a name.
+    
+    Returns:
+        Dictionary of function names to functions.
+
+    Raises:
+        Exception: If a function is not found.
+    """
     fmap = {}
     for tool in tools:
         name = tool["function"]["name"]
@@ -54,14 +67,164 @@ def toolnames2funcs(tools):
         fmap[name] = func
     return fmap
 
+
 def get_func_by_name(name):
-    # Walk up the call stack
+    """
+    Get a function by name.
+    
+    Args:
+        name: Name of the function.
+    
+    Returns:
+        Function if found, None otherwise.
+    
+    Raises:
+        Exception: If a function is not found.
+    """
     for frame_info in inspect.stack():
         frame = frame_info.frame
         func = frame.f_locals.get(name) or frame.f_globals.get(name)
         if callable(func):
             return func
     return None  # Not found
+
+def ptype2schema(py_type):
+    """
+    Convert a Python type to a JSON schema.
+    
+    Args:
+        py_type: Python type to convert.
+    
+    Returns:
+        JSON schema for the given Python type.
+    
+    Raises:
+        ValueError: If the type is not supported.
+    """ 
+    # Handle bare None
+    if py_type is type(None):
+        return {"type": "null"}
+
+    origin = get_origin(py_type)
+    args = get_args(py_type)
+
+    if origin is None:
+        # Base types
+        if py_type is str:
+            return {"type": "string"}
+        elif py_type is int:
+            return {"type": "integer"}
+        elif py_type is float:
+            return {"type": "number"}
+        elif py_type is bool:
+            return {"type": "boolean"}
+        elif py_type is type(None):
+            return {"type": "null"}
+        else:
+            return {"type": "string"}  # Fallback
+
+    elif origin is list or origin is typing.List:
+        item_type = ptype2schema(args[0]) if args else {"type": "string"}
+        return {"type": "array", "items": item_type}
+
+    elif origin is dict or origin is typing.Dict:
+        key_type, val_type = args if args else (str, str)
+        # JSON Schema requires string keys
+        if key_type != str:
+            raise ValueError("JSON object keys must be strings")
+        return {"type": "object", "additionalProperties": ptype2schema(val_type)}
+
+    elif origin is typing.Union:
+        # Flatten nested Union
+        flat_args = []
+        for arg in args:
+            if get_origin(arg) is typing.Union:
+                flat_args.extend(get_args(arg))
+            else:
+                flat_args.append(arg)
+
+        schemas = [ptype2schema(a) for a in flat_args]
+        return {"anyOf": schemas}
+
+    elif origin is typing.Literal:
+        return {"enum": list(args)}
+
+    else:
+        return {"type": "string"}  # fallback for unsupported/unknown
+    
+def function2schema(func, include_return_type=True):
+    """
+    Convert a function to a JSON schema.
+    
+    Args:
+        func: Function to convert.
+        include_return_type: Whether to include the return type in the schema.
+    
+    Returns:
+        JSON schema for the given function.
+    
+    Raises:
+        ValueError: If the function docstring is empty.
+    """ 
+    doc = docstring_parser.parse(func.__doc__)
+    desc = doc.short_description + "\n\n" + doc.long_description if doc.long_description else doc.short_description
+    if not desc:
+        raise ValueError("Function docstring is empty")
+    argdescs = {arg.arg_name: arg.description for arg in doc.params}    
+    argtypes = {}
+    for arg in doc.params:
+        argtype = arg.type_name
+        # if the argtype is not specified, skip, we will use the argument type
+        if argtype is None:
+            continue
+        # if the argtype starts with a brace, we assume it is already specified as a JSON schema
+        if argtype.startswith("{"):
+            argtypes[arg.arg_name] = json.loads(argtype)
+        else:
+            # otherwise, we assume it is a python type            
+            argtypes[arg.arg_name] = ptype2schema(argtype)
+    retdesc = doc.returns.description if doc.returns else ""
+    if not retdesc:
+        raise ValueError("Function return type is not specified in docstring")
+    retschema = ptype2schema(func.__annotations__.get("return", None))
+    desc = desc + "\n\n" + "The function returns: " + str(retdesc)
+    if include_return_type:
+        desc = desc + "\n\n" + "The return type is: " + str(retschema)
+    sig = inspect.signature(func)
+    parameters = sig.parameters
+
+    props = {}
+    required = []
+
+    for name, param in parameters.items():
+        if name == 'self':
+            continue
+
+        if name in argtypes:
+            schema = argtypes[name]
+        else:
+            # Use the type annotation if available, otherwise default to string
+            ptype = param.annotation if param.annotation != inspect.Parameter.empty else str
+            schema = ptype2schema(ptype)
+        schema["description"] = argdescs.get(name, "")
+
+        if param.default != inspect.Parameter.empty:
+            schema["default"] = param.default
+        else:
+            required.append(name)
+
+        props[name] = schema
+
+    return {
+        "name": func.__name__,
+        "description": desc,
+        "parameters": {
+            "type": "object",
+            "properties": props,
+            "required": required
+        }
+    }
+
 
 class LLMS:
     """
@@ -345,38 +508,20 @@ class LLMS:
         be useful to the LLM. The same goes for the description of each of the arguments for
         the function.       
 
-        With the ReST docustring format, use :param argname: description followed by 
-        a new line, then the type of the argument specified via :type argname: type. 
-        Specify the description of the return value via :returns: description followed
-        by a new line, then the type of the return value specified via :rtype: type.
-        The description should have one summary line, followed by a blank line then 
-        followed by the detailed description text.  
+        The type of all arguments and of the function return value should get specified using 
+        standard Python type annotations. These types will get converted to json schema types.
 
-        IMPORTANT: the standard python type names are not supported, instead use the json 
-        schema types: string, number, integer, boolean, array, object, null. object can be 
-        used to specify a dictionary type.
-        If you need to specify complex nested types, avoid using this method and instead
-        create the tooling descriptions directly, using a nested json schema e.g. 
-        to specify a list of dictionaries with the key 'name' of type string and 'age' of type integer:
-        ```
-        {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "name": {"type": "string"},
-                    "age": {"type": "integer"}
-                },
-                "required": ["name", "age"]
-            }
-            "description": "A list of people with their name and age"
-        }
-        ```
+        Each argument and the return value must be documented in the docstring. 
+
+        If the type of a parameter is specified in the docstring, that type will get used
+        instead of the type annotation specified in the function signature. 
+        If the type of a parameter is specified in the docstring as a json schema type
+        starting and ending with a brace, that schema is directly used. 
+
         See https://platform.openai.com/docs/guides/function-calling
 
         Args:
-            functions: a function or list of functions. The function(s) documentation strings are parsed
-                to create the tooling descriptions.
+            functions: a function or list of functions. 
 
         Returns:
             A list of tool dictionaries, each dictionary describing a tool.
@@ -385,47 +530,9 @@ class LLMS:
             functions = [functions]
         tools = []
         for func in functions:
-            if not callable(func):
-                raise ValueError(f"Error: {func} is not callable")
-            doc = docstring_parser.parse(func.__doc__)
-            argspec = inspect.getfullargspec(func)
-            nrequired = len(argspec.args) - len(argspec.defaults) if argspec.defaults else len(argspec.args)
-            # for each parameter get the type as specified in the docstring, if not specified, get the
-            # name of the type from the argspec annotation information, if not specified there, assume string
-            argtypes = []
-            for idx, aname in enumerate(argspec.args):
-                if idx < len(doc.params):
-                    argtypes.append(doc.params[idx].type_name)
-                # it seems proper python types are not supported?
-                # elif argspec.annotations.get(aname):
-                #     argtypes.append(argspec.annotations[aname].__name__)
-                else:
-                    argtypes.append("string")
-            argdescs = []
-            for idx, aname in enumerate(argspec.args):
-                if idx < len(doc.params):
-                    argdescs.append(doc.params[idx].description)
-                else:
-                    raise ValueError(f"Error: Missing description for parameter {aname} in doc of function {func.__name__}")
-            desc = doc.short_description + "\n\n" + doc.long_description
-            tools.append({
-                "type": "function",
-                "function": {
-                    "name": func.__name__,
-                    "description": desc,
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            doc.params[i].arg_name: {
-                                "type": argtypes[i],
-                                "description": argdescs[i],
-                            } for i in range(len(argspec.args))
-                        },
-                        "required": [param.arg_name for param in doc.params[:nrequired]],
-                    },
-                },
-            })
+            tools.append(function2schema(func))
         return tools
+
 
     def supports_response_format(self, llmalias: str) -> bool:
         """
