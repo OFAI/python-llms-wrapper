@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
-<meta name="generator" content="pdoc3 0.11.5">
+<meta name="generator" content="pdoc3 0.11.6">
 <title>llms_wrapper.llms API documentation</title>
 <meta name="description" content="Module related to using LLMs.">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
@@ -43,6 +43,278 @@ el.replaceWith(d);
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="llms_wrapper.llms.function2schema"><code class="name flex">
+<span>def <span class="ident">function2schema</span></span>(<span>func, include_return_type=True)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def function2schema(func, include_return_type=True):
+    &#34;&#34;&#34;
+    Convert a function to a JSON schema.
+    
+    Args:
+        func: Function to convert.
+        include_return_type: Whether to include the return type in the schema.
+    
+    Returns:
+        JSON schema for the given function.
+    
+    Raises:
+        ValueError: If the function docstring is empty.
+    &#34;&#34;&#34; 
+    doc = docstring_parser.parse(func.__doc__)
+    desc = doc.short_description + &#34;\n\n&#34; + doc.long_description if doc.long_description else doc.short_description
+    if not desc:
+        raise ValueError(&#34;Function docstring is empty&#34;)
+    argdescs = {arg.arg_name: arg.description for arg in doc.params}    
+    argtypes = {}
+    for arg in doc.params:
+        argtype = arg.type_name
+        # if the argtype is not specified, skip, we will use the argument type
+        if argtype is None:
+            continue
+        # if the argtype starts with a brace, we assume it is already specified as a JSON schema
+        if argtype.startswith(&#34;{&#34;):
+            argtypes[arg.arg_name] = json.loads(argtype)
+        else:
+            # otherwise, we assume it is a python type            
+            argtypes[arg.arg_name] = ptype2schema(argtype)
+    retdesc = doc.returns.description if doc.returns else &#34;&#34;
+    if not retdesc:
+        raise ValueError(&#34;Function return type is not specified in docstring&#34;)
+    retschema = ptype2schema(func.__annotations__.get(&#34;return&#34;, None))
+    desc = desc + &#34;\n\n&#34; + &#34;The function returns: &#34; + str(retdesc)
+    if include_return_type:
+        desc = desc + &#34;\n\n&#34; + &#34;The return type is: &#34; + str(retschema)
+    sig = inspect.signature(func)
+    parameters = sig.parameters
+
+    props = {}
+    required = []
+
+    for name, param in parameters.items():
+        if name == &#39;self&#39;:
+            continue
+
+        if name in argtypes:
+            schema = argtypes[name]
+        else:
+            # Use the type annotation if available, otherwise default to string
+            ptype = param.annotation if param.annotation != inspect.Parameter.empty else str
+            schema = ptype2schema(ptype)
+        schema[&#34;description&#34;] = argdescs.get(name, &#34;&#34;)
+
+        if param.default != inspect.Parameter.empty:
+            schema[&#34;default&#34;] = param.default
+        else:
+            required.append(name)
+
+        props[name] = schema
+
+    return {
+        &#34;name&#34;: func.__name__,
+        &#34;description&#34;: desc,
+        &#34;parameters&#34;: {
+            &#34;type&#34;: &#34;object&#34;,
+            &#34;properties&#34;: props,
+            &#34;required&#34;: required
+        }
+    }</code></pre>
+</details>
+<div class="desc"><p>Convert a function to a JSON schema.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>func</code></strong></dt>
+<dd>Function to convert.</dd>
+<dt><strong><code>include_return_type</code></strong></dt>
+<dd>Whether to include the return type in the schema.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>JSON schema for the given function.</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>If the function docstring is empty.</dd>
+</dl></div>
+</dd>
+<dt id="llms_wrapper.llms.get_func_by_name"><code class="name flex">
+<span>def <span class="ident">get_func_by_name</span></span>(<span>name)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_func_by_name(name):
+    &#34;&#34;&#34;
+    Get a function by name.
+    
+    Args:
+        name: Name of the function.
+    
+    Returns:
+        Function if found, None otherwise.
+    
+    Raises:
+        Exception: If a function is not found.
+    &#34;&#34;&#34;
+    for frame_info in inspect.stack():
+        frame = frame_info.frame
+        func = frame.f_locals.get(name) or frame.f_globals.get(name)
+        if callable(func):
+            return func
+    return None  # Not found</code></pre>
+</details>
+<div class="desc"><p>Get a function by name.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong></dt>
+<dd>Name of the function.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Function if found, None otherwise.</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>Exception</code></dt>
+<dd>If a function is not found.</dd>
+</dl></div>
+</dd>
+<dt id="llms_wrapper.llms.ptype2schema"><code class="name flex">
+<span>def <span class="ident">ptype2schema</span></span>(<span>py_type)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ptype2schema(py_type):
+    &#34;&#34;&#34;
+    Convert a Python type to a JSON schema.
+    
+    Args:
+        py_type: Python type to convert.
+    
+    Returns:
+        JSON schema for the given Python type.
+    
+    Raises:
+        ValueError: If the type is not supported.
+    &#34;&#34;&#34; 
+    # Handle bare None
+    if py_type is type(None):
+        return {&#34;type&#34;: &#34;null&#34;}
+
+    origin = get_origin(py_type)
+    args = get_args(py_type)
+
+    if origin is None:
+        # Base types
+        if py_type is str:
+            return {&#34;type&#34;: &#34;string&#34;}
+        elif py_type is int:
+            return {&#34;type&#34;: &#34;integer&#34;}
+        elif py_type is float:
+            return {&#34;type&#34;: &#34;number&#34;}
+        elif py_type is bool:
+            return {&#34;type&#34;: &#34;boolean&#34;}
+        elif py_type is type(None):
+            return {&#34;type&#34;: &#34;null&#34;}
+        else:
+            return {&#34;type&#34;: &#34;string&#34;}  # Fallback
+
+    elif origin is list or origin is typing.List:
+        item_type = ptype2schema(args[0]) if args else {&#34;type&#34;: &#34;string&#34;}
+        return {&#34;type&#34;: &#34;array&#34;, &#34;items&#34;: item_type}
+
+    elif origin is dict or origin is typing.Dict:
+        key_type, val_type = args if args else (str, str)
+        # JSON Schema requires string keys
+        if key_type != str:
+            raise ValueError(&#34;JSON object keys must be strings&#34;)
+        return {&#34;type&#34;: &#34;object&#34;, &#34;additionalProperties&#34;: ptype2schema(val_type)}
+
+    elif origin is typing.Union:
+        # Flatten nested Union
+        flat_args = []
+        for arg in args:
+            if get_origin(arg) is typing.Union:
+                flat_args.extend(get_args(arg))
+            else:
+                flat_args.append(arg)
+
+        schemas = [ptype2schema(a) for a in flat_args]
+        return {&#34;anyOf&#34;: schemas}
+
+    elif origin is typing.Literal:
+        return {&#34;enum&#34;: list(args)}
+
+    else:
+        return {&#34;type&#34;: &#34;string&#34;}  # fallback for unsupported/unknown</code></pre>
+</details>
+<div class="desc"><p>Convert a Python type to a JSON schema.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>py_type</code></strong></dt>
+<dd>Python type to convert.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>JSON schema for the given Python type.</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>If the type is not supported.</dd>
+</dl></div>
+</dd>
+<dt id="llms_wrapper.llms.toolnames2funcs"><code class="name flex">
+<span>def <span class="ident">toolnames2funcs</span></span>(<span>tools)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def toolnames2funcs(tools):
+    &#34;&#34;&#34;
+    Convert a list of tool names to a dictionary of functions.
+    
+    Args:
+        tools: List of tools, each with a name.
+    
+    Returns:
+        Dictionary of function names to functions.
+
+    Raises:
+        Exception: If a function is not found.
+    &#34;&#34;&#34;
+    fmap = {}
+    for tool in tools:
+        name = tool[&#34;function&#34;][&#34;name&#34;]
+        func = get_func_by_name(name)
+        if func is None:
+            raise Exception(f&#34;Function {name} not found&#34;)
+        fmap[name] = func
+    return fmap</code></pre>
+</details>
+<div class="desc"><p>Convert a list of tool names to a dictionary of functions.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>tools</code></strong></dt>
+<dd>List of tools, each with a name.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Dictionary of function names to functions.</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>Exception</code></dt>
+<dd>If a function is not found.</dd>
+</dl></div>
+</dd>
+</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -129,7 +401,13 @@ el.replaceWith(d);
         return self.llmsobject.supports_json_schema(self.config[&#34;alias&#34;])
 
     def supports_function_calling(self, parallel=False) -&gt; bool:
-        return self.llmsobject.supports_function_calling(self.config[&#34;alias&#34;], parallel)</code></pre>
+        return self.llmsobject.supports_function_calling(self.config[&#34;alias&#34;], parallel)
+
+    def supports_file_upload(self) -&gt; bool:
+        return self.llmsobject.supports_file_upload(self.config[&#34;alias&#34;])
+
+    def count_tokens(self, messages: List[Dict[str, str]]) -&gt; int:
+        return self.llmsobject.count_tokens(self.config[&#34;alias&#34;], messages)</code></pre>
 </details>
 <div class="desc"></div>
 <h3>Methods</h3>
@@ -157,6 +435,19 @@ el.replaceWith(d);
 </summary>
 <pre><code class="python">def cost_per_token(self) -&gt; Tuple[float, float]:
     return self.llmsobject.cost_per_token(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.count_tokens"><code class="name flex">
+<span>def <span class="ident">count_tokens</span></span>(<span>self, messages: List[Dict[str, str]]) ‑> int</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def count_tokens(self, messages: List[Dict[str, str]]) -&gt; int:
+    return self.llmsobject.count_tokens(self.config[&#34;alias&#34;], messages)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -282,6 +573,19 @@ el.replaceWith(d);
 </details>
 <div class="desc"></div>
 </dd>
+<dt id="llms_wrapper.llms.LLM.supports_file_upload"><code class="name flex">
+<span>def <span class="ident">supports_file_upload</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def supports_file_upload(self) -&gt; bool:
+    return self.llmsobject.supports_file_upload(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
 <dt id="llms_wrapper.llms.LLM.supports_function_calling"><code class="name flex">
 <span>def <span class="ident">supports_function_calling</span></span>(<span>self, parallel=False) ‑> bool</span>
 </code></dt>
@@ -325,7 +629,7 @@ el.replaceWith(d);
 </dd>
 <dt id="llms_wrapper.llms.LLMS"><code class="flex name class">
 <span>class <span class="ident">LLMS</span></span>
-<span>(</span><span>config: Dict,<br>debug: bool = False,<br>use_phoenix: str | Tuple[str, str] | None = None)</span>
+<span>(</span><span>config: Dict = None,<br>debug: bool = False,<br>use_phoenix: str | Tuple[str, str] | None = None)</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -337,7 +641,7 @@ el.replaceWith(d);
     Class that represents a preconfigured set of large language modelservices.
     &#34;&#34;&#34;
 
-    def __init__(self, config: Dict, debug: bool = False, use_phoenix: Optional[Union[str | Tuple[str, str]]] = None):
+    def __init__(self, config: Dict = None, debug: bool = False, use_phoenix: Optional[Union[str | Tuple[str, str]]] = None):
         &#34;&#34;&#34;
         Initialize the LLMS object with the given configuration.
 
@@ -345,6 +649,8 @@ el.replaceWith(d);
         project name (so far this only works for local phoenix instances). Default URI for a local installation
         is &#34;http://0.0.0.0:6006/v1/traces&#34;
         &#34;&#34;&#34;
+        if config is None:
+            config = dict(llms=[])
         self.config = deepcopy(config)
         self.debug = debug
         if not use_phoenix and config.get(&#34;use_phoenix&#34;):
@@ -358,7 +664,7 @@ el.replaceWith(d);
             # register
             tracer_provider = register(
                 project_name=use_phoenix[1],  # Default is &#39;default&#39;
-                auto_instrument=True,  # Auto-instrument your app based on installed OI dependencies
+                # auto_instrument=True,  # Auto-instrument your app based on installed OI dependencies
                 endpoint=use_phoenix[0],
             )
             # instrument
@@ -373,6 +679,7 @@ el.replaceWith(d);
                 raise ValueError(f&#34;Error: Duplicate LLM alis {alias} in configuration&#34;)
             llmdict = deepcopy(llm)
             llmdict[&#34;_cost&#34;] = 0
+            llmdict[&#34;_last_request_time&#34;] = 0
             llmdict[&#34;_elapsed_time&#34;] = 0
             llm = LLM(llmdict, self)
             self.llms[alias] = llm
@@ -418,6 +725,26 @@ el.replaceWith(d);
         if isinstance(llmalias, str):
             return self.llms[llmalias][&#34;_elapsed_time&#34;]
         return sum([self.llms[alias][&#34;_elapsed_time&#34;] for alias in llmalias])
+    
+    def get_llm_info(self, llmalias: str, name: str) -&gt; any:
+        &#34;&#34;&#34;
+        For convenience, any parameter with a name staring with an underscore can be used to configure 
+        our own properties of the LLM object. This method returns the value of the given parameter name of None
+        if not defined, where the name should not include the leading underscore.
+        &#34;&#34;&#34;
+        return self.llms[llmalias].config.get(&#34;_&#34;+name, None)
+    
+    def default_max_tokens(self, llmalias: str) -&gt; int:
+        &#34;&#34;&#34;
+        Return the default maximum number of tokens that the LLM will produce. This is sometimes smaller thant the actual
+        max_tokens, but not supported by LiteLLM, so we use whatever is configured in the config and fall back
+        to the actual max_tokens if not defined.
+        &#34;&#34;&#34;
+        ret = self.llms[llmalias].config.get(&#34;default_max_tokens&#34;)
+        if ret is None:
+            ret = self.max_output_tokens(llmalias)
+        return ret
+    
 
     def cost(self, llmalias: Union[str, List[str], None] = None):
         &#34;&#34;&#34;
@@ -436,14 +763,21 @@ el.replaceWith(d);
         Return the estimated cost per prompt and completion token for the given model.
         This may be wrong or cost may get calculated in a different way, e.g. depending on
         cache, response time etc.
+        If the model is not in the configuration, this makes and attempt to just get the cost as 
+        defined by the LiteLLM backend.
         If no cost is known this returns 0.0, 0.0
         &#34;&#34;&#34;
-        llm = self.llms[llmalias]
-        cc = llm.get(&#34;cost_per_prompt_token&#34;)
-        cp = llm.get(&#34;cost_per_completion_token&#34;)
+        llm = self.llms.get(llmalias)
+        cc, cp = None, None
+        if llm is not None:
+            cc = llm.get(&#34;cost_per_prompt_token&#34;)
+            cp = llm.get(&#34;cost_per_completion_token&#34;)
+            llmname = llm[&#34;llm&#34;]
+        else:
+            llmname = llmalias
         if cc is None or cp is None:
             try:
-                tmpcp, tmpcc = litellm.cost_per_token(self.llms[llmalias][&#34;llm&#34;], prompt_tokens=1, completion_tokens=1)
+                tmpcp, tmpcc = litellm.cost_per_token(llmname, prompt_tokens=1, completion_tokens=1)
             except:
                 tmpcp, tmpcc = None, None
             if cc is None:
@@ -456,11 +790,18 @@ el.replaceWith(d);
         &#34;&#34;&#34;
         Return the maximum number of prompt tokens that can be sent to the model.
         &#34;&#34;&#34;
-        llm = self.llms[llmalias]
-        ret = llm.get(&#34;max_output_tokens&#34;)
+        llm = self.llms.get(llmalias)
+        ret = None
+        if llm is not None:
+            llmname = llm[&#34;llm&#34;]
+            ret = llm.get(&#34;max_output_tokens&#34;)
+        else:
+            llmname = llmalias
         if ret is None:
             try:
-                ret = litellm.get_max_tokens(self.llms[llmalias][&#34;llm&#34;])
+                # ret = litellm.get_max_tokens(self.llms[llmalias][&#34;llm&#34;])
+                info = get_model_info(llmname)
+                ret = info.get(&#34;max_output_tokens&#34;)
             except:
                 ret = None
         return ret
@@ -469,12 +810,17 @@ el.replaceWith(d);
         &#34;&#34;&#34;
         Return the maximum number of tokens possible in the prompt or None if not known.
         &#34;&#34;&#34;
-        llm = self.llms[llmalias]
-        ret = llm.get(&#34;max_input_tokens&#34;)
+        llm = self.llms.get(llmalias)
+        ret = None
+        if llm is not None:
+            ret = llm.get(&#34;max_input_tokens&#34;)
+            llmname = llm[&#34;llm&#34;]
+        else:
+            llmname = llmalias
         if ret is None:
             try:
-                info = get_model_info(self.llms[llmalias][&#34;llm&#34;])
-                ret = info.get(&#34;max_tokens&#34;)
+                info = get_model_info(llmname)
+                ret = info.get(&#34;max_input_tokens&#34;)
             except:
                 ret = None
         return ret
@@ -511,6 +857,7 @@ el.replaceWith(d);
     def make_messages(
             query: Optional[str] = None,
             prompt: Optional[Dict[str, str]] = None,
+            message: Optional[Dict[str, str]] = None,
             messages: Optional[List[Dict[str, str]]] = None,
             keep_n: Optional[int] = None,
     ) -&gt; List[Dict[str, str]]:
@@ -518,8 +865,15 @@ el.replaceWith(d);
         Construct updated messages from the query and/or prompt data.
 
         Args:
-            query: A query text, if no prompt is given, a message with this text for role user is created.
+            query: A query text, if no prompt or message is given, a message with this text for role user is created.
+                Otherwise, this string is used to replace &#34;${query}&#34; in the prompt content if that is a string.
             prompt: a dict mapping roles to text templates, where the text template may contain the string &#34;${query}&#34;
+                A prompt looks like this: {&#34;user&#34;: &#34;What is the capital of ${query}?&#34;, &#34;system&#34;: &#34;Be totally helpful!&#34;}
+                If prompt is specified, the query string is used to replace &#34;${query}&#34; in the prompt content.
+            message: a message to use as is; if messages is given, this message is added to messages and the
+                combination is sent to the LLM, if messages is None, this message is sent as is.
+                A message looks like this: {&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: &#34;What is the capital of France?&#34;}
+                If message is specified, query and prompt are ignored.
             messages: previous messages to include in the new messages
             keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
                 the last keep_n-1 messages are kept.
@@ -529,19 +883,23 @@ el.replaceWith(d);
         &#34;&#34;&#34;
         if messages is None:
             messages = []
-        if query is None and prompt is None:
-            raise ValueError(&#34;Error: Both query and prompt are None&#34;)
-        if query is None:
-            # convert the prompt as is to messages
-            for role, content in prompt.items():
-                if content and role in ROLES:
-                    messages.append(dict(role=role, content=content))
-        elif prompt is None:
-            messages.append({&#34;content&#34;: query, &#34;role&#34;: &#34;user&#34;})
+        if query is None and prompt is None and message is None:
+            raise ValueError(&#34;Error: All of query and prompt and message are None&#34;)
+        if message is not None:
+            messages.append(message)
+            return messages
+        elif prompt is not None:
+            if query:
+                for role, content in prompt.items():
+                    if content and role in ROLES:
+                        messages.append(dict(role=role, content=content.replace(&#34;${query}&#34;, query)))
+            else:
+                # convert the prompt as is to messages
+                for role, content in prompt.items():
+                    if content and role in ROLES:
+                        messages.append(dict(role=role, content=content))
         else:
-            for role, content in prompt.items():
-                if content and role in ROLES:
-                    messages.append(dict(role=role, content=content.replace(&#34;${query}&#34;, query)))
+            messages.append({&#34;content&#34;: query, &#34;role&#34;: &#34;user&#34;})
         # if we have more than keep_n messages, remove oldest message but the first so that we have keep_n messages
         if keep_n is not None and len(messages) &gt; keep_n:
             messages = messages[:1] + messages[-keep_n:]
@@ -552,52 +910,39 @@ el.replaceWith(d);
         &#34;&#34;&#34;
         Automatically create the tooling descriptions for a function or list of functions, based on the
         function(s) documentation strings.
+
+        The documentation string for each of the functions should be in in a format supported
+        by the docstring_parser package (Google, Numpy, or ReST).
+
+        The description of the function should be given in detail and in a way that will
+        be useful to the LLM. The same goes for the description of each of the arguments for
+        the function.       
+
+        The type of all arguments and of the function return value should get specified using 
+        standard Python type annotations. These types will get converted to json schema types.
+
+        Each argument and the return value must be documented in the docstring. 
+
+        If the type of a parameter is specified in the docstring, that type will get used
+        instead of the type annotation specified in the function signature. 
+        If the type of a parameter is specified in the docstring as a json schema type
+        starting and ending with a brace, that schema is directly used. 
+
+        See https://platform.openai.com/docs/guides/function-calling
+
+        Args:
+            functions: a function or list of functions. 
+
+        Returns:
+            A list of tool dictionaries, each dictionary describing a tool.
         &#34;&#34;&#34;
         if not isinstance(functions, list):
             functions = [functions]
         tools = []
         for func in functions:
-            if not callable(func):
-                raise ValueError(f&#34;Error: {func} is not callable&#34;)
-            doc = docstring_parser.parse(func.__doc__)
-            argspec = inspect.getfullargspec(func)
-            nrequired = len(argspec.args) - len(argspec.defaults) if argspec.defaults else len(argspec.args)
-            # for each parameter get the type as specified in the docstring, if not specified, get the
-            # name of the type from the argspec annotation information, if not specified there, assume string
-            argtypes = []
-            for idx, aname in enumerate(argspec.args):
-                if idx &lt; len(doc.params):
-                    argtypes.append(doc.params[idx].type_name)
-                # it seems proper python types are not supported?
-                # elif argspec.annotations.get(aname):
-                #     argtypes.append(argspec.annotations[aname].__name__)
-                else:
-                    argtypes.append(&#34;string&#34;)
-            argdescs = []
-            for idx, aname in enumerate(argspec.args):
-                if idx &lt; len(doc.params):
-                    argdescs.append(doc.params[idx].description)
-                else:
-                    raise ValueError(f&#34;Error: Missing description for parameter {aname} in doc of function {func.__name__}&#34;)
-            desc = doc.short_description + &#34;\n\n&#34; + doc.long_description
-            tools.append({
-                &#34;type&#34;: &#34;function&#34;,
-                &#34;function&#34;: {
-                    &#34;name&#34;: func.__name__,
-                    &#34;description&#34;: desc,
-                    &#34;parameters&#34;: {
-                        &#34;type&#34;: &#34;object&#34;,
-                        &#34;properties&#34;: {
-                            doc.params[i].arg_name: {
-                                &#34;type&#34;: argtypes[i],
-                                &#34;description&#34;: argdescs[i],
-                            } for i in range(len(argspec.args))
-                        },
-                        &#34;required&#34;: [param.arg_name for param in doc.params[:nrequired]],
-                    },
-                },
-            })
+            tools.append(function2schema(func))
         return tools
+
 
     def supports_response_format(self, llmalias: str) -&gt; bool:
         &#34;&#34;&#34;
@@ -628,6 +973,24 @@ el.replaceWith(d);
             model=self.llms[llmalias][&#34;llm&#34;],
             custom_llm_provider=self.llms[llmalias].get(&#34;custom_provider&#34;))
 
+    def supports_file_upload(self, llmalias: str) -&gt; bool:
+        &#34;&#34;&#34;
+        Check if the model supports file upload
+
+        NOTE: LiteLLM itself does not seem to support this, so we set this false by default and add specific
+        models or providers where we know it works.
+        &#34;&#34;&#34;
+        return False
+
+    def count_tokens(self, llmalias: Union[str, List[Dict[str, any]]], messages: List[Dict[str, any]]) -&gt; int:
+        &#34;&#34;&#34;
+        Count the number of tokens in the given messages. If messages is a string, convert it to a
+        single user message first.
+        &#34;&#34;&#34;
+        if isinstance(messages, str):
+            messages = [{&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: messages}]
+        return token_counter(model=self.llms[llmalias][&#34;llm&#34;], messages=messages)
+
     def query(
             self,
             llmalias: str,
@@ -636,6 +999,8 @@ el.replaceWith(d);
             return_cost: bool = False,
             return_response: bool = False,
             debug=False,
+            litellm_debug=None,
+            recursive_call_info: Optional[Dict[str, any]] = None,  
             **kwargs,
     ) -&gt; Dict[str, any]:
         &#34;&#34;&#34;
@@ -644,10 +1009,13 @@ el.replaceWith(d);
         Args:
             llmalias: the alias/name of the LLM to query
             messages: a list of message dictionaries with role and content keys
-            tools: TBD
+            tools: a list of tool dictionaries, each dictionary describing a tool. 
+                See https://docs.litellm.ai/docs/completion/function_call for the format. 
+                However, this can be created using the `make_tooling` function.
             return_cost: whether or not LLM invocation costs should get returned
             return_response: whether or not the complete reponse should get returned
-            debug: if True, debug logging is enabled
+            debug: if True, emits debug messages to aid development and debugging
+            litellm_debug: if True, litellm debug logging is enabled, if False, disabled, if None, use debug setting
             kwargs: any additional keyword arguments to pass on to the LLM 
 
         Returns:
@@ -658,7 +1026,7 @@ el.replaceWith(d);
         &#34;&#34;&#34;
         if self.debug:
             debug = True
-        if debug:
+        if litellm_debug is None and debug or litellm_debug:
             #  litellm.set_verbose = True    ## deprecated!
             os.environ[&#39;LITELLM_LOG&#39;] = &#39;DEBUG&#39;
         llm = self.llms[llmalias].config
@@ -672,6 +1040,8 @@ el.replaceWith(d);
             KNOWN_LLM_CONFIG_FIELDS,
             ignore_underscored=True,
         )
+        if recursive_call_info is None:
+            recursive_call_info = {}            
         if llm.get(&#34;api_key&#34;):
             completion_kwargs[&#34;api_key&#34;] = llm[&#34;api_key&#34;]
         elif llm.get(&#34;api_key_env&#34;):
@@ -679,14 +1049,47 @@ el.replaceWith(d);
         if llm.get(&#34;api_url&#34;):
             completion_kwargs[&#34;api_base&#34;] = llm[&#34;api_url&#34;]
         if tools is not None:
+            # add tooling-related arguments to completion_kwargs
             completion_kwargs[&#34;tools&#34;] = tools
+            if not self.supports_function_calling(llmalias):
+                # see https://docs.litellm.ai/docs/completion/function_call#function-calling-for-models-wout-function-calling-support
+                litellm.add_function_to_prompt = True
+            else:
+                if &#34;tool_choice&#34;  not in completion_kwargs:
+                    # this is the default, but lets be explicit
+                    completion_kwargs[&#34;tool_choice&#34;] = &#34;auto&#34;  
+                # Not known/supported by litellm, apparently
+                # if &#34;parallel_tool_choice&#34; not in completion_kwargs:
+                #     completion_kwargs[&#34;parallel_tool_choice&#34;] = True 
+            fmap = toolnames2funcs(tools)
+        else:
+            fmap = {}
         ret = {}
-        if kwargs:
-            completion_kwargs.update(kwargs)
+        # before adding the kwargs, save the recursive_call_info and remove it from kwargs
         if debug:
-            logger.debug(f&#34;Calling completion with {completion_kwargs}&#34;)
+            print(f&#34;DEBUG: Received recursive call info: {recursive_call_info}&#34;)
+        if kwargs:
+            completion_kwargs.update(dict_except(kwargs,  KNOWN_LLM_CONFIG_FIELDS, ignore_underscored=True))
+        if debug:
+            print(f&#34;DEBUG: Calling completion with kwargs {completion_kwargs}&#34;)
+        # if we have min_delay set, we look at the _last_request_time for the LLM and caclulate the time
+        # to wait until we can send the next request and then just wait
+        min_delay = llm.get(&#34;min_delay&#34;, kwargs.get(&#34;min_delay&#34;, 0.0))
+        if min_delay &gt; 0:
+            elapsed = time.time() - llm[&#34;_last_request_time&#34;]
+            if elapsed &lt; min_delay:
+                time.sleep(min_delay - elapsed)
+        llm[&#34;_last_request_time&#34;] = time.time()
+        if &#34;min_delay&#34; in completion_kwargs:
+            raise ValueError(&#34;Error: min_delay should not be passed as a keyword argument&#34;)
         try:
-            start = time.time()
+            # if we have been called recursively and the recursive_call_info has a start time, 
+            # use that as the start time
+            if recursive_call_info.get(&#34;start&#34;) is not None:
+                start = recursive_call_info[&#34;start&#34;]
+            else:
+                start = time.time()
+                recursive_call_info[&#34;start&#34;] = start
             response = litellm.completion(
                 model=llm[&#34;llm&#34;],
                 messages=messages,
@@ -697,28 +1100,117 @@ el.replaceWith(d);
             ret[&#34;elapsed_time&#34;] = elapsed
             if return_response:
                 ret[&#34;response&#34;] = response
+                # prevent the api key from leaking out
+                if &#34;api_key&#34; in completion_kwargs:
+                    del completion_kwargs[&#34;api_key&#34;]
                 ret[&#34;kwargs&#34;] = completion_kwargs
             if return_cost:
-                ret[&#34;cost&#34;] = completion_cost(
-                    completion_response=response,
-                    model=llm[&#34;llm&#34;],
-                    messages=messages,
-                )
+                try:
+                    ret[&#34;cost&#34;] = completion_cost(
+                        completion_response=response,
+                        model=llm[&#34;llm&#34;],
+                        messages=messages,
+                    )
+                    if debug:
+                        print(f&#34;DEBUG: cost for this call {ret[&#39;cost&#39;]}&#34;)
+                except Exception as e:
+                    logger.debug(f&#34;Error in completion_cost for model {llm[&#39;llm&#39;]}: {e}&#34;)
+                    ret[&#34;cost&#34;] = 0.0
                 llm[&#34;_cost&#34;] += ret[&#34;cost&#34;]
                 usage = response[&#39;usage&#39;]
                 logger.debug(f&#34;Usage: {usage}&#34;)
                 ret[&#34;n_completion_tokens&#34;] = usage.completion_tokens
                 ret[&#34;n_prompt_tokens&#34;] = usage.prompt_tokens
                 ret[&#34;n_total_tokens&#34;] = usage.total_tokens
+                # add the cost and tokens from the recursive call info, if available
+                if recursive_call_info.get(&#34;cost&#34;) is not None:
+                    ret[&#34;cost&#34;] += recursive_call_info[&#34;cost&#34;]
+                    if debug:
+                        print(f&#34;DEBUG: cost for this and previous calls {ret[&#39;cost&#39;]}&#34;)
+                if recursive_call_info.get(&#34;n_completion_tokens&#34;) is not None:
+                    ret[&#34;n_completion_tokens&#34;] += recursive_call_info[&#34;n_completion_tokens&#34;]
+                if recursive_call_info.get(&#34;n_prompt_tokens&#34;) is not None:
+                    ret[&#34;n_prompt_tokens&#34;] += recursive_call_info[&#34;n_prompt_tokens&#34;]
+                if recursive_call_info.get(&#34;n_total_tokens&#34;) is not None:
+                    ret[&#34;n_total_tokens&#34;] += recursive_call_info[&#34;n_total_tokens&#34;]
+                recursive_call_info[&#34;cost&#34;] = ret[&#34;cost&#34;]
+                recursive_call_info[&#34;n_completion_tokens&#34;] = ret[&#34;n_completion_tokens&#34;]
+                recursive_call_info[&#34;n_prompt_tokens&#34;] = ret[&#34;n_prompt_tokens&#34;]
+                recursive_call_info[&#34;n_total_tokens&#34;] = ret[&#34;n_total_tokens&#34;]
+                    
             response_message = response[&#39;choices&#39;][0][&#39;message&#39;]
+            # Does not seem to work see https://github.com/BerriAI/litellm/issues/389
+            # ret[&#34;response_ms&#34;] = response[&#34;response_ms&#34;]
+            ret[&#34;finish_reason&#34;] = response[&#39;choices&#39;][0].get(&#39;finish_reason&#39;, &#34;UNKNOWN&#34;)
             ret[&#34;answer&#34;] = response_message[&#39;content&#39;]
             ret[&#34;error&#34;] = &#34;&#34;
             ret[&#34;ok&#34;] = True
             # TODO: if feasable handle all tool calling here or in a separate method which does
             #   all the tool calling steps (up to a specified maximum).
+            if debug:
+                print(f&#34;DEBUG: checking for tool_calls: {response_message}, have tools: {tools is not None}&#34;)
             if tools is not None:
-                ret[&#34;tool_calls&#34;] = response_message.tool_calls
-                ret[&#34;response_message&#34;] = response_message
+                if hasattr(response_message, &#34;tool_calls&#34;) and response_message.tool_calls is not None:
+                    tool_calls = response_message.tool_calls
+                else:
+                    tool_calls = []
+                if debug:
+                    print(f&#34;DEBUG: got {len(tool_calls)} tool calls:&#34;)
+                    for tool_call in tool_calls:
+                        print(f&#34;DEBUG: {tool_call}&#34;)
+                if len(tool_calls) &gt; 0:   # not an empty list
+                    if debug:
+                        print(f&#34;DEBUG: appending response message: {response_message}&#34;)
+                    messages.append(response_message)
+                    for tool_call in tool_calls:
+                        function_name = tool_call.function.name
+                        if debug:
+                            print(f&#34;DEBUG: tool call {function_name}&#34;)
+                        fun2call = fmap.get(function_name)
+                        if fun2call is None:
+                            ret[&#34;error&#34;] = f&#34;Unknown tooling function name: {function_name}&#34;
+                            ret[&#34;answer&#34;] = &#34;&#34;
+                            ret[&#34;ok&#34;] = False
+                            return ret
+                        function_args = json.loads(tool_call.function.arguments)
+                        try:
+                            if debug:
+                                print(f&#34;DEBUG: calling {function_name} with args {function_args}&#34;)
+                            function_response = fun2call(**function_args)
+                            if debug:
+                                print(f&#34;DEBUG: got response {function_response}&#34;)
+                        except Exception as e:
+                            tb = traceback.extract_tb(e.__traceback__)
+                            filename, lineno, funcname, text = tb[-1]
+                            if debug:
+                                print(f&#34;DEBUG: function call got error {e}&#34;)
+                            ret[&#34;error&#34;] = f&#34;Error executing tool function {function_name}: {str(e)} in {filename}:{lineno} {funcname}&#34;
+                            if debug:
+                                logger.error(f&#34;Returning error: {e}&#34;)
+                            ret[&#34;answer&#34;] = &#34;&#34;
+                            ret[&#34;ok&#34;] = False
+                            return ret
+                        messages.append(
+                            dict(
+                                tool_call_id=tool_call.id, 
+                                role=&#34;tool&#34;, name=function_name, 
+                                content=json.dumps(function_response)))
+                    # recursively call query
+                    if debug:
+                        print(f&#34;DEBUG: recursively calling query with messages:&#34;)
+                        for idx, msg in enumerate(messages):
+                            print(f&#34;DEBUG: Message {idx}: {msg}&#34;)
+                        print(f&#34;DEBUG: recursively_call_info is {recursive_call_info}&#34;)                    
+                    return self.query(
+                        llmalias, 
+                        messages, 
+                        tools=tools, 
+                        return_cost=return_cost, 
+                        return_response=return_response, 
+                        debug=debug, 
+                        litellm_debug=litellm_debug, 
+                        recursive_call_info=recursive_call_info,
+                        **kwargs)
         except Exception as e:
             tb = traceback.extract_tb(e.__traceback__)
             filename, lineno, funcname, text = tb[-1]
@@ -737,7 +1229,7 @@ is "http://0.0.0.0:6006/v1/traces"</p></div>
 <h3>Static methods</h3>
 <dl>
 <dt id="llms_wrapper.llms.LLMS.make_messages"><code class="name flex">
-<span>def <span class="ident">make_messages</span></span>(<span>query: str | None = None,<br>prompt: Dict[str, str] | None = None,<br>messages: List[Dict[str, str]] | None = None,<br>keep_n: int | None = None) ‑> List[Dict[str, str]]</span>
+<span>def <span class="ident">make_messages</span></span>(<span>query: str | None = None,<br>prompt: Dict[str, str] | None = None,<br>message: Dict[str, str] | None = None,<br>messages: List[Dict[str, str]] | None = None,<br>keep_n: int | None = None) ‑> List[Dict[str, str]]</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -748,6 +1240,7 @@ is "http://0.0.0.0:6006/v1/traces"</p></div>
 def make_messages(
         query: Optional[str] = None,
         prompt: Optional[Dict[str, str]] = None,
+        message: Optional[Dict[str, str]] = None,
         messages: Optional[List[Dict[str, str]]] = None,
         keep_n: Optional[int] = None,
 ) -&gt; List[Dict[str, str]]:
@@ -755,8 +1248,15 @@ def make_messages(
     Construct updated messages from the query and/or prompt data.
 
     Args:
-        query: A query text, if no prompt is given, a message with this text for role user is created.
+        query: A query text, if no prompt or message is given, a message with this text for role user is created.
+            Otherwise, this string is used to replace &#34;${query}&#34; in the prompt content if that is a string.
         prompt: a dict mapping roles to text templates, where the text template may contain the string &#34;${query}&#34;
+            A prompt looks like this: {&#34;user&#34;: &#34;What is the capital of ${query}?&#34;, &#34;system&#34;: &#34;Be totally helpful!&#34;}
+            If prompt is specified, the query string is used to replace &#34;${query}&#34; in the prompt content.
+        message: a message to use as is; if messages is given, this message is added to messages and the
+            combination is sent to the LLM, if messages is None, this message is sent as is.
+            A message looks like this: {&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: &#34;What is the capital of France?&#34;}
+            If message is specified, query and prompt are ignored.
         messages: previous messages to include in the new messages
         keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
             the last keep_n-1 messages are kept.
@@ -766,19 +1266,23 @@ def make_messages(
     &#34;&#34;&#34;
     if messages is None:
         messages = []
-    if query is None and prompt is None:
-        raise ValueError(&#34;Error: Both query and prompt are None&#34;)
-    if query is None:
-        # convert the prompt as is to messages
-        for role, content in prompt.items():
-            if content and role in ROLES:
-                messages.append(dict(role=role, content=content))
-    elif prompt is None:
-        messages.append({&#34;content&#34;: query, &#34;role&#34;: &#34;user&#34;})
+    if query is None and prompt is None and message is None:
+        raise ValueError(&#34;Error: All of query and prompt and message are None&#34;)
+    if message is not None:
+        messages.append(message)
+        return messages
+    elif prompt is not None:
+        if query:
+            for role, content in prompt.items():
+                if content and role in ROLES:
+                    messages.append(dict(role=role, content=content.replace(&#34;${query}&#34;, query)))
+        else:
+            # convert the prompt as is to messages
+            for role, content in prompt.items():
+                if content and role in ROLES:
+                    messages.append(dict(role=role, content=content))
     else:
-        for role, content in prompt.items():
-            if content and role in ROLES:
-                messages.append(dict(role=role, content=content.replace(&#34;${query}&#34;, query)))
+        messages.append({&#34;content&#34;: query, &#34;role&#34;: &#34;user&#34;})
     # if we have more than keep_n messages, remove oldest message but the first so that we have keep_n messages
     if keep_n is not None and len(messages) &gt; keep_n:
         messages = messages[:1] + messages[-keep_n:]
@@ -788,9 +1292,17 @@ def make_messages(
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>query</code></strong></dt>
-<dd>A query text, if no prompt is given, a message with this text for role user is created.</dd>
+<dd>A query text, if no prompt or message is given, a message with this text for role user is created.
+Otherwise, this string is used to replace "${query}" in the prompt content if that is a string.</dd>
 <dt><strong><code>prompt</code></strong></dt>
-<dd>a dict mapping roles to text templates, where the text template may contain the string "${query}"</dd>
+<dd>a dict mapping roles to text templates, where the text template may contain the string "${query}"
+A prompt looks like this: {"user": "What is the capital of ${query}?", "system": "Be totally helpful!"}
+If prompt is specified, the query string is used to replace "${query}" in the prompt content.</dd>
+<dt><strong><code>message</code></strong></dt>
+<dd>a message to use as is; if messages is given, this message is added to messages and the
+combination is sent to the LLM, if messages is None, this message is sent as is.
+A message looks like this: {"role": "user", "content": "What is the capital of France?"}
+If message is specified, query and prompt are ignored.</dd>
 <dt><strong><code>messages</code></strong></dt>
 <dd>previous messages to include in the new messages</dd>
 <dt><strong><code>keep_n</code></strong></dt>
@@ -813,55 +1325,62 @@ def make_tooling(functions: Union[Callable, List[Callable]]) -&gt; List[Dict]:
     &#34;&#34;&#34;
     Automatically create the tooling descriptions for a function or list of functions, based on the
     function(s) documentation strings.
+
+    The documentation string for each of the functions should be in in a format supported
+    by the docstring_parser package (Google, Numpy, or ReST).
+
+    The description of the function should be given in detail and in a way that will
+    be useful to the LLM. The same goes for the description of each of the arguments for
+    the function.       
+
+    The type of all arguments and of the function return value should get specified using 
+    standard Python type annotations. These types will get converted to json schema types.
+
+    Each argument and the return value must be documented in the docstring. 
+
+    If the type of a parameter is specified in the docstring, that type will get used
+    instead of the type annotation specified in the function signature. 
+    If the type of a parameter is specified in the docstring as a json schema type
+    starting and ending with a brace, that schema is directly used. 
+
+    See https://platform.openai.com/docs/guides/function-calling
+
+    Args:
+        functions: a function or list of functions. 
+
+    Returns:
+        A list of tool dictionaries, each dictionary describing a tool.
     &#34;&#34;&#34;
     if not isinstance(functions, list):
         functions = [functions]
     tools = []
     for func in functions:
-        if not callable(func):
-            raise ValueError(f&#34;Error: {func} is not callable&#34;)
-        doc = docstring_parser.parse(func.__doc__)
-        argspec = inspect.getfullargspec(func)
-        nrequired = len(argspec.args) - len(argspec.defaults) if argspec.defaults else len(argspec.args)
-        # for each parameter get the type as specified in the docstring, if not specified, get the
-        # name of the type from the argspec annotation information, if not specified there, assume string
-        argtypes = []
-        for idx, aname in enumerate(argspec.args):
-            if idx &lt; len(doc.params):
-                argtypes.append(doc.params[idx].type_name)
-            # it seems proper python types are not supported?
-            # elif argspec.annotations.get(aname):
-            #     argtypes.append(argspec.annotations[aname].__name__)
-            else:
-                argtypes.append(&#34;string&#34;)
-        argdescs = []
-        for idx, aname in enumerate(argspec.args):
-            if idx &lt; len(doc.params):
-                argdescs.append(doc.params[idx].description)
-            else:
-                raise ValueError(f&#34;Error: Missing description for parameter {aname} in doc of function {func.__name__}&#34;)
-        desc = doc.short_description + &#34;\n\n&#34; + doc.long_description
-        tools.append({
-            &#34;type&#34;: &#34;function&#34;,
-            &#34;function&#34;: {
-                &#34;name&#34;: func.__name__,
-                &#34;description&#34;: desc,
-                &#34;parameters&#34;: {
-                    &#34;type&#34;: &#34;object&#34;,
-                    &#34;properties&#34;: {
-                        doc.params[i].arg_name: {
-                            &#34;type&#34;: argtypes[i],
-                            &#34;description&#34;: argdescs[i],
-                        } for i in range(len(argspec.args))
-                    },
-                    &#34;required&#34;: [param.arg_name for param in doc.params[:nrequired]],
-                },
-            },
-        })
+        tools.append(function2schema(func))
     return tools</code></pre>
 </details>
 <div class="desc"><p>Automatically create the tooling descriptions for a function or list of functions, based on the
-function(s) documentation strings.</p></div>
+function(s) documentation strings.</p>
+<p>The documentation string for each of the functions should be in in a format supported
+by the docstring_parser package (Google, Numpy, or ReST).</p>
+<p>The description of the function should be given in detail and in a way that will
+be useful to the LLM. The same goes for the description of each of the arguments for
+the function.
+</p>
+<p>The type of all arguments and of the function return value should get specified using
+standard Python type annotations. These types will get converted to json schema types.</p>
+<p>Each argument and the return value must be documented in the docstring. </p>
+<p>If the type of a parameter is specified in the docstring, that type will get used
+instead of the type annotation specified in the function signature.
+If the type of a parameter is specified in the docstring as a json schema type
+starting and ending with a brace, that schema is directly used. </p>
+<p>See <a href="https://platform.openai.com/docs/guides/function-calling">https://platform.openai.com/docs/guides/function-calling</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>functions</code></strong></dt>
+<dd>a function or list of functions. </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A list of tool dictionaries, each dictionary describing a tool.</p></div>
 </dd>
 </dl>
 <h3>Methods</h3>
@@ -903,14 +1422,21 @@ the query method with return_cost=True.</p></div>
     Return the estimated cost per prompt and completion token for the given model.
     This may be wrong or cost may get calculated in a different way, e.g. depending on
     cache, response time etc.
+    If the model is not in the configuration, this makes and attempt to just get the cost as 
+    defined by the LiteLLM backend.
     If no cost is known this returns 0.0, 0.0
     &#34;&#34;&#34;
-    llm = self.llms[llmalias]
-    cc = llm.get(&#34;cost_per_prompt_token&#34;)
-    cp = llm.get(&#34;cost_per_completion_token&#34;)
+    llm = self.llms.get(llmalias)
+    cc, cp = None, None
+    if llm is not None:
+        cc = llm.get(&#34;cost_per_prompt_token&#34;)
+        cp = llm.get(&#34;cost_per_completion_token&#34;)
+        llmname = llm[&#34;llm&#34;]
+    else:
+        llmname = llmalias
     if cc is None or cp is None:
         try:
-            tmpcp, tmpcc = litellm.cost_per_token(self.llms[llmalias][&#34;llm&#34;], prompt_tokens=1, completion_tokens=1)
+            tmpcp, tmpcc = litellm.cost_per_token(llmname, prompt_tokens=1, completion_tokens=1)
         except:
             tmpcp, tmpcc = None, None
         if cc is None:
@@ -922,7 +1448,52 @@ the query method with return_cost=True.</p></div>
 <div class="desc"><p>Return the estimated cost per prompt and completion token for the given model.
 This may be wrong or cost may get calculated in a different way, e.g. depending on
 cache, response time etc.
+If the model is not in the configuration, this makes and attempt to just get the cost as
+defined by the LiteLLM backend.
 If no cost is known this returns 0.0, 0.0</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.count_tokens"><code class="name flex">
+<span>def <span class="ident">count_tokens</span></span>(<span>self,<br>llmalias: str | List[Dict[str, <built-in function any>]],<br>messages: List[Dict[str, <built-in function any>]]) ‑> int</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def count_tokens(self, llmalias: Union[str, List[Dict[str, any]]], messages: List[Dict[str, any]]) -&gt; int:
+    &#34;&#34;&#34;
+    Count the number of tokens in the given messages. If messages is a string, convert it to a
+    single user message first.
+    &#34;&#34;&#34;
+    if isinstance(messages, str):
+        messages = [{&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: messages}]
+    return token_counter(model=self.llms[llmalias][&#34;llm&#34;], messages=messages)</code></pre>
+</details>
+<div class="desc"><p>Count the number of tokens in the given messages. If messages is a string, convert it to a
+single user message first.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.default_max_tokens"><code class="name flex">
+<span>def <span class="ident">default_max_tokens</span></span>(<span>self, llmalias: str) ‑> int</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def default_max_tokens(self, llmalias: str) -&gt; int:
+    &#34;&#34;&#34;
+    Return the default maximum number of tokens that the LLM will produce. This is sometimes smaller thant the actual
+    max_tokens, but not supported by LiteLLM, so we use whatever is configured in the config and fall back
+    to the actual max_tokens if not defined.
+    &#34;&#34;&#34;
+    ret = self.llms[llmalias].config.get(&#34;default_max_tokens&#34;)
+    if ret is None:
+        ret = self.max_output_tokens(llmalias)
+    return ret</code></pre>
+</details>
+<div class="desc"><p>Return the default maximum number of tokens that the LLM will produce. This is sometimes smaller thant the actual
+max_tokens, but not supported by LiteLLM, so we use whatever is configured in the config and fall back
+to the actual max_tokens if not defined.</p></div>
 </dd>
 <dt id="llms_wrapper.llms.LLMS.elapsed"><code class="name flex">
 <span>def <span class="ident">elapsed</span></span>(<span>self, llmalias: str | List[str] | None = None)</span>
@@ -963,6 +1534,26 @@ the query method with return_cost=True.</p></div>
     return self.llms.get(alias, None)</code></pre>
 </details>
 <div class="desc"><p>Get the LLM configuration object with the given alias.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.get_llm_info"><code class="name flex">
+<span>def <span class="ident">get_llm_info</span></span>(<span>self, llmalias: str, name: str) ‑> <built-in function any></span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_llm_info(self, llmalias: str, name: str) -&gt; any:
+    &#34;&#34;&#34;
+    For convenience, any parameter with a name staring with an underscore can be used to configure 
+    our own properties of the LLM object. This method returns the value of the given parameter name of None
+    if not defined, where the name should not include the leading underscore.
+    &#34;&#34;&#34;
+    return self.llms[llmalias].config.get(&#34;_&#34;+name, None)</code></pre>
+</details>
+<div class="desc"><p>For convenience, any parameter with a name staring with an underscore can be used to configure
+our own properties of the LLM object. This method returns the value of the given parameter name of None
+if not defined, where the name should not include the leading underscore.</p></div>
 </dd>
 <dt id="llms_wrapper.llms.LLMS.known_models"><code class="name flex">
 <span>def <span class="ident">known_models</span></span>(<span>self, provider=None) ‑> List[str]</span>
@@ -1024,12 +1615,17 @@ the query method with return_cost=True.</p></div>
     &#34;&#34;&#34;
     Return the maximum number of tokens possible in the prompt or None if not known.
     &#34;&#34;&#34;
-    llm = self.llms[llmalias]
-    ret = llm.get(&#34;max_input_tokens&#34;)
+    llm = self.llms.get(llmalias)
+    ret = None
+    if llm is not None:
+        ret = llm.get(&#34;max_input_tokens&#34;)
+        llmname = llm[&#34;llm&#34;]
+    else:
+        llmname = llmalias
     if ret is None:
         try:
-            info = get_model_info(self.llms[llmalias][&#34;llm&#34;])
-            ret = info.get(&#34;max_tokens&#34;)
+            info = get_model_info(llmname)
+            ret = info.get(&#34;max_input_tokens&#34;)
         except:
             ret = None
     return ret</code></pre>
@@ -1048,11 +1644,18 @@ the query method with return_cost=True.</p></div>
     &#34;&#34;&#34;
     Return the maximum number of prompt tokens that can be sent to the model.
     &#34;&#34;&#34;
-    llm = self.llms[llmalias]
-    ret = llm.get(&#34;max_output_tokens&#34;)
+    llm = self.llms.get(llmalias)
+    ret = None
+    if llm is not None:
+        llmname = llm[&#34;llm&#34;]
+        ret = llm.get(&#34;max_output_tokens&#34;)
+    else:
+        llmname = llmalias
     if ret is None:
         try:
-            ret = litellm.get_max_tokens(self.llms[llmalias][&#34;llm&#34;])
+            # ret = litellm.get_max_tokens(self.llms[llmalias][&#34;llm&#34;])
+            info = get_model_info(llmname)
+            ret = info.get(&#34;max_output_tokens&#34;)
         except:
             ret = None
     return ret</code></pre>
@@ -1060,7 +1663,7 @@ the query method with return_cost=True.</p></div>
 <div class="desc"><p>Return the maximum number of prompt tokens that can be sent to the model.</p></div>
 </dd>
 <dt id="llms_wrapper.llms.LLMS.query"><code class="name flex">
-<span>def <span class="ident">query</span></span>(<span>self,<br>llmalias: str,<br>messages: List[Dict[str, str]],<br>tools: List[Dict] | None = None,<br>return_cost: bool = False,<br>return_response: bool = False,<br>debug=False,<br>**kwargs) ‑> Dict[str, <built-in function any>]</span>
+<span>def <span class="ident">query</span></span>(<span>self,<br>llmalias: str,<br>messages: List[Dict[str, str]],<br>tools: List[Dict] | None = None,<br>return_cost: bool = False,<br>return_response: bool = False,<br>debug=False,<br>litellm_debug=None,<br>recursive_call_info: Dict[str, <built-in function any>] | None = None,<br>**kwargs) ‑> Dict[str, <built-in function any>]</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -1075,6 +1678,8 @@ the query method with return_cost=True.</p></div>
         return_cost: bool = False,
         return_response: bool = False,
         debug=False,
+        litellm_debug=None,
+        recursive_call_info: Optional[Dict[str, any]] = None,  
         **kwargs,
 ) -&gt; Dict[str, any]:
     &#34;&#34;&#34;
@@ -1083,10 +1688,13 @@ the query method with return_cost=True.</p></div>
     Args:
         llmalias: the alias/name of the LLM to query
         messages: a list of message dictionaries with role and content keys
-        tools: TBD
+        tools: a list of tool dictionaries, each dictionary describing a tool. 
+            See https://docs.litellm.ai/docs/completion/function_call for the format. 
+            However, this can be created using the `make_tooling` function.
         return_cost: whether or not LLM invocation costs should get returned
         return_response: whether or not the complete reponse should get returned
-        debug: if True, debug logging is enabled
+        debug: if True, emits debug messages to aid development and debugging
+        litellm_debug: if True, litellm debug logging is enabled, if False, disabled, if None, use debug setting
         kwargs: any additional keyword arguments to pass on to the LLM 
 
     Returns:
@@ -1097,7 +1705,7 @@ the query method with return_cost=True.</p></div>
     &#34;&#34;&#34;
     if self.debug:
         debug = True
-    if debug:
+    if litellm_debug is None and debug or litellm_debug:
         #  litellm.set_verbose = True    ## deprecated!
         os.environ[&#39;LITELLM_LOG&#39;] = &#39;DEBUG&#39;
     llm = self.llms[llmalias].config
@@ -1111,6 +1719,8 @@ the query method with return_cost=True.</p></div>
         KNOWN_LLM_CONFIG_FIELDS,
         ignore_underscored=True,
     )
+    if recursive_call_info is None:
+        recursive_call_info = {}            
     if llm.get(&#34;api_key&#34;):
         completion_kwargs[&#34;api_key&#34;] = llm[&#34;api_key&#34;]
     elif llm.get(&#34;api_key_env&#34;):
@@ -1118,14 +1728,47 @@ the query method with return_cost=True.</p></div>
     if llm.get(&#34;api_url&#34;):
         completion_kwargs[&#34;api_base&#34;] = llm[&#34;api_url&#34;]
     if tools is not None:
+        # add tooling-related arguments to completion_kwargs
         completion_kwargs[&#34;tools&#34;] = tools
+        if not self.supports_function_calling(llmalias):
+            # see https://docs.litellm.ai/docs/completion/function_call#function-calling-for-models-wout-function-calling-support
+            litellm.add_function_to_prompt = True
+        else:
+            if &#34;tool_choice&#34;  not in completion_kwargs:
+                # this is the default, but lets be explicit
+                completion_kwargs[&#34;tool_choice&#34;] = &#34;auto&#34;  
+            # Not known/supported by litellm, apparently
+            # if &#34;parallel_tool_choice&#34; not in completion_kwargs:
+            #     completion_kwargs[&#34;parallel_tool_choice&#34;] = True 
+        fmap = toolnames2funcs(tools)
+    else:
+        fmap = {}
     ret = {}
-    if kwargs:
-        completion_kwargs.update(kwargs)
+    # before adding the kwargs, save the recursive_call_info and remove it from kwargs
     if debug:
-        logger.debug(f&#34;Calling completion with {completion_kwargs}&#34;)
+        print(f&#34;DEBUG: Received recursive call info: {recursive_call_info}&#34;)
+    if kwargs:
+        completion_kwargs.update(dict_except(kwargs,  KNOWN_LLM_CONFIG_FIELDS, ignore_underscored=True))
+    if debug:
+        print(f&#34;DEBUG: Calling completion with kwargs {completion_kwargs}&#34;)
+    # if we have min_delay set, we look at the _last_request_time for the LLM and caclulate the time
+    # to wait until we can send the next request and then just wait
+    min_delay = llm.get(&#34;min_delay&#34;, kwargs.get(&#34;min_delay&#34;, 0.0))
+    if min_delay &gt; 0:
+        elapsed = time.time() - llm[&#34;_last_request_time&#34;]
+        if elapsed &lt; min_delay:
+            time.sleep(min_delay - elapsed)
+    llm[&#34;_last_request_time&#34;] = time.time()
+    if &#34;min_delay&#34; in completion_kwargs:
+        raise ValueError(&#34;Error: min_delay should not be passed as a keyword argument&#34;)
     try:
-        start = time.time()
+        # if we have been called recursively and the recursive_call_info has a start time, 
+        # use that as the start time
+        if recursive_call_info.get(&#34;start&#34;) is not None:
+            start = recursive_call_info[&#34;start&#34;]
+        else:
+            start = time.time()
+            recursive_call_info[&#34;start&#34;] = start
         response = litellm.completion(
             model=llm[&#34;llm&#34;],
             messages=messages,
@@ -1136,28 +1779,117 @@ the query method with return_cost=True.</p></div>
         ret[&#34;elapsed_time&#34;] = elapsed
         if return_response:
             ret[&#34;response&#34;] = response
+            # prevent the api key from leaking out
+            if &#34;api_key&#34; in completion_kwargs:
+                del completion_kwargs[&#34;api_key&#34;]
             ret[&#34;kwargs&#34;] = completion_kwargs
         if return_cost:
-            ret[&#34;cost&#34;] = completion_cost(
-                completion_response=response,
-                model=llm[&#34;llm&#34;],
-                messages=messages,
-            )
+            try:
+                ret[&#34;cost&#34;] = completion_cost(
+                    completion_response=response,
+                    model=llm[&#34;llm&#34;],
+                    messages=messages,
+                )
+                if debug:
+                    print(f&#34;DEBUG: cost for this call {ret[&#39;cost&#39;]}&#34;)
+            except Exception as e:
+                logger.debug(f&#34;Error in completion_cost for model {llm[&#39;llm&#39;]}: {e}&#34;)
+                ret[&#34;cost&#34;] = 0.0
             llm[&#34;_cost&#34;] += ret[&#34;cost&#34;]
             usage = response[&#39;usage&#39;]
             logger.debug(f&#34;Usage: {usage}&#34;)
             ret[&#34;n_completion_tokens&#34;] = usage.completion_tokens
             ret[&#34;n_prompt_tokens&#34;] = usage.prompt_tokens
             ret[&#34;n_total_tokens&#34;] = usage.total_tokens
+            # add the cost and tokens from the recursive call info, if available
+            if recursive_call_info.get(&#34;cost&#34;) is not None:
+                ret[&#34;cost&#34;] += recursive_call_info[&#34;cost&#34;]
+                if debug:
+                    print(f&#34;DEBUG: cost for this and previous calls {ret[&#39;cost&#39;]}&#34;)
+            if recursive_call_info.get(&#34;n_completion_tokens&#34;) is not None:
+                ret[&#34;n_completion_tokens&#34;] += recursive_call_info[&#34;n_completion_tokens&#34;]
+            if recursive_call_info.get(&#34;n_prompt_tokens&#34;) is not None:
+                ret[&#34;n_prompt_tokens&#34;] += recursive_call_info[&#34;n_prompt_tokens&#34;]
+            if recursive_call_info.get(&#34;n_total_tokens&#34;) is not None:
+                ret[&#34;n_total_tokens&#34;] += recursive_call_info[&#34;n_total_tokens&#34;]
+            recursive_call_info[&#34;cost&#34;] = ret[&#34;cost&#34;]
+            recursive_call_info[&#34;n_completion_tokens&#34;] = ret[&#34;n_completion_tokens&#34;]
+            recursive_call_info[&#34;n_prompt_tokens&#34;] = ret[&#34;n_prompt_tokens&#34;]
+            recursive_call_info[&#34;n_total_tokens&#34;] = ret[&#34;n_total_tokens&#34;]
+                
         response_message = response[&#39;choices&#39;][0][&#39;message&#39;]
+        # Does not seem to work see https://github.com/BerriAI/litellm/issues/389
+        # ret[&#34;response_ms&#34;] = response[&#34;response_ms&#34;]
+        ret[&#34;finish_reason&#34;] = response[&#39;choices&#39;][0].get(&#39;finish_reason&#39;, &#34;UNKNOWN&#34;)
         ret[&#34;answer&#34;] = response_message[&#39;content&#39;]
         ret[&#34;error&#34;] = &#34;&#34;
         ret[&#34;ok&#34;] = True
         # TODO: if feasable handle all tool calling here or in a separate method which does
         #   all the tool calling steps (up to a specified maximum).
+        if debug:
+            print(f&#34;DEBUG: checking for tool_calls: {response_message}, have tools: {tools is not None}&#34;)
         if tools is not None:
-            ret[&#34;tool_calls&#34;] = response_message.tool_calls
-            ret[&#34;response_message&#34;] = response_message
+            if hasattr(response_message, &#34;tool_calls&#34;) and response_message.tool_calls is not None:
+                tool_calls = response_message.tool_calls
+            else:
+                tool_calls = []
+            if debug:
+                print(f&#34;DEBUG: got {len(tool_calls)} tool calls:&#34;)
+                for tool_call in tool_calls:
+                    print(f&#34;DEBUG: {tool_call}&#34;)
+            if len(tool_calls) &gt; 0:   # not an empty list
+                if debug:
+                    print(f&#34;DEBUG: appending response message: {response_message}&#34;)
+                messages.append(response_message)
+                for tool_call in tool_calls:
+                    function_name = tool_call.function.name
+                    if debug:
+                        print(f&#34;DEBUG: tool call {function_name}&#34;)
+                    fun2call = fmap.get(function_name)
+                    if fun2call is None:
+                        ret[&#34;error&#34;] = f&#34;Unknown tooling function name: {function_name}&#34;
+                        ret[&#34;answer&#34;] = &#34;&#34;
+                        ret[&#34;ok&#34;] = False
+                        return ret
+                    function_args = json.loads(tool_call.function.arguments)
+                    try:
+                        if debug:
+                            print(f&#34;DEBUG: calling {function_name} with args {function_args}&#34;)
+                        function_response = fun2call(**function_args)
+                        if debug:
+                            print(f&#34;DEBUG: got response {function_response}&#34;)
+                    except Exception as e:
+                        tb = traceback.extract_tb(e.__traceback__)
+                        filename, lineno, funcname, text = tb[-1]
+                        if debug:
+                            print(f&#34;DEBUG: function call got error {e}&#34;)
+                        ret[&#34;error&#34;] = f&#34;Error executing tool function {function_name}: {str(e)} in {filename}:{lineno} {funcname}&#34;
+                        if debug:
+                            logger.error(f&#34;Returning error: {e}&#34;)
+                        ret[&#34;answer&#34;] = &#34;&#34;
+                        ret[&#34;ok&#34;] = False
+                        return ret
+                    messages.append(
+                        dict(
+                            tool_call_id=tool_call.id, 
+                            role=&#34;tool&#34;, name=function_name, 
+                            content=json.dumps(function_response)))
+                # recursively call query
+                if debug:
+                    print(f&#34;DEBUG: recursively calling query with messages:&#34;)
+                    for idx, msg in enumerate(messages):
+                        print(f&#34;DEBUG: Message {idx}: {msg}&#34;)
+                    print(f&#34;DEBUG: recursively_call_info is {recursive_call_info}&#34;)                    
+                return self.query(
+                    llmalias, 
+                    messages, 
+                    tools=tools, 
+                    return_cost=return_cost, 
+                    return_response=return_response, 
+                    debug=debug, 
+                    litellm_debug=litellm_debug, 
+                    recursive_call_info=recursive_call_info,
+                    **kwargs)
     except Exception as e:
         tb = traceback.extract_tb(e.__traceback__)
         filename, lineno, funcname, text = tb[-1]
@@ -1176,13 +1908,17 @@ the query method with return_cost=True.</p></div>
 <dt><strong><code>messages</code></strong></dt>
 <dd>a list of message dictionaries with role and content keys</dd>
 <dt><strong><code>tools</code></strong></dt>
-<dd>TBD</dd>
+<dd>a list of tool dictionaries, each dictionary describing a tool.
+See <a href="https://docs.litellm.ai/docs/completion/function_call">https://docs.litellm.ai/docs/completion/function_call</a> for the format.
+However, this can be created using the <code>make_tooling</code> function.</dd>
 <dt><strong><code>return_cost</code></strong></dt>
 <dd>whether or not LLM invocation costs should get returned</dd>
 <dt><strong><code>return_response</code></strong></dt>
 <dd>whether or not the complete reponse should get returned</dd>
 <dt><strong><code>debug</code></strong></dt>
-<dd>if True, debug logging is enabled</dd>
+<dd>if True, emits debug messages to aid development and debugging</dd>
+<dt><strong><code>litellm_debug</code></strong></dt>
+<dd>if True, litellm debug logging is enabled, if False, disabled, if None, use debug setting</dd>
 <dt><strong><code>kwargs</code></strong></dt>
 <dd>any additional keyword arguments to pass on to the LLM </dd>
 </dl>
@@ -1231,6 +1967,27 @@ The boolean key "ok" is True if there is no error, False otherwise.</p></div>
 <div class="desc"><p>Set or override the attributes for the given model.</p>
 <p>NOTE: instead of using this method, the same parameters can alos
 be set in the configuration file to be passed to the model invocation call.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.supports_file_upload"><code class="name flex">
+<span>def <span class="ident">supports_file_upload</span></span>(<span>self, llmalias: str) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def supports_file_upload(self, llmalias: str) -&gt; bool:
+    &#34;&#34;&#34;
+    Check if the model supports file upload
+
+    NOTE: LiteLLM itself does not seem to support this, so we set this false by default and add specific
+    models or providers where we know it works.
+    &#34;&#34;&#34;
+    return False</code></pre>
+</details>
+<div class="desc"><p>Check if the model supports file upload</p>
+<p>NOTE: LiteLLM itself does not seem to support this, so we set this false by default and add specific
+models or providers where we know it works.</p></div>
 </dd>
 <dt id="llms_wrapper.llms.LLMS.supports_function_calling"><code class="name flex">
 <span>def <span class="ident">supports_function_calling</span></span>(<span>self, llmalias: str, parallel=False) ‑> bool</span>
@@ -1307,6 +2064,14 @@ for response_format "json".</p></div>
 <li><code><a title="llms_wrapper" href="index.html">llms_wrapper</a></code></li>
 </ul>
 </li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="llms_wrapper.llms.function2schema" href="#llms_wrapper.llms.function2schema">function2schema</a></code></li>
+<li><code><a title="llms_wrapper.llms.get_func_by_name" href="#llms_wrapper.llms.get_func_by_name">get_func_by_name</a></code></li>
+<li><code><a title="llms_wrapper.llms.ptype2schema" href="#llms_wrapper.llms.ptype2schema">ptype2schema</a></code></li>
+<li><code><a title="llms_wrapper.llms.toolnames2funcs" href="#llms_wrapper.llms.toolnames2funcs">toolnames2funcs</a></code></li>
+</ul>
+</li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
@@ -1314,6 +2079,7 @@ for response_format "json".</p></div>
 <ul class="">
 <li><code><a title="llms_wrapper.llms.LLM.cost" href="#llms_wrapper.llms.LLM.cost">cost</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLM.cost_per_token" href="#llms_wrapper.llms.LLM.cost_per_token">cost_per_token</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.count_tokens" href="#llms_wrapper.llms.LLM.count_tokens">count_tokens</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLM.elapsed" href="#llms_wrapper.llms.LLM.elapsed">elapsed</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLM.get" href="#llms_wrapper.llms.LLM.get">get</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLM.items" href="#llms_wrapper.llms.LLM.items">items</a></code></li>
@@ -1322,6 +2088,7 @@ for response_format "json".</p></div>
 <li><code><a title="llms_wrapper.llms.LLM.max_output_tokens" href="#llms_wrapper.llms.LLM.max_output_tokens">max_output_tokens</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLM.query" href="#llms_wrapper.llms.LLM.query">query</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLM.set_model_attributes" href="#llms_wrapper.llms.LLM.set_model_attributes">set_model_attributes</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.supports_file_upload" href="#llms_wrapper.llms.LLM.supports_file_upload">supports_file_upload</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLM.supports_function_calling" href="#llms_wrapper.llms.LLM.supports_function_calling">supports_function_calling</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLM.supports_json_schema" href="#llms_wrapper.llms.LLM.supports_json_schema">supports_json_schema</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLM.supports_response_format" href="#llms_wrapper.llms.LLM.supports_response_format">supports_response_format</a></code></li>
@@ -1332,8 +2099,11 @@ for response_format "json".</p></div>
 <ul class="">
 <li><code><a title="llms_wrapper.llms.LLMS.cost" href="#llms_wrapper.llms.LLMS.cost">cost</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.cost_per_token" href="#llms_wrapper.llms.LLMS.cost_per_token">cost_per_token</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.count_tokens" href="#llms_wrapper.llms.LLMS.count_tokens">count_tokens</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.default_max_tokens" href="#llms_wrapper.llms.LLMS.default_max_tokens">default_max_tokens</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.elapsed" href="#llms_wrapper.llms.LLMS.elapsed">elapsed</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.get" href="#llms_wrapper.llms.LLMS.get">get</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.get_llm_info" href="#llms_wrapper.llms.LLMS.get_llm_info">get_llm_info</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.known_models" href="#llms_wrapper.llms.LLMS.known_models">known_models</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.list_aliases" href="#llms_wrapper.llms.LLMS.list_aliases">list_aliases</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.list_models" href="#llms_wrapper.llms.LLMS.list_models">list_models</a></code></li>
@@ -1343,6 +2113,7 @@ for response_format "json".</p></div>
 <li><code><a title="llms_wrapper.llms.LLMS.max_output_tokens" href="#llms_wrapper.llms.LLMS.max_output_tokens">max_output_tokens</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.query" href="#llms_wrapper.llms.LLMS.query">query</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.set_model_attributes" href="#llms_wrapper.llms.LLMS.set_model_attributes">set_model_attributes</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.supports_file_upload" href="#llms_wrapper.llms.LLMS.supports_file_upload">supports_file_upload</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.supports_function_calling" href="#llms_wrapper.llms.LLMS.supports_function_calling">supports_function_calling</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.supports_json_schema" href="#llms_wrapper.llms.LLMS.supports_json_schema">supports_json_schema</a></code></li>
 <li><code><a title="llms_wrapper.llms.LLMS.supports_response_format" href="#llms_wrapper.llms.LLMS.supports_response_format">supports_response_format</a></code></li>
@@ -1354,7 +2125,7 @@ for response_format "json".</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.5</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
 </footer>
 </body>
 </html>

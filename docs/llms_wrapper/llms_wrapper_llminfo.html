@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
-<title>llms_wrapper.utils API documentation</title>
-<meta name="description" content="Module for various utility functions.">
+<title>llms_wrapper.llms_wrapper_llminfo API documentation</title>
+<meta name="description" content="Module for the llms_wrapper_llminfo command to show known properties of one or more LLMs defined in a config file.">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -33,10 +33,10 @@ el.replaceWith(d);
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>llms_wrapper.utils</code></h1>
+<h1 class="title">Module <code>llms_wrapper.llms_wrapper_llminfo</code></h1>
 </header>
 <section id="section-intro">
-<p>Module for various utility functions.</p>
+<p>Module for the llms_wrapper_llminfo command to show known properties of one or more LLMs defined in a config file.</p>
 </section>
 <section>
 </section>
@@ -45,41 +45,101 @@ el.replaceWith(d);
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="llms_wrapper.utils.dict_except"><code class="name flex">
-<span>def <span class="ident">dict_except</span></span>(<span>d: dict, keys, ignore_underscored=True)</span>
+<dt id="llms_wrapper.llms_wrapper_llminfo.get_args"><code class="name flex">
+<span>def <span class="ident">get_args</span></span>(<span>) ‑> dict</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def dict_except(d: dict, keys, ignore_underscored=True):
+<pre><code class="python">def get_args() -&gt; dict:
     &#34;&#34;&#34;
-    Return a copy of the dict d, except for the keys in the list keys.
+    Get the command line arguments
     &#34;&#34;&#34;
-    if isinstance(keys, str):
-        keys = [keys]
-    if ignore_underscored:
-        keys = [k for k in d.keys() if k.startswith(&#34;_&#34;)] + keys
-    return {k: v for k, v in d.items() if k not in keys}</code></pre>
+    parser = argparse.ArgumentParser(description=&#39;Show known LLM properties&#39;)
+    parser.add_argument(&#39;--llms&#39;, &#39;-l&#39;, nargs=&#34;+&#34;, type=str, default=[], help=&#39;LLM names, or aliases from the config file for which to get info (all)&#39;, required=False)
+    parser.add_argument(&#39;--config&#39;, &#39;-c&#39;, type=str, help=&#39;Config file with LLM definitions&#39;, required=False)
+    parser.add_argument(&#39;--full&#39;, &#39;-f&#39;, action=&#34;store_true&#34;, help=&#39;Include info for which an API key is required&#39;, required=False)
+    parser.add_argument(&#34;--debug&#34;, action=&#34;store_true&#34;, help=&#34;Debug mode&#34;, required=False)
+    args = parser.parse_args()
+    loglevel1 = &#34;INFO&#34;
+    if args.debug:
+        loglevel1 = &#34;DEBUG&#34;
+    configure_logging(level=loglevel1)
+    for llm in args.llms:
+        if not re.match(r&#34;^[a-zA-Z0-9_\-./]+/.+$&#34;, llm):
+            raise Exception(f&#34;Error: &#39;llms&#39; field must be in the format &#39;provider/model&#39; in: {llm}&#34;)
+    # convert the argparse object to a dictionary
+    argsconfig = {}
+    argsconfig.update(vars(args))
+    return argsconfig</code></pre>
 </details>
-<div class="desc"><p>Return a copy of the dict d, except for the keys in the list keys.</p></div>
+<div class="desc"><p>Get the command line arguments</p></div>
 </dd>
-<dt id="llms_wrapper.utils.pp_config"><code class="name flex">
-<span>def <span class="ident">pp_config</span></span>(<span>config)</span>
+<dt id="llms_wrapper.llms_wrapper_llminfo.main"><code class="name flex">
+<span>def <span class="ident">main</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def pp_config(config):
-    &#34;&#34;&#34;
-    Pretty print the config dict
-    &#34;&#34;&#34;
-    return json.dumps(config, indent=4, sort_keys=True)</code></pre>
+<pre><code class="python">def main():
+    args = get_args()
+    run(args)</code></pre>
 </details>
-<div class="desc"><p>Pretty print the config dict</p></div>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms_wrapper_llminfo.run"><code class="name flex">
+<span>def <span class="ident">run</span></span>(<span>args: dict)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run(args: dict):
+    if args[&#34;config&#34;]:
+        config = read_config_file(args[&#34;config&#34;], update=True)
+        # get all the aliases of the llms
+        aliases = [llm[&#34;alias&#34;] for llm in config[&#34;llms&#34;]]
+        # if no llms are specified as arguments, use all the aliases from the config
+        use_llmnames = aliases if len(args[&#34;llms&#34;]) == 0 else args[&#34;llms&#34;]
+    else:
+        use_llmnames = args[&#34;llms&#34;]
+        # create a fake config which has one entry
+        config = {&#34;llms&#34;: [dict(llm=llm) for llm in use_llmnames]}
+    if len(use_llmnames) == 0:
+        print(&#34;No LLMs specified with --llm or in a config file specified with --config&#34;)
+        sys.exit(1)
+    llms = LLMS(config)
+    for llmalias in use_llmnames:
+        llmname = llms[llmalias][&#34;llm&#34;]
+        model_known = False
+        try:
+            model_info = get_model_info(llmname)
+            model_known = True
+        except Exception as e:
+            model_known = False
+        if not model_known:
+            print(f&#34;LLM: {llmname} (unknown)&#34;)
+            continue
+        info = get_model_info(llmname)
+        print(f&#34;LLM: {llmname}&#34;)
+        print(f&#34;Max number of prompt tokens:                  {llms.max_input_tokens(llmname)}&#34;)
+        print(f&#34;Max number of output tokens:                  {llms.max_output_tokens(llmname)}&#34;)
+        print(f&#34;Cost per 1M prompt tokens (estimate):         {llms.cost_per_token(llmname)[0]*1000000:.2f}&#34;)
+        print(f&#34;Cost per 1M output tokens (estimate):         {llms.cost_per_token(llmname)[1]*1000000:.2f}&#34;)
+        print(f&#34;Supports system messages:                     {info[&#39;supports_system_messages&#39;]}&#34;)
+        print(f&#34;Supports function calling:                    {info[&#39;supports_system_messages&#39;]}&#34;)
+        print(f&#34;Supports tool choice:                         {info[&#39;supports_tool_choice&#39;]}&#34;)
+        for p in [&#34;temperature&#34;, &#34;top_p&#34;, &#34;max_tokens&#34;, &#34;max_completion_tokens&#34;, &#34;tools&#34;, &#34;tool_choice&#34;, &#34;functions&#34;, &#34;response_format&#34;, &#34;n&#34;, &#34;stop&#34;, &#34;logprobs&#34;, &#34;frequency_penalty&#34;, &#34;presence_penalty&#34;]:
+            spc = &#34; &#34;*(26-len(p))
+            print(f&#34;Supports parameter {p}:{spc}{p in info[&#39;supported_openai_params&#39;]}&#34;)
+        #print(f&#34;Info:\n{info}&#34;)</code></pre>
+</details>
+<div class="desc"></div>
 </dd>
 </dl>
 </section>
@@ -98,8 +158,9 @@ el.replaceWith(d);
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="llms_wrapper.utils.dict_except" href="#llms_wrapper.utils.dict_except">dict_except</a></code></li>
-<li><code><a title="llms_wrapper.utils.pp_config" href="#llms_wrapper.utils.pp_config">pp_config</a></code></li>
+<li><code><a title="llms_wrapper.llms_wrapper_llminfo.get_args" href="#llms_wrapper.llms_wrapper_llminfo.get_args">get_args</a></code></li>
+<li><code><a title="llms_wrapper.llms_wrapper_llminfo.main" href="#llms_wrapper.llms_wrapper_llminfo.main">main</a></code></li>
+<li><code><a title="llms_wrapper.llms_wrapper_llminfo.run" href="#llms_wrapper.llms_wrapper_llminfo.run">run</a></code></li>
 </ul>
 </li>
 </ul>
