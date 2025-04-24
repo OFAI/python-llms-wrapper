@@ -2,5 +2,6 @@
 
 Python package `llms_wrapper`
 
-* [Documentation wiki](https://github.com/OFAI/python-llms-wrapper/wiki)
-* [Python API Documentation](https://ofai.github.io/python-llms-wrapper/llms_wrapper/)
+Documentation: 
+
+**IMPORTANT:** This is still under development, API may change and the documentation is still work in progress!

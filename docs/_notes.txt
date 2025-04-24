@@ -11,5 +11,7 @@ Github help:
 * Customize theme: https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll/adding-a-theme-to-your-github-pages-site-using-jekyll
 
 
+Install:
+* See https://jekyllrb.com/docs/installation/ubuntu/
 Test locally: see theme readme, https://github.com/pages-themes/cayman
 Then run: bundle exec jekyll serve
