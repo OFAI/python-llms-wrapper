@@ -1,3 +1,5 @@
+# Quickstart/Examples
+
 ### 1) Install the package into your environment (see [[Installation]])
 
 ### 2) Create a config file for the LLM or LLMs you want to use:

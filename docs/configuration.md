@@ -1,3 +1,5 @@
+# Configuration
+
 For every LLM to be used in a project, there should be configuration data that is necessary for using the LLM.
 Configuration data is expected as a dictionary which contains the key `llms` associated with a list of per-LLM configurations
 and optionally the key `providers` associated with a dictionary mapping provider names to settings common to all LLMs of that 
