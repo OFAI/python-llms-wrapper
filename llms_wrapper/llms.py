@@ -5,6 +5,7 @@ import os
 import warnings
 # TODO: Remove after https://github.com/BerriAI/litellm/issues/7560 is fixed
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic._internal._config")
+warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 import litellm
 import json
 import time
@@ -215,7 +216,7 @@ def function2schema(func, include_return_type=True):
 
         props[name] = schema
 
-    return {
+    funcschema = {
         "name": func.__name__,
         "description": desc,
         "parameters": {
@@ -224,6 +225,8 @@ def function2schema(func, include_return_type=True):
             "required": required
         }
     }
+    toolschema = dict(type="function", function=funcschema)
+    return toolschema
 
 
 class LLMS:
