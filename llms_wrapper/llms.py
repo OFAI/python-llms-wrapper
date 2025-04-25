@@ -697,9 +697,26 @@ class LLMS:
                 messages=messages,
                 **completion_kwargs)
             if stream:
-                # TODO: for now we take a shortcut here and simply return the original response
-                #   as "response".
-                ret["response"] = response
+                def chunk_generator(model_generator, retobj):
+                    try:
+                        for chunk in model_generator:
+                            choice0 = chunk["choices"][0]
+                            if choice0.finish_reason == "stop":
+                                break
+                            content = choice0["delta"].get("content", "")
+                            yield dict(error="", answer=content, ok=True)
+                    except Exception as e:
+                        yield dict(error=str(e), answer="", ok=False)
+                    finally:
+                        # TODO: add cost and elapsed time information into retobj
+                        # litellm does not support cost on streaming responses
+                        # response.__hidden_params["response_cost"] is 0.0
+                        ret["cost"] = None
+                        ret["elapsed_time"] = time.time() - start
+                        pass
+                if return_response:
+                    ret["response"] = response
+                ret["chunks"] = chunk_generator(response, ret)
                 ret["ok"] = True
                 ret["error"] = ""
                 return ret
@@ -714,6 +731,9 @@ class LLMS:
                     del completion_kwargs["api_key"]
                 ret["kwargs"] = completion_kwargs
             if return_cost:
+                # TODO: replace with response._hidden_params["response_cost"] ? 
+                #     but what if cost not supported for the model?
+                
                 try:
                     ret["cost"] = completion_cost(
                         completion_response=response,
