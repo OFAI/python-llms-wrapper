@@ -593,6 +593,7 @@ class LLMS:
             return_response: bool = False,
             debug=False,
             litellm_debug=None,
+            stream=True,
             recursive_call_info: Optional[Dict[str, any]] = None,  
             **kwargs,
     ) -> Dict[str, any]:
@@ -609,6 +610,9 @@ class LLMS:
             return_response: whether or not the complete reponse should get returned
             debug: if True, emits debug messages to aid development and debugging
             litellm_debug: if True, litellm debug logging is enabled, if False, disabled, if None, use debug setting
+            stream: if True, the returned object containst the stream that can be iterated over. Streaming
+                may not work for all models.
+            recursive_call_info: internal use only
             kwargs: any additional keyword arguments to pass on to the LLM 
 
         Returns:
@@ -657,6 +661,11 @@ class LLMS:
             fmap = toolnames2funcs(tools)
         else:
             fmap = {}
+        if stream:
+            # TODO: check if model supports streaming
+            # if streaming is enabled, we always return the original response
+            return_response = True
+            completion_kwargs["stream"] = True
         ret = {}
         # before adding the kwargs, save the recursive_call_info and remove it from kwargs
         if debug:
@@ -687,6 +696,13 @@ class LLMS:
                 model=llm["llm"],
                 messages=messages,
                 **completion_kwargs)
+            if stream:
+                # TODO: for now we take a shortcut here and simply return the original response
+                #   as "response".
+                ret["response"] = response
+                ret["ok"] = True
+                ret["error"] = ""
+                return ret
             elapsed = time.time() - start
             logger.debug(f"Full Response: {response}")
             llm["_elapsed_time"] += elapsed
@@ -743,10 +759,14 @@ class LLMS:
             if debug:
                 print(f"DEBUG: checking for tool_calls: {response_message}, have tools: {tools is not None}")
             if tools is not None:
+                # TODO: if streaming is enabled we need to gather the complete response before
+                #   we can process the tool calls
                 if hasattr(response_message, "tool_calls") and response_message.tool_calls is not None:
                     tool_calls = response_message.tool_calls
                 else:
                     tool_calls = []
+                if stream:
+                    raise ValueError("Error: streaming is not supported for tool calls yet")
                 if debug:
                     print(f"DEBUG: got {len(tool_calls)} tool calls:")
                     for tool_call in tool_calls:
