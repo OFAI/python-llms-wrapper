@@ -12,5 +12,5 @@
       api_key_env: "MY_GEMINI_API_KEY"
     }
   }
-  use_phoenix: ["http://0.0.0.0:6006/v1/traces", "llms_wrapper_test"]
+  # use_phoenix: ["http://0.0.0.0:6006/v1/traces", "llms_wrapper_test"]
 }
