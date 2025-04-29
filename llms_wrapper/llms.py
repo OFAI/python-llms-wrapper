@@ -593,7 +593,7 @@ class LLMS:
             return_response: bool = False,
             debug=False,
             litellm_debug=None,
-            stream=True,
+            stream=False,
             recursive_call_info: Optional[Dict[str, any]] = None,  
             **kwargs,
     ) -> Dict[str, any]:
