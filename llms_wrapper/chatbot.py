@@ -1,40 +1,27 @@
 """Module implementing chatbot functionality for LLMs."""
 
-import asyncio
 from typing import Dict, List, Optional
-import queue
 import threading
 import time
 import random
 import concurrent.futures
-import logging
-import sys # Import sys to potentially redirect stderr
-
-from charset_normalizer.utils import is_multi_byte_encoding
-
-from llms_wrapper.llms import LLMS, any2message
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logging.getLogger('asyncio').setLevel(logging.INFO)
-logging.getLogger('threading').setLevel(logging.WARNING)
-
+import asyncio
+from loguru import logger
+from llms_wrapper.llms import any2message
+from llms_wrapper.log import configure_logging
 
 # Implementation notes:
 # - all chatbot responses should be a dict which contains the following keys:
 #   - answer: if processing was OK, the actual answer, which may be the answer from the LLM or something derived
 #     from the llm, if there was an error or no message available, None
 #   - error: if processing was OK, None, if there was an error, the error message
-#   - is_ok: if processing was OK (including no response avaiable), True, if there was an error, False
+#   - is_ok: if processing was OK (including no response available), True, if there was an error, False
 #   - metadata : the metadata dictionary passed to the reply method
 #   - message: the last message as sent to the LLM
 #   - response (optional): the original response from the LLM.query method
 
 
 
-# For debugging what gets placed and retrieved from the async queue:
-
-import asyncio
-import logging
 
 class LoggingQueue(asyncio.Queue):
     """
@@ -42,15 +29,15 @@ class LoggingQueue(asyncio.Queue):
     """
     async def put(self, item):
         """Put an item onto the queue and log the operation."""
-        logging.info(f"QUEUE: Attempting to put item onto queue ({super().qsize()}): {item!r}")
+        logger.debug(f"QUEUE: Attempting to put item onto queue ({super().qsize()}): {item!r}")
         await super().put(item)
-        logging.info(f"QUEUE: Successfully put item onto queue ({super().qsize()}): {item!r}")
+        logger.debug(f"QUEUE: Successfully put item onto queue ({super().qsize()}): {item!r}")
 
     async def get(self):
         """Retrieve an item from the queue and log the operation."""
-        logging.info(f"QUEUE: Attempting to get item from queue ({super().qsize()})...")
+        logger.debug(f"QUEUE: Attempting to get item from queue ({super().qsize()})...")
         item = await super().get()
-        logging.info(f"QUEUE: Successfully retrieved item from queue ({super().qsize()}): {item!r}")
+        logger.debug(f"QUEUE: Successfully retrieved item from queue ({super().qsize()}): {item!r}")
         return item
 
 
@@ -81,13 +68,13 @@ class SerialChatbot:
         """
         self.llm = llm
         self.config = config
+        self.llm_messages = []
         if initial_message:
             self.initial_message = any2message(initial_message)
             self.llm_messages.append(initial_message)
         else:
             self.initial_message = None
         self.message_template = message_template
-        self.llm_messages = []
 
     def reply(
             self,
@@ -141,9 +128,9 @@ class FlexibleChatbot:
         # Queues for communication between the listening thread and the async loop thread.
         # asyncio.Queue is used because the processing loop runs on an asyncio loop.
         self._incoming_queue = asyncio.Queue()
-        #self._outgoing_queue = asyncio.Queue()
-        #self._incoming_queue = asyncio.Queue()
-        self._outgoing_queue = LoggingQueue()
+        self._outgoing_queue = asyncio.Queue()
+        # self._incoming_queue = LoggingQueue()
+        # self._outgoing_queue = LoggingQueue()
 
         # Event to signal the processing loop to stop. An asyncio.Event is needed
         # because the processing loop is async.
@@ -174,7 +161,7 @@ class FlexibleChatbot:
         Target function for the dedicated background thread.
         It creates and runs the asyncio event loop.
         """
-        logging.info("Asyncio loop thread starting.")
+        logger.debug("Asyncio loop thread starting.")
         # Create a new event loop specifically for this thread.
         self._event_loop = asyncio.new_event_loop()
         # Set this loop as the current loop for this thread.
@@ -182,63 +169,63 @@ class FlexibleChatbot:
 
         try:
             self._processing_task = self._event_loop.create_task(self._process_messages_loop())
-            logging.info("Asyncio loop running until stop event...")
+            logger.debug("Asyncio loop running until stop event...")
             # The loop waits here. Execution continues after stop_event is set.
             self._event_loop.run_until_complete(self._stop_event.wait())
-            logging.info("Asyncio stop event received. Initiating shutdown sequence in loop thread.")
+            logger.debug("Asyncio stop event received. Initiating shutdown sequence in loop thread.")
 
             # --- Graceful Shutdown Phase in Loop Thread ---
             # 1. Wait for the main processing task to finish (it exits its loop after stop event).
             #    This ensures messages currently being processed or already in the queue when
             #    stop was signalled get handled by _process_messages_loop's draining logic.
-            logging.info("Waiting for processing task to finish after stop signal...")
+            logger.debug("Waiting for processing task to finish after stop signal...")
             try:
                 # Use gather with return_exceptions=True to ensure we don't fail here
                 # if the task raises an error during its final moments.
                 # Add a timeout for the processing task to complete its final cycle(s).
                 self._event_loop.run_until_complete(asyncio.gather(asyncio.wait_for(self._processing_task, timeout=5.0), return_exceptions=True))
-                logging.info("Processing task finished.")
+                logger.debug("Processing task finished.")
             except asyncio.TimeoutError:
-                 logging.warning("Processing task did not finish within timeout after stop signal.")
+                 logger.warning("Processing task did not finish within timeout after stop signal.")
                  # If it didn't finish, try to cancel it as a fallback.
                  if self._processing_task and not self._processing_task.done():
-                     logging.warning("Cancelling processing task...")
+                     logger.warning("Cancelling processing task...")
                      try:
                          self._processing_task.cancel()
                          self._event_loop.run_until_complete(asyncio.gather(self._processing_task, return_exceptions=True))
-                         logging.info("Processing task cancellation handled.")
+                         logger.debug("Processing task cancellation handled.")
                      except asyncio.CancelledError:
-                         logging.info("Processing task cancellation handled.")
+                         logger.debug("Processing task cancellation handled.")
                      except Exception as e:
-                         logging.exception(f"Error during processing task cancellation wait: {e}")
+                         logger.exception(f"Error during processing task cancellation wait: {e}")
                  else:
-                      logging.warning("Processing task was already done but wait_for timed out?")
+                      logger.warning("Processing task was already done but wait_for timed out?")
             except Exception as e:
-                 logging.exception(f"Error waiting for processing task to finish: {e}")
+                 logger.exception(f"Error waiting for processing task to finish: {e}")
 
             # 2. Wait for outgoing queue to be fully consumed (task_done called for all items).
             #    This helps ensure that Queue.get calls from consumers have completed their
             #    successful path (getting an item and calling task_done) *before* we start
             #    cancelling pending gets.
-            logging.info("Waiting for outgoing queue to drain (max 2s)...")
+            logger.debug("Waiting for outgoing queue to drain (max 2s)...")
             try:
                 # Use join() with a timeout. If consumers (async generator or sync getter)
                 # haven't called task_done for all items produced before shutdown,
                 # this will wait up to the timeout.
                 # Use wait_for to prevent join() from blocking indefinitely if task_done isn't called.
                 self._event_loop.run_until_complete(asyncio.wait_for(self._outgoing_queue.join(), timeout=2.0))
-                logging.info("Outgoing queue drained.")
+                logger.debug("Outgoing queue drained.")
             except asyncio.TimeoutError:
-                 logging.warning("Outgoing queue did not drain within timeout.")
+                 logger.warning("Outgoing queue did not drain within timeout.")
             except Exception as e:
-                 logging.exception(f"Error waiting for outgoing queue to drain: {e}")
+                 logger.exception(f"Error waiting for outgoing queue to drain: {e}")
 
 
             # 3. Cancel any remaining tasks on this loop. This is crucial to clean up
             #    tasks created by run_coroutine_threadsafe (like pending queue.get calls
             #    from the synchronous get_next_response method) that timed out or
             #    were still waiting when shutdown began.
-            logging.info("Cancelling remaining tasks on the event loop...")
+            logger.debug("Cancelling remaining tasks on the event loop...")
             # Get all tasks associated with this event loop.
             pending_tasks = asyncio.all_tasks(self._event_loop)
             # Filter out the task running _run_loop_in_thread itself (which is done)
@@ -247,7 +234,7 @@ class FlexibleChatbot:
             tasks_to_cancel = [task for task in pending_tasks if task is not asyncio.current_task(self._event_loop) and not task.done()]
 
             if tasks_to_cancel:
-                logging.info(f"Cancelling {len(tasks_to_cancel)} pending tasks.")
+                logger.debug(f"Cancelling {len(tasks_to_cancel)} pending tasks.")
                 # Cancel tasks.
                 for task in tasks_to_cancel:
                     task.cancel()
@@ -257,16 +244,16 @@ class FlexibleChatbot:
                 # Add a timeout here too, in case cancellation gets stuck.
                 try:
                     self._event_loop.run_until_complete(asyncio.gather(*tasks_to_cancel, return_exceptions=True))
-                    logging.info("Pending tasks cancellation and waiting complete.")
+                    logger.debug("Pending tasks cancellation and waiting complete.")
                 except Exception as e:
-                     logging.exception(f"Error waiting for pending tasks cancellation: {e}")
+                     logger.exception(f"Error waiting for pending tasks cancellation: {e}")
             else:
-                logging.info("No pending tasks found to cancel.")
+                logger.debug("No pending tasks found to cancel.")
 
 
             # 4. Add a small delay to allow any final cleanup logic (like in cancelled tasks) to run
             #    before closing the loop.
-            logging.info("Giving a small moment for final cleanup...")
+            logger.debug("Giving a small moment for final cleanup...")
             try:
                  # Run a very short sleep on the loop.
                  self._event_loop.run_until_complete(asyncio.sleep(0.05)) # Slightly increased sleep
@@ -276,25 +263,25 @@ class FlexibleChatbot:
 
         except Exception as e:
              # Catch any exceptions that happened *during* the shutdown sequence itself.
-             logging.exception(f"Exception during asyncio loop thread shutdown sequence: {e}")
+             logger.exception(f"Exception during asyncio loop thread shutdown sequence: {e}")
         finally:
             # 5. Close the loop. This should happen only after tasks are cancelled and awaited.
-            logging.info("Closing asyncio event loop.")
+            logger.debug("Closing asyncio event loop.")
             # Check if loop is still open before closing
             if self._event_loop and not self._event_loop.is_closed():
                 try:
                     self._event_loop.close()
-                    logging.info("Asyncio event loop closed.")
+                    logger.debug("Asyncio event loop closed.")
                 except Exception as e:
-                    logging.exception(f"Error closing event loop: {e}")
+                    logger.exception(f"Error closing event loop: {e}")
             else:
-                logging.warning("Attempted to close loop, but it was already None or closed.")
+                logger.warning("Attempted to close loop, but it was already None or closed.")
 
             # Clear references.
             asyncio.set_event_loop(None) # Unset loop for this thread
             self._event_loop = None
             self._processing_task = None # Ensure this is None
-            logging.info("Asyncio loop thread finished.")
+            logger.debug("Asyncio loop thread finished.")
 
     async def _process_messages_loop(self):
         """
@@ -302,7 +289,7 @@ class FlexibleChatbot:
         Handles errors during processing and puts responses/errors onto the outgoing queue.
         Gracefully drains the incoming queue during shutdown.
         """
-        logging.info("Chatbot processing loop started.")
+        logger.debug("Chatbot processing loop started.")
         # Loop as long as the stop event is not set OR there are items left in the incoming queue
         # to process. This allows draining the queue during shutdown.
         while not self._stop_event.is_set() or not self._incoming_queue.empty():
@@ -318,12 +305,12 @@ class FlexibleChatbot:
                      # Use a small timeout to allow loop to check stop_event and do periodic tasks.
                      # This also allows the loop to respond to stop signals promptly if the queue is empty.
                      message, metadata = await asyncio.wait_for(self._incoming_queue.get(), timeout=0.1)
-                     logging.info(f"Chatbot received: '{message}', metadata {metadata}'")
+                     logger.debug(f"Chatbot received: '{message}', metadata {metadata}'")
                 else:
                      # If stopping, try to get existing messages without waiting.
                      # This will raise QueueEmpty when the queue is drained.
                      message, metadata = self._incoming_queue.get_nowait()
-                     logging.info(f"Chatbot processing remaining queued: '{message}',  metadata {metadata}'")
+                     logger.debug(f"Chatbot processing remaining queued: '{message}',  metadata {metadata}'")
 
                 # --- Chatbot Logic for processing a single message ---
                 try:
@@ -334,7 +321,7 @@ class FlexibleChatbot:
                         # Errors from _simulate_blocking_io will be propagated by await.
                         response = await asyncio.to_thread(self.chatbot_implementation, message, metadata)
                     except Exception as io_e:
-                        logging.exception(f"Error during offloaded I/O for '{message}': {io_e}")
+                        logger.exception(f"Error during offloaded I/O for '{message}': {io_e}")
                         # On I/O error during processing, put an error message onto the outgoing queue.
                         response["error"] = f"Error processing question: {io_e}"
                         response["is_ok"] = False
@@ -342,17 +329,17 @@ class FlexibleChatbot:
                     if response["is_ok"] and response["answer"] is None:  # the chatbot explicitly didn't give an answer
                         pass
                     else:
-                        logging.info(f"Chatbot generated response: {response}")
+                        logger.debug(f"Chatbot generated response: {response}")
                         # Put the generated response (or error message) onto the outgoing queue.
                         await self._outgoing_queue.put(response)
-                        logging.info(f">>>>>>>>>>>>> Queue size is now {self._outgoing_queue.qsize()} after putting response.")
+                        logger.debug(f">>>>>>>>>>>>> Queue size is now {self._outgoing_queue.qsize()} after putting response.")
 
                 except Exception as processing_e:
                     # Handle exceptions that occur *during* the processing of a single message.
-                    logging.exception(f"Error processing message '{message}': {processing_e}")
+                    logger.exception(f"Error processing message '{message}': {processing_e}")
                     # Put an error indicator/message onto the outgoing queue so consumers can see it.
                     await self._outgoing_queue.put(dict(answer=None, error=str(processing_e), is_ok=False, message=message, metadata=metadata))
-                    logging.info(f"Queue size is now {self._outgoing_queue.qsize()} after putting response.")
+                    logger.debug(f"Queue size is now {self._outgoing_queue.qsize()} after putting response.")
                 finally:
                     # Ensure task_done is called for the item retrieved from the incoming queue.
                     # This is crucial if asyncio.Queue.join() is used elsewhere to wait for processing completion.
@@ -362,19 +349,19 @@ class FlexibleChatbot:
                 # await get(timeout) expired. This happens when not stopping and the incoming queue is empty.
                 # The loop condition allows us to just continue and check again.
                 # This is where periodic actions would be triggered if needed.
-                # logging.debug("Processing loop timed out waiting for message.")
+                # logger.debug("Processing loop timed out waiting for message.")
                 pass
             except asyncio.QueueEmpty:
                  # get_nowait() raised QueueEmpty. This should only happen when stopping
                  # (because we use await get() when not stopping). When it happens,
                  # it means the incoming queue is fully drained.
-                 logging.debug("Incoming queue empty during stopping phase.")
+                 logger.debug("Incoming queue empty during stopping phase.")
                  # The while loop condition will be checked next. If stop_event is set,
                  # the loop will correctly terminate because the queue is also empty.
 
             except Exception as e:
                  # Catch any unexpected exceptions in the outer loop (e.g., issues with get_nowait, etc.).
-                 logging.exception(f"Unexpected error in processing loop outer try block: {e}")
+                 logger.exception(f"Unexpected error in processing loop outer try block: {e}")
                  # If a critical error occurs that indicates the loop is broken, set the stop event
                  # to signal shutdown.
                  # self._stop_event.set() # Signal stop
@@ -383,7 +370,7 @@ class FlexibleChatbot:
                  # Depending on the severity, you might break the loop immediately:
                  # break
 
-        logging.info("Chatbot processing loop finished.")
+        logger.debug("Chatbot processing loop finished.")
 
 
     # --- Public Interface ---
@@ -395,7 +382,7 @@ class FlexibleChatbot:
         """
         # Check if the chatbot's background loop is running and ready to receive messages.
         if not self.is_running() or self._event_loop is None or self._event_loop.is_closed():
-            logging.warning(f"Chatbot not running or loop not ready. Message lost: '{message}', metadata {metadata}")
+            logger.warning(f"Chatbot not running or loop not ready. Message lost: '{message}', metadata {metadata}")
             # A more advanced version could buffer messages internally here until start() is called.
             return
 
@@ -405,15 +392,15 @@ class FlexibleChatbot:
             # asyncio.Queue methods are not thread-safe for calls from other threads.
             # put_nowait is used because listen() should not block the caller thread.
             # If the queue is full, QueueFull will be raised *in the loop thread*,
-            # which should ideally be handled there (e.g., by logging a warning).
+            # which should ideally be handled there (e.g., by logger.a warning).
             self._event_loop.call_soon_threadsafe(
                 self._incoming_queue.put_nowait, (message, metadata)
             )
-            logging.debug(f"Message from {message}/{metadata} successfully queued.")
+            logger.debug(f"Message from {message}/{metadata} successfully queued.")
 
         except Exception as e:
              # Catch potential errors from call_soon_threadsafe itself (e.g., loop unexpectedly closed)
-             logging.exception(f"Failed to enqueue message {message}/{metadata} via call_soon_threadsafe: {e}")
+             logger.exception(f"Failed to enqueue message {message}/{metadata} via call_soon_threadsafe: {e}")
              # The message might be lost here depending on error handling design choice.
 
 
@@ -423,10 +410,10 @@ class FlexibleChatbot:
         This method must be awaited and called from an asyncio context.
         """
         if self._running:
-            logging.warning("Chatbot is already running.")
+            logger.warning("Chatbot is already running.")
             return
 
-        logging.info("Starting Chatbot...")
+        logger.debug("Starting Chatbot...")
         # Reset event and flag before starting the thread.
         self._stop_event.clear()
         self._running = True
@@ -444,16 +431,16 @@ class FlexibleChatbot:
             await asyncio.wait_for(self._wait_for_ready(), timeout=5.0) # Wait for internal signal
         except asyncio.TimeoutError:
              self._running = False
-             logging.error("Chatbot failed to signal readiness within timeout.")
+             logger.error("Chatbot failed to signal readiness within timeout.")
              # Attempt to join thread if it started but isn't ready
              if self._loop_thread and self._loop_thread.is_alive():
-                 logging.warning("Attempting to join thread after failed start.")
+                 logger.warning("Attempting to join thread after failed start.")
                  # Need temporary async context again to join thread using asyncio.to_thread
                  try:
                      asyncio.run(asyncio.wait_for(asyncio.to_thread(self._loop_thread.join, timeout=1), timeout=1))
-                     logging.info("Thread joined after failed start.")
+                     logger.debug("Thread joined after failed start.")
                  except Exception as join_e:
-                     logging.exception(f"Error joining thread after failed start: {join_e}")
+                     logger.exception(f"Error joining thread after failed start: {join_e}")
 
              self._loop_thread = None
              self._event_loop = None # Ensure state is clean
@@ -465,7 +452,7 @@ class FlexibleChatbot:
         if self._event_loop is None or self._event_loop.is_closed() or \
            self._processing_task is None or self._processing_task.done():
              self._running = False # Mark as not running if initialization failed
-             logging.error("Failed to initialize internal asyncio loop or processing task after wait.")
+             logger.error("Failed to initialize internal asyncio loop or processing task after wait.")
              # Attempt to join the thread to clean up resources if it potentially failed immediately.
              if self._loop_thread and self._loop_thread.is_alive():
                  self._loop_thread.join(timeout=1) # Don't block the calling start indefinitely
@@ -475,12 +462,12 @@ class FlexibleChatbot:
              # Raise a specific error to indicate start failure.
              raise ChatbotError("Failed to initialize internal processing.")
 
-        logging.info("Chatbot started successfully.")
+        logger.debug("Chatbot started successfully.")
 
     async def _wait_for_ready(self):
         """Internal coroutine to wait until the loop and task are initialized by the thread."""
         # Wait until event_loop and processing_task are set by _run_loop_in_thread
-        # Also check if the task is actually running (not immediately done/errored).
+        # Also check if the task is actually running (not immediately done/error).
         while self._event_loop is None or self._processing_task is None or self._processing_task.done():
             # Need to yield control to the event loop
             await asyncio.sleep(0.01) # Sleep briefly
@@ -495,7 +482,7 @@ class FlexibleChatbot:
         # Check if the chatbot is in a state that can be stopped.
         # If not running but thread is alive, still try to signal and join.
         if not self._running and (self._loop_thread is None or not self._loop_thread.is_alive()):
-            logging.warning("Chatbot is not running and thread is not active.")
+            logger.warning("Chatbot is not running and thread is not active.")
             # Clean up state just in case it's in an inconsistent state.
             self._running = False
             self._loop_thread = None
@@ -503,7 +490,7 @@ class FlexibleChatbot:
             self._processing_task = None
             return
 
-        logging.info("Stopping Chatbot...")
+        logger.debug("Stopping Chatbot...")
         # Set the running flag to False immediately.
         self._running = False
 
@@ -513,19 +500,19 @@ class FlexibleChatbot:
              try:
                 # Schedule the event setting on the loop thread.
                 self._event_loop.call_soon_threadsafe(self._stop_event.set)
-                logging.debug("Stop event signalled thread-safely.")
+                logger.debug("Stop event signalled thread-safely.")
              except Exception as e:
-                 logging.exception(f"Error signalling stop event thread-safely: {e}")
+                 logger.exception(f"Error signalling stop event thread-safely: {e}")
                  # Even if signalling fails, proceed with trying to join the thread.
         else:
-             logging.warning("Event loop not available or closed during stop signal. Cannot signal stop event.")
+             logger.warning("Event loop not available or closed during stop signal. Cannot signal stop event.")
              # If the loop is gone, the thread might be exiting already, but cleanup might be missed.
 
 
         # Wait for the thread running the loop to join.
         # Use asyncio.to_thread to run the blocking .join() call in a separate thread
         # managed by asyncio, so it doesn't block the async loop calling stop().
-        logging.info("Waiting for internal loop thread to join...")
+        logger.debug("Waiting for internal loop thread to join...")
         # Only attempt to join if the thread was actually started.
         if self._loop_thread is not None:
             try:
@@ -535,22 +522,22 @@ class FlexibleChatbot:
 
                 # Check if the thread successfully joined or if the join timed out.
                 if self._loop_thread and self._loop_thread.is_alive():
-                     logging.error("Internal loop thread did not join within timeout!")
+                     logger.error("Internal loop thread did not join within timeout!")
                      # Depending on requirements, you might log this and continue,
                      # or attempt more drastic measures (less recommended in libraries).
                 else:
-                     logging.info("Internal loop thread joined successfully.")
+                     logger.debug("Internal loop thread joined successfully.")
 
             except Exception as e:
                  # Catch any exceptions during the asyncio.to_thread or join operation.
-                 logging.exception(f"Error waiting for internal loop thread to join: {e}")
+                 logger.exception(f"Error waiting for internal loop thread to join: {e}")
 
         # Ensure state is completely reset regardless of join success/failure.
         self._loop_thread = None
         self._event_loop = None # Should be None after close in thread (or potentially None if join timed out)
         self._processing_task = None # Should be None after thread exits or cancellation
 
-        logging.info("Chatbot stopped.")
+        logger.debug("Chatbot stopped.")
 
 
     def is_running(self) -> bool:
@@ -575,13 +562,13 @@ class FlexibleChatbot:
         # Check if the chatbot is running before starting consumption.
         # Allow consumption if not running but queues aren't empty, to drain remaining items.
         if not self.is_running() and self._outgoing_queue.empty():
-            logging.warning("Chatbot not running and outgoing queue is empty, responses generator yielding nothing.")
+            logger.warning("Chatbot not running and outgoing queue is empty, responses generator yielding nothing.")
             return # Generator immediately stops if not running and nothing to drain.
 
-        logging.info("Async responses generator started.")
+        logger.debug("Async responses generator started.")
         # Continue yielding as long as the chatbot is running OR there are items
         # left in the outgoing queue (to drain messages processed during shutdown).
-        last_respone_time = time.time()
+        last_response_time = time.time()
         while self.is_running() or not self._outgoing_queue.empty():
              try:
                 # Wait for a response with a short timeout.
@@ -591,9 +578,9 @@ class FlexibleChatbot:
                 # If the internal loop is closing, get() might raise CancelledError, handled below.
 
                 response = await asyncio.wait_for(self._outgoing_queue.get(), timeout=0.1) # Small timeout
-                last_respone_time = time.time() # Update last response time
+                last_response_time = time.time() # Update last response time
 
-                logging.debug(f"Async generator yielding response: {response}")
+                logger.debug(f"Async generator yielding response: {response}")
                 yield response
                 # Signal that the item has been consumed from the queue.
                 # This must be done on the same loop the queue belongs to, which is the current loop here.
@@ -603,30 +590,30 @@ class FlexibleChatbot:
                  # This exception occurs when get(timeout) expires before an item is available.
                  # The loop condition (while self.is_running() or not self._outgoing_queue.empty())
                  # will be checked next.
-                 # logging.debug("Responses generator timed out waiting for response.")
+                 # logger.debug("Responses generator timed out waiting for response.")
 
                  # if the time since the last response is greater than max_timeout, return None
-                 if time.time() - last_respone_time > max_timeout:
-                    logging.info("Responses generator timed out waiting for response.")
+                 if time.time() - last_response_time > max_timeout:
+                    logger.debug("Responses generator timed out waiting for response.")
                     # Return None to indicate no response was received within the timeout.
                     # This allows the consumer to handle the timeout case.
                     yield None
                     break
              except asyncio.CancelledError:
                  # This can happen if the internal loop is stopping/closing and cancels pending gets.
-                 logging.info("Async responses generator cancelled during get.")
+                 logger.debug("Async responses generator cancelled during get.")
                  # Treat as graceful shutdown, exit the generator.
                  break
              except Exception as e:
                 # Catch any other exceptions during queue retrieval or yielding.
-                logging.exception(f"Error in async responses generator while getting/yielding: {e}")
+                logger.exception(f"Error in async responses generator while getting/yielding: {e}")
                 # Decide how to handle error - yield an error message or break the generator?
                 # Yielding an error message allows the consumer to handle it explicitly.
                 yield {"type": "generator_error", "content": f"Error retrieving response: {e}"}
                 # If the error is critical or unrecoverable for the generator, uncomment break:
                 # break # Exit the generator loop on error.
 
-        logging.info("Async responses generator finished.")
+        logger.debug("Async responses generator finished.")
 
 
     # synchronous blocking read but with timeout
@@ -646,7 +633,7 @@ class FlexibleChatbot:
             # attempting to get messages to drain the queue during sync shutdown.
             # If not running AND queue is empty, there's nothing to get, return None immediately.
             if not self.is_running() and self._outgoing_queue.empty():
-                 logging.warning("Sync getter: Not running and queue empty, returning None.")
+                 logger.warning("Sync getter: Not running and queue empty, returning None.")
                  return None
 
             # If not running but queue is NOT empty, or if running, we need the event loop.
@@ -655,7 +642,7 @@ class FlexibleChatbot:
                  # This state might be reached if stop() is called and the loop thread is
                  # in the process of tearing down but the queue isn't quite empty yet.
                  # Log a warning and return None, as we cannot reliably interact with the loop.
-                 logging.warning("Sync getter: Event loop is not available or closed while trying to get item.")
+                 logger.warning("Sync getter: Event loop is not available or closed while trying to get item.")
                  # Return None, as the consumer should check is_running() or timeout.
                  return None
 
@@ -669,7 +656,7 @@ class FlexibleChatbot:
                 # Note: asyncio.run_coroutine_threadsafe can raise RuntimeError if the loop is closed
                 # or potentially other issues if called during a messy shutdown.
 
-                logging.info(f">>>>>> Sync getter: Attempting to get item from outgoing queue, size is {self._outgoing_queue.qsize()}")
+                logger.debug(f">>>>>> Sync getter: Attempting to get item from outgoing queue, size is {self._outgoing_queue.qsize()}")
                 coro = self._outgoing_queue.get()
                 future = asyncio.run_coroutine_threadsafe(coro, self._event_loop)
 
@@ -679,7 +666,7 @@ class FlexibleChatbot:
                 # from the coroutine (like exceptions put into the queue as error messages)
                 # or concurrent.futures.CancelledError if the internal loop cancels the task.
                 response = future.result(timeout=timeout)
-                logging.info(f">>>>>> DEBUG: internal Sync getter got response: {response}")
+                logger.debug(f">>>>>> DEBUG: internal Sync getter got response: {response}")
 
                 # If we reached here, the .get() operation on the async queue was successful
                 # and returned an item (response or error dict).
@@ -691,28 +678,28 @@ class FlexibleChatbot:
                         self._event_loop.call_soon_threadsafe(self._outgoing_queue.task_done)
                     except Exception as e:
                          # Log error if task_done cannot be scheduled (e.g., loop closed just now)
-                         logging.exception(f"Error calling task_done thread-safely for {response}: {e}")
+                         logger.exception(f"Error calling task_done thread-safely for {response}: {e}")
                          # Decide if this indicates an unhandled item or just a late cleanup message.
                          # For now, log and proceed.
                 else:
-                     logging.warning(f"Event loop not available to call task_done for {response}. Item might not be marked as done.")
+                     logger.warning(f"Event loop not available to call task_done for {response}. Item might not be marked as done.")
 
-                logging.info(f"Sync getter retrieved response: {response}")
+                logger.debug(f"Sync getter retrieved response: {response}")
                 return response
 
             except concurrent.futures.TimeoutError:
                  # This exception occurs if future.result(timeout=...) expires.
                  # It means no item was available in the async queue within the timeout.
                  # This is a normal occurrence when the queue is empty.
-                 # logging.debug("Sync getter timed out waiting for response.")
-                 logging.info(f"DEBUG: internal Sync getter got TimeoutError exception")
+                 # logger.debug("Sync getter timed out waiting for response.")
+                 logger.debug(f"DEBUG: internal Sync getter got TimeoutError exception")
                  return None # Standard behavior for blocking get with timeout is returning None.
 
             except concurrent.futures.CancelledError:
                  # This happens if the future/task was cancelled while waiting.
                  # This occurs when the internal asyncio loop is stopping/closing
                  # and our cleanup logic explicitly cancels pending tasks.
-                 logging.info("Sync get operation was cancelled (internal loop shutting down?).")
+                 logger.debug("Sync get operation was cancelled (internal loop shutting down?).")
                  # Treat this as a non-critical event indicating shutdown or no more items available.
                  # Return None to allow consumption loops to check if chatbot is still running.
                  return None
@@ -722,11 +709,11 @@ class FlexibleChatbot:
                  # if run_coroutine_threadsafe is called right as the loop is closing,
                  # or if a future completes after the loop is closed and tries cleanup.
                  if "Event loop is closed" in str(e):
-                     logging.warning("Sync get called or completed when event loop is closed.")
+                     logger.warning("Sync get called or completed when event loop is closed.")
                      # Return None as the loop is gone and no more items are expected via this path.
                      return None
                  else:
-                      logging.exception(f"Unexpected RuntimeError in sync get: {e}")
+                      logger.exception(f"Unexpected RuntimeError in sync get: {e}")
                       # For other RuntimeErrors, re-raise as a ChatbotError
                       raise ChatbotError(f"Unexpected internal error during retrieval: {e}") from e
 
@@ -734,7 +721,7 @@ class FlexibleChatbot:
                 # Catch any other unexpected exceptions during future.result retrieval or
                 # exceptions propagated from the coroutine itself (like processing errors
                 # if the consumer code didn't handle the dict).
-                logging.exception(f"Error in synchronous get_next_response during future result: {e}")
+                logger.exception(f"Error in synchronous get_next_response during future result: {e}")
                 # Decide how to handle - re-raise as a ChatbotError
                 raise ChatbotError(f"Error retrieving response: {e}") from e
 
@@ -755,12 +742,12 @@ class TestSerialChatbot(SerialChatbot):
                 msg_id = "??",
                 simulate_error = False, simulate_no_answer = False)
         msg_id = metadata.get("msg_id", "??")
-        waittime = metadata.get("waittime", 0.5)
+        wait_time = metadata.get("wait_time", 0.5)
         simulate_error = metadata.get("simulate_error", False)
         simulate_no_answer = metadata.get("simulate_no_answer", False)
-        time.sleep(waittime)
+        time.sleep(wait_time)
         if simulate_error:
-            raise Exception("{} >TestSerialChatbot: Simulated processing error.")
+            raise Exception(f"{msg_id} >TestSerialChatbot: Simulated processing error.")
         if simulate_no_answer:
             answer = None
         else:
@@ -768,16 +755,16 @@ class TestSerialChatbot(SerialChatbot):
         return dict(answer=answer, metadata=metadata, message=message, is_ok=True, error=None)
 
 async def run_async_example(schbot: SerialChatbot):
-    logging.info("\n" + "="*40 + "\n" + "--- Running Async Example ---" + "\n" + "="*40)
+    logger.info("\n" + "="*40 + "\n" + "--- Running Async Example ---" + "\n" + "="*40)
     chatbot = FlexibleChatbot(schbot)
     try:
         # Start the chatbot's background processing
         # Add a timeout for the start operation in case it hangs.
         await asyncio.wait_for(chatbot.start(), timeout=5)
-        logging.info("Chatbot started successfully.")
+        logger.info("Chatbot started successfully.")
 
         # Send messages to the chatbot (can be done from other threads/async tasks via .listen)
-        logging.info("Sending initial messages in async example...")
+        logger.info("Sending initial messages in async example...")
         chatbot.listen("Hello chatbot!", dict(author="Ann", msg_id="01"))
         await asyncio.sleep(0.01) # Give loop a moment to process listen call
         chatbot.listen("Tell me a story?", dict(author="Joe", msg_id="02"))
@@ -794,7 +781,7 @@ async def run_async_example(schbot: SerialChatbot):
 
 
         # Consume responses using the async generator
-        print("\n--- Responses (Async) ---")
+        logger.info("--- Responses (Async) ---")
         response_count = 0
         n_ok = 0
         n_error = 0
@@ -805,66 +792,66 @@ async def run_async_example(schbot: SerialChatbot):
             async for response in chatbot.responses():
                 response_count += 1
                 if response:
-                    logging.info(f"Received (Async): {response}")
+                    logger.info(f"Received (Async): {response}")
                     if response.get("is_ok"):
                         n_ok += 1
                     else:
                         n_error += 1
                 else:
-                    logging.info("Received (Async): None (timeout or no response).")
+                    logger.info("Received (Async): None (timeout or no response).")
                     n_timeout += 1
         except Exception as e:
             # Catch any unexpected exceptions that occur within the async for loop itself.
-            logging.exception("Exception during async response consumption:")
+            logger.exception("Exception during async response consumption:")
 
-        logging.info(f"Async consumption loop finished. Received {response_count} responses, {n_ok} ok, {n_error} errors, {n_timeout} timeouts.")
+        logger.info(f"Async consumption loop finished. Received {response_count} responses, {n_ok} ok, {n_error} errors, {n_timeout} timeouts.")
 
     except (ChatbotError, asyncio.TimeoutError) as e:
-        logging.error(f"Failed during async example: {e}")
+        logger.error(f"Failed during async example: {e}")
 
     finally:
         # Ensure the chatbot is stopped gracefully even if errors occurred during consumption or start.
         # Check if chatbot's internal thread was started and is alive before attempting to stop.
         if chatbot._loop_thread and chatbot._loop_thread.is_alive():
-             logging.info("Async example: Chatbot thread appears to be running, attempting to stop.")
+             logger.info("Async example: Chatbot thread appears to be running, attempting to stop.")
              # Add a timeout for the stop operation itself.
              try:
                  # Use asyncio.wait_for for the stop operation.
                  await asyncio.wait_for(chatbot.stop(), timeout=15) # Increased stop timeout
-                 logging.info("Async example: Chatbot stopped successfully.")
+                 logger.info("Async example: Chatbot stopped successfully.")
              except asyncio.TimeoutError:
-                 logging.error("Async example: Chatbot stop operation timed out!")
+                 logger.error("Async example: Chatbot stop operation timed out!")
              except Exception as e:
-                 logging.exception(f"Async example: Error during chatbot stop: {e}")
+                 logger.exception(f"Async example: Error during chatbot stop: {e}")
         else:
-             logging.info("Async example: Chatbot thread was not running or stopped unexpectedly before explicit stop.")
+             logger.info("Async example: Chatbot thread was not running or stopped unexpectedly before explicit stop.")
 
-    logging.info("--- Async Example Finished ---")
+    logger.info("--- Async Example Finished ---")
 
 
 def run_sync_example(schbot: SerialChatbot):
-    logging.info("\n" + "="*40 + "\n" + "--- Running Sync Example ---" + "\n" + "="*40)
+    logger.info("\n" + "="*40 + "\n" + "--- Running Sync Example ---" + "\n" + "="*40)
     chatbot = FlexibleChatbot(schbot)
 
     # Start the chatbot's internal async loop in its dedicated thread.
     # Since this function is synchronous, we use asyncio.run() just to await the start() method.
     # The internal loop then runs in its own thread, independent of the main thread here.
-    logging.info("Starting Chatbot for sync use...")
+    logger.info("Starting Chatbot for sync use...")
     try:
         # Add a timeout for the start operation in case it hangs.
         asyncio.run(asyncio.wait_for(chatbot.start(), timeout=5))
-        logging.info("Chatbot started successfully for sync use.")
+        logger.info("Chatbot started successfully for sync use.")
     except (ChatbotError, asyncio.TimeoutError) as e:
-        logging.error(f"Failed to start chatbot for sync use: {e}")
+        logger.error(f"Failed to start chatbot for sync use: {e}")
         # Attempt to clean up if thread was started but start failed.
         # Need temporary async context again to join thread using asyncio.to_thread.
         if chatbot._loop_thread and chatbot._loop_thread.is_alive():
-             logging.warning("Attempting to join thread after failed start.")
+             logger.warning("Attempting to join thread after failed start.")
              try:
                  asyncio.run(asyncio.wait_for(asyncio.to_thread(chatbot._loop_thread.join, timeout=1), timeout=1))
-                 logging.info("Thread joined after failed start.")
+                 logger.debug("Thread joined after failed start.")
              except Exception as join_e:
-                 logging.exception(f"Error joining thread after failed start: {join_e}")
+                 logger.exception(f"Error joining thread after failed start: {join_e}")
 
         return # Cannot proceed if start failed
 
@@ -877,14 +864,14 @@ def run_sync_example(schbot: SerialChatbot):
     try:
         response = chatbot.get_next_response(timeout=4.0)  # Timeout per get attempt
         if response is not None:
-            logging.info(f"Received (Sync) for first: {response}")
+            logger.info(f"Received (Sync) for first: {response}")
             n_ok += 1
         else:
-            logging.info("WEIRD: Received (Sync) for first: None (timeout after 4.0s).")
+            logger.info("WEIRD: Received (Sync) for first: None (timeout after 4.0s).")
             n_nok += 1
             n_timeouts += 1
     except:
-        logging.exception("Error during get_next_response in sync example for answer to first question!")
+        logger.exception("Error during get_next_response in sync example for answer to first question!")
         n_nok += 1
 
     # now send all the other messages quickly, then retrieve all the answers
@@ -898,23 +885,23 @@ def run_sync_example(schbot: SerialChatbot):
         try:
             response = chatbot.get_next_response(timeout=2.0)  # Timeout per get attempt
             if response is not None:
-                logging.info(f"Received (Sync): {response}")
+                logger.info(f"Received (Sync): {response}")
                 n_ok += 1
                 n_timeouts = 0
             else:
-                logging.info(f"Received (Sync): None {n_timeouts} (timeout after 2.0s).")
+                logger.info(f"Received (Sync): None {n_timeouts} (timeout after 2.0s).")
                 n_timeouts += 1
                 if n_timeouts > 10:
-                    logging.info("!!!!Stopping sync consumption after 20 timeouts.")
+                    logger.info("!!!!Stopping sync consumption after 20 timeouts.")
                     break
         except Exception as e:
-            logging.exception(f"Error during get_next_response in sync example for answer to other questions: {e}")
+            logger.exception(f"Error during get_next_response in sync example for answer to other questions: {e}")
             break
-    logging.info(f"============ Sync consumption loop finished. Received {n_ok} responses, {n_nok} errors, {n_timeouts} timeouts.")
-    logging.info(f"Sync consumption loop finished.")
+    logger.info(f"============ Sync consumption loop finished. Received {n_ok} responses, {n_nok} errors, {n_timeouts} timeouts.")
+    logger.info(f"Sync consumption loop finished.")
 
     # Ensure the chatbot is stopped after consumption finishes
-    logging.info("Stopping Chatbot after sync use.")
+    logger.info("Stopping Chatbot after sync use.")
     # Check if the chatbot thread is still alive before attempting to stop
     if chatbot._loop_thread and chatbot._loop_thread.is_alive():
         try:
@@ -922,18 +909,19 @@ def run_sync_example(schbot: SerialChatbot):
             # Use asyncio.run() just to await the stop() operation within this sync function.
             # Increased stop timeout to 15s as the process includes waiting for tasks/queues.
             asyncio.run(asyncio.wait_for(chatbot.stop(), timeout=15))
-            logging.info("Chatbot stopped after sync use.")
+            logger.debug("Chatbot stopped after sync use.")
         except asyncio.TimeoutError:
-            logging.error("Chatbot stop operation timed out!")
+            logger.error("Chatbot stop operation timed out!")
         except Exception as e:
-            logging.exception(f"Error during chatbot stop for sync use: {e}")
+            logger.exception(f"Error during chatbot stop for sync use: {e}")
     else:
-         logging.warning("Chatbot thread was not alive when stop was called.")
+         logger.warning("Chatbot thread was not alive when stop was called.")
 
 
 if __name__ == "__main__":
 
-    tests = [3]
+    configure_logging(level="INFO")
+    tests = [1,2,3]
 
     if 1 in tests:
         # run the test serial bot for 20 interactions
@@ -941,23 +929,23 @@ if __name__ == "__main__":
         for i in range(20):
             try:
                 msg = f"Test message {i}"
-                logging.info(f"{i}: Sending {msg}")
+                logger.info(f"{i}: Sending {msg}")
                 answer = schbot.reply(f"{msg}")
                 if answer is None:
-                    logging.info(f"{i}: No answer received.")
+                    logger.info(f"{i}: No answer received.")
                 else:
-                    logging.info(f"{i}: Received {answer}")
+                    logger.info(f"{i}: Received {answer}")
             except Exception as e:
-                logging.error(f"{i}: Exception: {e}")
+                logger.error(f"{i}: Exception: {e}")
 
         print("\n" + "="*60 + "\n")
-    elif 2 in tests:
+    if 2 in tests:
         schbot = TestSerialChatbot(None)
         asyncio.run(run_async_example(schbot))
         print("\n" + "="*60 + "\n")
-    elif 3 in tests:
+    if 3 in tests:
         schbot = TestSerialChatbot(None)
         run_sync_example(schbot)
         print("\n" + "="*60 + "\n")
 
-    logging.info("Examples finished.")
+    logger.debug("Examples finished.")
