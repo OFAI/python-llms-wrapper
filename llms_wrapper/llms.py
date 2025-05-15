@@ -45,6 +45,53 @@ KNOWN_LLM_CONFIG_FIELDS = [
     "min_delay",   # minimum delay between queries for that model
 ]
 
+def any2message(message: str|List[Dict[str,str]]|Dict[str,str], vars: Optional[Dict] = None) -> List[Dict[str,str]]:
+    """
+    Convert the different representations of prompt messages we use to the standard representation
+    used by OpenAI and others.
+    The standard representation is a list of dictionaries with the keys "role" and "content".
+    The role is one of "user", "assistant" or "system". The content is the text of the message.
+
+    If a string is passed, it is converted to a message with role "user".
+    If a list of dictionaries is passed, we assume it is already in the standard format.
+    If a dictionary is passed, then each key is assumed to be a role and the value is the content.
+
+    Any of the content/message texts may contain template variables of the form ${varname} which will
+    get replaced, if possible, with the value of the variable varname in the vars dictionary.
+
+    Args:
+        message: A string, list of dictionaries or a dictionary representing the message(s).
+        vars: A dictionary of variables to replace in the content of the messages.
+
+    Returns:
+        A list of message dictionaries with the keys "role" and "content".
+    """
+    ret = []
+    if isinstance(message, str):
+        ret = [{"role": "user", "content": message}]
+    elif isinstance(message, list):
+        # check if the list is a list of dicts and if the dicts contain the keys "role" and "content"
+        if all(isinstance(m, dict) and "role" in m and "content" in m for m in message):
+            ret = message
+        else:
+            raise ValueError(f"Error: message is a list but not a list of dicts: {message}")
+    elif isinstance(message, dict):
+        # check if the dict is a dict of strings
+        if all(isinstance(v, str) for v in message.values()):
+            for role, content in message.items():
+                ret.append({"role": role, "content": content})
+        else:
+            raise ValueError(f"Error: message is a dict but not a dict of strings: {message}")
+    else:
+        raise ValueError(f"Error: message is not a string or list or dict: {message}")
+    if vars:
+        for d in ret:
+            if d["content"]:
+                for k, v in vars.items():
+                    d["content"] = d["content"].replace(f"${{{k}}}", str(v))
+    return ret
+
+
 
 def toolnames2funcs(tools):
     """
