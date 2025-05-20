@@ -71,7 +71,7 @@ class SerialChatbot:
         self.llm_messages = []
         if initial_message:
             self.initial_message = any2message(initial_message)
-            self.llm_messages.append(initial_message)
+            self.llm_messages.extend(initial_message)
         else:
             self.initial_message = None
         self.message_template = message_template
@@ -100,7 +100,7 @@ class SerialChatbot:
         else:
             message = any2message(message, vars=metadata)
         # Add the message to the chat history
-        self.llm_messages.append(message)
+        self.llm_messages.extend(message)
 
         ret = self.llm.query(self.llm_messages, return_cost=True)
         if ret.get("error"):
