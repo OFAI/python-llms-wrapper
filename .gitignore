@@ -7,7 +7,7 @@ debug*.hjson
 docs/Gemfile.lock
 docs/_site/
 
-
+.sesskey
 # C extensions
 *.so
 out*.json
