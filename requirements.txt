@@ -8,3 +8,4 @@ pytest
 arize-phoenix-otel
 openinference-instrumentation-litellm
 ipykernel
+python-fasthtml

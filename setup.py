@@ -44,6 +44,7 @@ setup(
         "tenacity",
         "hjson",
         "loguru",
+        "python-fasthtml",
         "docstring_parser", 
     ],
     extras_require={
@@ -58,6 +59,7 @@ setup(
     entry_points={"console_scripts": [
         "llms_wrapper_test=llms_wrapper.llms_wrapper_test:main",
         "llms_wrapper_llminfo=llms_wrapper.llms_wrapper_llminfo:main",
+        "llms_wrapper_webchat=llms_wrapper.llms_wrapper_webchat:main",
     ]},
     classifiers=[
         # "Development Status :: 6 - Mature",

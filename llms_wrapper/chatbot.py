@@ -7,7 +7,8 @@ import random
 import concurrent.futures
 import asyncio
 from loguru import logger
-from llms_wrapper.llms import any2message
+from copy import deepcopy
+from llms_wrapper.llms import any2message, LLM
 from llms_wrapper.log import configure_logging
 
 # Implementation notes:
@@ -46,7 +47,14 @@ class ChatbotError(Exception):
     pass
 
 class SerialChatbot:
-    def __init__(self, llm, config=None, initial_message=None, message_template=None):
+    def __init__(
+            self,
+            llm,
+            config=None,
+            initial_message=None,
+            message_template=None,
+            max_messages: int = 9999999,
+    ):
         """
         Initialize the SerialChatbot with an LLM, configuration, and optional initial message and template.
 
@@ -65,6 +73,9 @@ class SerialChatbot:
             config: The full configuration object or None.
             initial_message: The LLM Message to send initially to the LLM, if None, send nothing.
             message_template: The prompt template to use if None, just send messages as role user.
+            max_messages: Optional maximum number of messages to keep in the chat history. If None, no limit. If
+                the number of messages exceeds this limit, the method compact_messages() is called to replace
+                the messages with a compacted version.
         """
         self.llm = llm
         self.config = config
@@ -75,6 +86,7 @@ class SerialChatbot:
         else:
             self.initial_message = None
         self.message_template = message_template
+        self.max_messages = max_messages
 
     def reply(
             self,
@@ -109,6 +121,40 @@ class SerialChatbot:
             answer = ret["answer"]
         self.llm_messages.append({"role": "assistant", "content": answer})
         return dict(answer=answer, error=None, is_ok=True, message=message, metadata=metadata, response=ret)
+
+    def set_llm(self, llm: LLM):
+        """
+        Set the LLM to use for generating responses.
+        """
+        self.llm = llm
+
+    def clear_history(self):
+        """
+        Clear the chat history. This removes all messages from the chat history and re-initiralizes with
+        the initial message, if any.
+        """
+        if self.initial_message is not None:
+            self.llm_messages = deepcopy(self.initial_message)
+        else:
+            self.llm_messages = []
+
+    def append_messages(self, messages: list[dict]):
+        """Append messages to the chat history and shorten the history if necessary"""
+        self.llm_messages.extend(messages)
+        # shorten the messages if necessary
+        if len(self.llm_messages) > self.max_messages:
+            self.compact_messages()
+
+    def compact_messages(self):
+        """
+        Default strategy for compacting messages in the chat history. This will keep max_messages
+        last messages if there was no initial message, or max_messages - 1 if there was an initial message.
+        """
+        cur_messages = self.llm_messages
+        if self.initial_message is not None:
+            self.llm_messages = [self.initial_message] + cur_messages[-(self.max_messages - 1):]
+        else:
+            self.llm_messages = cur_messages[-self.max_messages:]
 
 
 class FlexibleChatbot:
@@ -916,6 +962,56 @@ def run_sync_example(schbot: SerialChatbot):
             logger.exception(f"Error during chatbot stop for sync use: {e}")
     else:
          logger.warning("Chatbot thread was not alive when stop was called.")
+
+# ===================================================================================
+# Example sync chatbot implementation for interacting with LLMs in a chat.
+# ===================================================================================
+
+class SimpleSerialChatbot(SerialChatbot):
+    """
+    This implementation limits the reply function to just string messages.
+    """
+    def __init__(
+            self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # list of tuples containing user requests and responses
+        self.history: list = []
+
+    def clear_history(self):
+        """Clear the chat history"""
+        super().clear_history()
+        self.history = []
+
+    def reply(self, request: str) -> dict:
+        new_messages = any2message(request)
+        logger.debug(f"SimpleSerialChatbot: reply called with request: {request}, new_messages: {new_messages}")
+        self.append_messages(new_messages)
+        logger.debug(f"SimpleSerialChatbot: reply: llm_messages before query: {self.llm_messages}")
+        response = self.llm.query(self.llm_messages, return_cost=True)
+        logger.debug(f"SimpleSerialChatbot: reply: response is {response}")
+        if response.get("error"):
+            error = response["error"]
+            self.history.append((request, error))
+            self.append_messages([dict(role="assistant", content=f"Error: {error}")])
+            return dict(
+                error=response["error"],
+                answer=None, is_ok=False,
+                cost=response.get("cost", 0),
+                n_prompt_tokens=response.get("n_prompt_tokens", 0),
+                n_completion_tokens=response.get("n_completion_tokens", 0),
+                response=response)
+        else:
+            self.append_messages([dict(role="assistant", content=response["answer"])])
+            return dict(
+                error=None,
+                answer=response["answer"],
+                cost=response.get("cost", 0),
+                n_prompt_tokens=response.get("n_prompt_tokens", 0),
+                n_completion_tokens=response.get("n_completion_tokens", 0),
+                is_ok=True,
+                response=response,
+            )
+
 
 
 if __name__ == "__main__":
