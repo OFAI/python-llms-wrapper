@@ -21,6 +21,8 @@ def get_args():
     parser.add_argument("--promptfile", type=str, help="Prompt file containing prompts, overrides config (or use prompt section in config)", required=False)
     parser.add_argument("--max_messages", type=int, default=20,
                         help="Max number of messages to keep in the chat history (default: 20)", required=False)
+    parser.add_argument("--clear_page", action="store_true",
+                        help="Clear the page too when history is cleared (default: keep, add info message)", required=False)
     parser.add_argument('--verbose', action="store_true",
                         help='Be more verbose', required=False)
     parser.add_argument("--debug", action="store_true", help="Debug mode, overrides loglevel", required=False)
@@ -93,6 +95,10 @@ hdrs = (
                background-color: #0A6C0A; /* or #228B22 */
                color: white; /* Text color for readability */
            }
+           .chat-bubble-other {
+               background-color: blue; /* or #228B22 */
+               color: black; /* Text color for readability */
+           }
             .btn.btn-primary.btn-disabled.thinking-red-text {
                color: #EF4444 !important; /* Tailwind's red-500 color, with !important to override disabled styles */
                opacity: 1 !important; /* Ensure text is not made transparent by disabled styles */
@@ -158,10 +164,14 @@ def ChatMessage(msg, kind):
     # other classes: chat-bubble-accent/neutral/info/success/warning/error
     if kind == "error":
         bubble_class = "chat-bubble-error"
+    elif kind == "warning":
+        bubble_class = "chat-bubble-other"
     elif kind == "user":
         bubble_class = "chat-bubble-primary"
-    else:
+    elif kind == "assistant":
         bubble_class = "chat-bubble-secondary"
+    else:
+        bubble_class = "chat-bubble-other"  # Default to warning if kind is unknown
     chat_class = "chat-end" if kind == "user" else 'chat-start'
     return Div(cls=f"chat {chat_class}")(
                # No content in the Div directly, it will be filled by JS
@@ -314,8 +324,11 @@ def index():
                        ChatInput(),
                        Button("Send", cls="btn btn-primary", id="send-button", disabled=True, onclick="sendMessage()"),
                        Button("Clear", cls="btn btn-secondary", id="clear-button",
-                              hx_post="/clear_chat", hx_target="#chatlist", hx_swap="innerHTML",
-                              hx_include="#msg-input, #select-option", hx_trigger="click"),
+                              hx_post="/clear_chat",
+                              # hx_target="#chatlist",
+                              # hx_swap="innerHTML",
+                              hx_include="#msg-input, #select-option",
+                              hx_trigger="click"),
                    )
                ),
                Div(cls="flex space-x-2 mt-2", id="info-message")(
@@ -328,9 +341,20 @@ def index():
 def clear_chat_history(msg:str = "", selected_option:str = ""): # Parameters to receive from hx_include
     chatbot.clear_history()
     # Return empty Div for chatlist to clear it, and an empty input for OOB swap
-    logger.info("Chat history cleared")
-    return (Div(id="chatlist", cls="chat-box"), # This clears the chat list, keeping its class
-            ChatInput(), InfoMessageDiv("Chat history cleared!", kind="info")) # Updates the info message
+    logger.info("LLM chat history cleared")
+    if config["clear_page"]:
+        logger.info("Clearhing web page")
+        # If clear_page is set, return an empty Div to clear the chat list
+        return (Div(id="chatlist", cls="chat-box"),  # This clears the chat list, keeping its class
+                ChatInput(), InfoMessageDiv("Chat history cleared!", kind="info"))
+    else:
+        # Do not clear the chat list, just add an info that the LLM chat history was cleared
+        logger.info("Chat history cleared, but keeping the chat page")
+        return (
+            Script("setAppState('ready');"),  # Reset the app state to ready
+            ChatMessage("LLM chat history has been reset!", "other"),  # The chatbot's response
+            ChatInput(), InfoMessageDiv("", "info"))  # And clear the input field via an OOB swap
+
 
 # Handle the form submission
 @app.post
@@ -360,6 +384,7 @@ def send(msg:str, selected_option:str=""):
         return (
             Script("setAppState('ready');"),  # Reset the app state to ready
             ChatInput(), InfoMessageDiv(info_txt, kind="error"))
+    msg = msg.strip()  # Ensure no leading/trailing whitespace
     if msg == "help" or msg == "?" or msg == "?help":
         chatmsg = """
         Available commands:
@@ -375,8 +400,18 @@ def send(msg:str, selected_option:str=""):
         chatbot.clear_history()
         # Return empty Div for chatlist to clear it, and an empty input for OOB swap
         logger.info("Chat history cleared")
-        return (Div(id="chatlist", cls="chat-box"),  # This clears the chat list, keeping its class
-                ChatInput(), InfoMessageDiv("Chat history cleared!", kind="info"))  # Updates the info message
+        if config["clear_page"]:
+            logger.info("Clearing web page")
+            # If clear_page is set, return an empty Div to clear the chat list
+            return (Script("setAppState('ready');"),
+                    Div(id="chatlist", cls="chat-box"),  # This clears the chat list, keeping its class
+                    ChatInput(), InfoMessageDiv("Chat history cleared!", kind="info"))
+        else:
+            # Do not clear the chat list, just add an info that the chat history was cleared
+            logger.info("Chat history cleared, but keeping the chat page")
+        return ( Script("setAppState('ready');"),
+                 ChatMessage("LLM chat history cleared", "other"),
+                 ChatInput(), InfoMessageDiv("Chat history cleared!", kind="info"))  # Updates the info message
     elif msg == "?history":
         # Show the history of all user requests
         history = chatbot.history
