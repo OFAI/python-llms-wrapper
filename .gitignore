@@ -6,6 +6,8 @@ __pycache__/
 debug*.hjson
 docs/Gemfile.lock
 docs/_site/
+CLAUDE.md
+GEMINI.md
 
 .sesskey
 # C extensions

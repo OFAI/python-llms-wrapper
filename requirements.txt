@@ -1,5 +1,8 @@
 litellm
 tenacity
+mcp
+fastmcp
+mcp_use
 hjson
 loguru
 docstring_parser
