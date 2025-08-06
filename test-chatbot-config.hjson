@@ -2,12 +2,6 @@
   llms:
   [
     {
-      llm: openai/gpt-4.5-preview
-      api_key_env: MY_OPENAI_API_KEY
-      alias: gpt45preview
-      temperature: 0
-    }
-    {
       llm: openai/gpt-4.1
       api_key_env: MY_OPENAI_API_KEY
       alias: gpt41

@@ -2,6 +2,9 @@
 Module for the CLI to experiment with chatting using a pre-configured chatbot.
 """
 import argparse
+
+from pyperclip import init_windows_clipboard
+
 from llms_wrapper.config import read_config_file as read_config
 from fasthtml.common import *
 from loguru import logger
@@ -19,6 +22,7 @@ def get_args():
     parser.add_argument('--config', '-c', type=str, help='Configuration file, should contain LLM and prompt config', required=True)
     parser.add_argument("--llm", '-l', type=str, help="Alias of LLM to use for chatbot (or use first found in config)", required=False)
     parser.add_argument("--promptfile", type=str, help="Prompt file containing prompts, overrides config (or use prompt section in config)", required=False)
+    parser.add_argument("--pids", nargs="*", help="Prompt ids (pids) to use as initial messages for the chatbot")
     parser.add_argument("--max_messages", type=int, default=20,
                         help="Max number of messages to keep in the chat history (default: 20)", required=False)
     parser.add_argument("--clear_page", action="store_true",
@@ -27,6 +31,7 @@ def get_args():
                         help='Be more verbose', required=False)
     parser.add_argument("--debug", action="store_true", help="Debug mode, overrides loglevel", required=False)
     args = parser.parse_args()
+    configure_logging(level="DEBUG" if args.debug else "INFO")
     config = {}
     config.update(vars(args))
     # debug implies verbose
@@ -43,7 +48,7 @@ def get_args():
 
     # if a promptfile is specified, load the prompts from the file and update the config
     if args.promptfile is not None:
-        prompts = load_prompts(args.promptfile, as_messages=True)
+        prompts = load_prompts(args.promptfile, as_messages=True)    # the prompt gets returned as messages!
         if "prompts" not in config:
              config["prompts"] = {}
         elif not isinstance(config["prompts"], dict):
@@ -52,6 +57,15 @@ def get_args():
             if pid in config["prompts"]:
                 logger.warning(f"Prompt {pid} already exists in config file, overriding from the prompt file!")
             config["prompts"][pid] = prompt
+    if args.pids: # if pids are specified, collect them for later
+        init_messages = []
+        for pid in args.pids:
+            if pid in config["prompts"]:
+                init_messages += config["prompts"][pid]
+            else:
+                raise ValueError(f"PID {pid} not found in promptfile")
+        logger.info(f"Loaded initial messages: {init_messages}")
+        config["init_messages"] = init_messages
 
     # set the config parameter use_llm to the llm to use
     if not "llms" in config or not isinstance(config["llms"], list) or len(config["llms"]) == 0:
@@ -68,7 +82,6 @@ def get_args():
     return config
 
 config = get_args()
-configure_logging(level="DEBUG" if config["debug"] else "INFO")
 llms = LLMS(config)
 llm_aliases = [l["alias"] for l in config["llms"]]
 llm_used = config["use_llm"]
@@ -78,7 +91,7 @@ llm = llms[llm_used]
 chatbot = SimpleSerialChatbot(
     llm,
     config=config,
-    initial_message=None,    # TODO: add prompt id for system prompt to args and specify here
+    initial_message=config.get("init_messages"),
     message_template=None,
     max_messages = config["max_messages"],  # Max number of messages to keep in the chat history)
 )
