@@ -104,13 +104,45 @@ hdrs = (
     Script(src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"),
     # add a style for the success bubble which is too light, make it a darker green
     Style("""
-           .chat-bubble-secondary {
-               background-color: #0A6C0A; /* or #228B22 */
-               color: white; /* Text color for readability */
+           .chat-bubble {
+               --pico-color: white !important;
+               --pico-background-color: transparent !important;
+               color: var(--chat-text-color, white) !important;
+      --pico-h1-color: white !important;
+      --pico-h2-color: white !important;
+      --pico-h3-color: white !important;
+      --pico-h4-color: white !important;
+      --pico-h5-color: white !important;
+      --pico-h6-color: white !important;
+      --pico-muted-color: white !important;
+      --pico-primary-color: white !important;
+      --pico-secondary-color: white !important;
+      --pico-contrast-color: white !important;
+      --pico-marked-color: white !important;
+      --pico-ins-color: white !important;
+      --pico-del-color: white !important;
+      --pico-blockquote-footer-color: white !important;
+      --pico-blockquote-border-color: rgba(255,255,255,0.3) !important;
+      --pico-table-border-color: rgba(255,255,255,0.2) !important;
+      --pico-code-color: white !important;
+      --pico-pre-color: white !important;
+      --pico-kbd-color: white !important;
+      --pico-mark-color: white !important;
            }
-           .chat-bubble-other {
-               background-color: blue; /* or #228B22 */
-               color: black; /* Text color for readability */
+           .chat-bubble * {
+               color: inherit !important;
+           }
+           .chat .chat-bubble.chat-bubble-secondary {
+               background-color: #126e13 !important; /* or #228B22 */
+               color: white !important; /* Text color for readability */
+           }
+           .chat .chat-bubble.chat-bubble-primary {
+               background-color: #3f3b6b !important; /* or #228B22 */
+               color: white !important; /* Text color for readability */
+           }
+           chat .chat-bubble.chat-bubble-other {
+               background-color: blue !important; /* or #228B22 */
+               color: white !important; /* Text color for readability */
            }
             .btn.btn-primary.btn-disabled.thinking-red-text {
                color: #EF4444 !important; /* Tailwind's red-500 color, with !important to override disabled styles */
@@ -150,7 +182,6 @@ hdrs = (
            }
 
            .markdown-content pre {
-               background-color: #f3f4f6;
                padding: 0.75em;
                border-radius: 0.375rem;
                overflow-x: auto;
@@ -159,7 +190,6 @@ hdrs = (
            }
 
            .markdown-content code {
-               background-color: #e5e7eb;
                padding: 0.1em 0.3em;
                border-radius: 0.25rem;
                font-family: monospace;
