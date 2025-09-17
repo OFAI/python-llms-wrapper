@@ -23,6 +23,7 @@ def get_args() -> dict:
     parser.add_argument('--llms', '-l', nargs="+", type=str, default=[], help='LLM names, or aliases from the config file for which to get info (all)', required=False)
     parser.add_argument('--config', '-c', type=str, help='Config file with LLM definitions', required=False)
     parser.add_argument('--full', '-f', action="store_true", help='Include info for which an API key is required', required=False)
+    parser.add_argument('--short', '-s', action="store_true", help='Only show one-line info per model, ignores --full', required=False)
     parser.add_argument("--debug", action="store_true", help="Debug mode", required=False)
     args = parser.parse_args()
     loglevel1 = "INFO"
@@ -65,6 +66,9 @@ def run(args: dict):
             print(f"LLM: {llmname} (unknown)")
             continue
         info = get_model_info(llmname)
+        if args["short"]:
+            print(f"{llmalias}: {llmname} max in/out: {llms.max_input_tokens(llmname)}/{llms.max_output_tokens(llmname)} cost in/out: {llms.cost_per_token(llmname)[0]*1000000:.2f}/{llms.cost_per_token(llmname)[1]*1000000:.2f}")
+            continue
         print(f"LLM: {llmname}")
         print(f"Max number of prompt tokens:                  {llms.max_input_tokens(llmname)}")
         print(f"Max number of output tokens:                  {llms.max_output_tokens(llmname)}")
