@@ -42,6 +42,7 @@ KNOWN_LLM_CONFIG_FIELDS = [
     "max_output_tokens",
     "max_input_tokens",
     "use_phoenix",
+    "via_streaming",
     "min_delay",   # minimum delay between queries for that model
 ]
 
@@ -641,6 +642,7 @@ class LLMS:
             debug=False,
             litellm_debug=None,
             stream=False,
+            via_stream=False,
             recursive_call_info: Optional[Dict[str, any]] = None,  
             **kwargs,
     ) -> Dict[str, any]:
@@ -657,8 +659,10 @@ class LLMS:
             return_response: whether or not the complete reponse should get returned
             debug: if True, emits debug messages to aid development and debugging
             litellm_debug: if True, litellm debug logging is enabled, if False, disabled, if None, use debug setting
-            stream: if True, the returned object containst the stream that can be iterated over. Streaming
+            stream: if True, the returned object contains the stream that can be iterated over. Streaming
                 may not work for all models.
+            via_stream: if True, ignores the stream parameters, the response data is retrieved internally via streaming.
+                This may be useful if the non-streaming response keeps timing out.
             recursive_call_info: internal use only
             kwargs: any additional keyword arguments to pass on to the LLM 
 
@@ -708,7 +712,10 @@ class LLMS:
             fmap = toolnames2funcs(tools)
         else:
             fmap = {}
-        if stream:
+        if via_stream:
+            # TODO: check if model supports streaming
+            completion_kwargs["stream"] = True
+        elif stream:
             # TODO: check if model supports streaming
             # if streaming is enabled, we always return the original response
             return_response = True
@@ -743,7 +750,36 @@ class LLMS:
                 model=llm["llm"],
                 messages=messages,
                 **completion_kwargs)
-            if stream:
+            if via_stream:
+                # retrieve the response using streaming, return once we have everything
+                try:
+                    answer = ""
+                    for chunk in response:
+                        choice0 = chunk["choices"][0]
+                        if choice0.finish_reason == "stop":
+                            logger.debug(f"DEBUG: streaming got stop. Chunk {chunk['index']}: {chunk['value']}")
+                            break
+                        content = choice0["delta"].get("content", "")
+                        logger.debug(f"DEBUG: streaming content: {content}")
+                        answer += content
+                        answer += content
+                    if return_response:
+                        ret["response"] = response
+                    ret["cost"] = None
+                    ret["elapsed_time"] = time.time() - start
+                    ret["ok"] = True
+                    ret["error"] = ""
+                    return ret
+                except Exception as e:
+                    tb = traceback.extract_tb(e.__traceback__)
+                    filename, lineno, funcname, text = tb[-1]
+                    ret["error"] = str(e) + f" in {filename}:{lineno} {funcname}"
+                    if debug:
+                        logger.error(f"Returning error: {e}")
+                    ret["answer"] = ""
+                    ret["ok"] = False
+                    return ret
+            elif stream:
                 def chunk_generator(model_generator, retobj):
                     try:
                         for chunk in model_generator:

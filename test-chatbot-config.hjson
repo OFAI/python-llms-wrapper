@@ -72,6 +72,7 @@
       api_key_env: MY_MISTRAL_API_KEY
       alias: mistral-large
       temperature: 0
+      via_streaming: true
     }  
     {
       llm: anthropic/claude-sonnet-4-20250514
