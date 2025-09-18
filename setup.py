@@ -44,12 +44,12 @@ setup(
         "tenacity",
         "hjson",
         "loguru",
-        "python-fasthtml",
         "docstring_parser", 
     ],
     extras_require={
         "dev": [ "pdoc3", "pytest", "pytest-cov", "ipython", "jupyter", "jupyterlab", "ipykernel", "notebook" ],
         "phoenix": ["openinference-instrumentation-litellm", "arize-phoenix-otel" ],
+        "webchat": ["pyperclip", "python-fasthtml"],
     },
     python_requires=">=3.11",
     tests_require=["pytest", "pytest-cov"],
