@@ -749,6 +749,7 @@ class LLMS:
             response = litellm.completion(
                 model=llm["llm"],
                 messages=messages,
+                drop_params=True,
                 **completion_kwargs)
             if via_stream:
                 # retrieve the response using streaming, return once we have everything
