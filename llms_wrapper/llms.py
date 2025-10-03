@@ -791,7 +791,6 @@ class LLMS:
                         content = choice0["delta"].get("content", "")
                         logger.debug(f"Got streaming content: {content}")
                         answer += content
-                        answer += content
                     if return_response:
                         ret["response"] = response
                     ret["answer"] = answer
