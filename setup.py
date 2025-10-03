@@ -6,6 +6,35 @@ import os
 import re
 from setuptools import setup, find_packages
 
+REQUIREMENTS_DEFAULT = [
+    "litellm",
+    "tenacity",
+    "hjson",
+    "loguru",
+    "docstring_parser",
+]
+
+REQUIREMENTS_DEV = [
+    "pdoc3",
+    "pytest",
+    "pytest-cov",
+    "ipython",
+    "jupyter",
+    "jupyterlab",
+    "ipykernel",
+    "notebook",
+]
+
+REQUIREMENTS_WEBCHAT = [
+    "pyperclip", "python-fasthtml"
+]
+
+REQUIREMENTS_PHOENIX = [
+  "openinference-instrumentation-litellm", "arize-phoenix-otel"
+]
+
+REQUIREMENTS_ALL = REQUIREMENTS_DEFAULT + REQUIREMENTS_DEV + REQUIREMENTS_WEBCHAT + REQUIREMENTS_PHOENIX
+
 if sys.version_info < (3, 11):
     sys.exit("ERROR: llms_wrapper requires Python 3.11+")
 
@@ -39,17 +68,12 @@ setup(
     long_description_content_type="text/markdown",
     setup_requires=[
     ],
-    install_requires=[
-        "litellm",
-        "tenacity",
-        "hjson",
-        "loguru",
-        "docstring_parser", 
-    ],
+    install_requires=REQUIREMENTS_DEFAULT,
     extras_require={
-        "dev": [ "pdoc3", "pytest", "pytest-cov", "ipython", "jupyter", "jupyterlab", "ipykernel", "notebook" ],
-        "phoenix": ["openinference-instrumentation-litellm", "arize-phoenix-otel" ],
-        "webchat": ["pyperclip", "python-fasthtml"],
+        "dev": REQUIREMENTS_DEV,
+        "phoenix": REQUIREMENTS_PHOENIX,
+        "webchat": REQUIREMENTS_WEBCHAT,
+        "all": REQUIREMENTS_ALL,
     },
     python_requires=">=3.11",
     tests_require=["pytest", "pytest-cov"],

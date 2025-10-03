@@ -20,6 +20,8 @@ from copy import deepcopy
 from litellm import completion, completion_cost, token_counter
 from litellm.utils import get_model_info, get_supported_openai_params, supports_response_schema
 from litellm.utils import supports_function_calling, supports_parallel_function_calling
+from litellm._logging import _enable_debugging as litellm_enable_debugging
+from litellm._logging import _disable_debugging as litellm_disable_debugging
 from llms_wrapper.utils import dict_except
 from llms_wrapper.model_list import model_list
 
@@ -642,8 +644,8 @@ class LLMS:
             debug=False,
             litellm_debug=None,
             stream=False,
-            via_stream=False,
-            recursive_call_info: Optional[Dict[str, any]] = None,  
+            via_streaming=False,
+            recursive_call_info: Optional[Dict[str, any]] = None,
             **kwargs,
     ) -> Dict[str, any]:
         """
@@ -661,7 +663,7 @@ class LLMS:
             litellm_debug: if True, litellm debug logging is enabled, if False, disabled, if None, use debug setting
             stream: if True, the returned object contains the stream that can be iterated over. Streaming
                 may not work for all models.
-            via_stream: if True, ignores the stream parameters, the response data is retrieved internally via streaming.
+            via_streaming: if True, ignores the stream parameters, the response data is retrieved internally via streaming.
                 This may be useful if the non-streaming response keeps timing out.
             recursive_call_info: internal use only
             kwargs: any additional keyword arguments to pass on to the LLM 
@@ -672,12 +674,30 @@ class LLMS:
                 otherwise answer contains the response and error is the empty string.
                 The boolean key "ok" is True if there is no error, False otherwise.
         """
+        def cleaned_args(args: dict):
+            """If there is an API key in the dict, censor it"""
+            args = args.copy()
+            if "api_key" in args:
+                args["api_key"] = "***"
+            return args
         if self.debug:
             debug = True
         if litellm_debug is None and debug or litellm_debug:
             #  litellm.set_verbose = True    ## deprecated!
             os.environ['LITELLM_LOG'] = 'DEBUG'
+            litellm_enable_debugging()
+            litellm._turn_on_debug()
+        else:
+            # make sure we turn off debugging if it is still on from a previous call
+            litellm_disable_debugging()
+            os.environ['LITELLM_LOG'] = 'INFO'
         llm = self.llms[llmalias].config
+        logger.debug(f"llm config: {cleaned_args(llm)}")
+        # allow to specify via_streaming and stream in the llm config as well, the value in the config will override the call
+        if "via_streaming" in llm and llm["via_streaming"]:
+            via_streaming = True
+        if "stream" in llm and llm["stream"]:
+            stream = True
         if not messages:
             raise ValueError(f"Error: No messages to send to the LLM: {llmalias}, messages: {messages}")
         if debug:
@@ -688,6 +708,8 @@ class LLMS:
             KNOWN_LLM_CONFIG_FIELDS,
             ignore_underscored=True,
         )
+        logger.debug(f"Options: via_streaming: {via_streaming}, stream: {stream}")
+        logger.debug(f"Initial completion kwargs: {cleaned_args(completion_kwargs)}")
         if recursive_call_info is None:
             recursive_call_info = {}            
         if llm.get("api_key"):
@@ -712,22 +734,24 @@ class LLMS:
             fmap = toolnames2funcs(tools)
         else:
             fmap = {}
-        if via_stream:
+        if via_streaming:
             # TODO: check if model supports streaming
             completion_kwargs["stream"] = True
+            logger.debug(f"completion kwargs after detecting via_streaming: {cleaned_args(completion_kwargs)}")
         elif stream:
             # TODO: check if model supports streaming
             # if streaming is enabled, we always return the original response
             return_response = True
             completion_kwargs["stream"] = True
+            logger.debug(f"completion kwargs after detecting stream: {cleaned_args(completion_kwargs)}")
         ret = {}
         # before adding the kwargs, save the recursive_call_info and remove it from kwargs
         if debug:
-            print(f"DEBUG: Received recursive call info: {recursive_call_info}")
+            logger.debug(f"Received recursive call info: {recursive_call_info}")
         if kwargs:
             completion_kwargs.update(dict_except(kwargs,  KNOWN_LLM_CONFIG_FIELDS, ignore_underscored=True))
         if debug:
-            print(f"DEBUG: Calling completion with kwargs {completion_kwargs}")
+            logger.debug(f"calling query with completion kwargs: {cleaned_args(completion_kwargs)}")
         # if we have min_delay set, we look at the _last_request_time for the LLM and caclulate the time
         # to wait until we can send the next request and then just wait
         min_delay = llm.get("min_delay", kwargs.get("min_delay", 0.0))
@@ -749,23 +773,29 @@ class LLMS:
             response = litellm.completion(
                 model=llm["llm"],
                 messages=messages,
-                drop_params=True,
+                drop_params=False,     # we do not drop, so typos in the query call can be detected easier!
                 **completion_kwargs)
-            if via_stream:
+            logger.debug(f"Received response from litellm")
+            if via_streaming:
                 # retrieve the response using streaming, return once we have everything
                 try:
                     answer = ""
+                    logger.debug(f"Retrieving chunks ...")
+                    n_chunks = 0
                     for chunk in response:
                         choice0 = chunk["choices"][0]
                         if choice0.finish_reason == "stop":
-                            logger.debug(f"DEBUG: streaming got stop. Chunk {chunk['index']}: {chunk['value']}")
+                            logger.debug(f"Streaming got stop. Chunk {chunk}")
                             break
+                        n_chunks += 1
                         content = choice0["delta"].get("content", "")
-                        logger.debug(f"DEBUG: streaming content: {content}")
+                        logger.debug(f"Got streaming content: {content}")
                         answer += content
                         answer += content
                     if return_response:
                         ret["response"] = response
+                    ret["answer"] = answer
+                    ret["n_chunks"] = n_chunks
                     ret["cost"] = None
                     ret["elapsed_time"] = time.time() - start
                     ret["ok"] = True
@@ -808,6 +838,7 @@ class LLMS:
             logger.debug(f"Full Response: {response}")
             llm["_elapsed_time"] += elapsed
             ret["elapsed_time"] = elapsed
+            ret["n_chunks"] = 1
             if return_response:
                 ret["response"] = response
                 # prevent the api key from leaking out
@@ -825,7 +856,7 @@ class LLMS:
                         messages=messages,
                     )
                     if debug:
-                        print(f"DEBUG: cost for this call {ret['cost']}")
+                        logger.debug(f"Cost for this call {ret['cost']}")
                 except Exception as e:
                     logger.debug(f"Error in completion_cost for model {llm['llm']}: {e}")
                     ret["cost"] = 0.0
@@ -839,7 +870,7 @@ class LLMS:
                 if recursive_call_info.get("cost") is not None:
                     ret["cost"] += recursive_call_info["cost"]
                     if debug:
-                        print(f"DEBUG: cost for this and previous calls {ret['cost']}")
+                        logger.debug(f"Cost for this and previous calls {ret['cost']}")
                 if recursive_call_info.get("n_completion_tokens") is not None:
                     ret["n_completion_tokens"] += recursive_call_info["n_completion_tokens"]
                 if recursive_call_info.get("n_prompt_tokens") is not None:
@@ -861,7 +892,7 @@ class LLMS:
             # TODO: if feasable handle all tool calling here or in a separate method which does
             #   all the tool calling steps (up to a specified maximum).
             if debug:
-                print(f"DEBUG: checking for tool_calls: {response_message}, have tools: {tools is not None}")
+                logger.debug(f"Checking for tool_calls: {response_message}, have tools: {tools is not None}")
             if tools is not None:
                 # TODO: if streaming is enabled we need to gather the complete response before
                 #   we can process the tool calls
@@ -872,17 +903,17 @@ class LLMS:
                 if stream:
                     raise ValueError("Error: streaming is not supported for tool calls yet")
                 if debug:
-                    print(f"DEBUG: got {len(tool_calls)} tool calls:")
+                    logger.debug(f"Got {len(tool_calls)} tool calls:")
                     for tool_call in tool_calls:
-                        print(f"DEBUG: {tool_call}")
+                        logger.debug(f"Tool call: {tool_call}")
                 if len(tool_calls) > 0:   # not an empty list
                     if debug:
-                        print(f"DEBUG: appending response message: {response_message}")
+                        logger.debug(f"Appending response message: {response_message}")
                     messages.append(response_message)
                     for tool_call in tool_calls:
                         function_name = tool_call.function.name
                         if debug:
-                            print(f"DEBUG: tool call {function_name}")
+                            logger.debug(f"Tool call {function_name}")
                         fun2call = fmap.get(function_name)
                         if fun2call is None:
                             ret["error"] = f"Unknown tooling function name: {function_name}"
@@ -892,15 +923,15 @@ class LLMS:
                         function_args = json.loads(tool_call.function.arguments)
                         try:
                             if debug:
-                                print(f"DEBUG: calling {function_name} with args {function_args}")
+                                logger.debug(f"Calling {function_name} with args {function_args}")
                             function_response = fun2call(**function_args)
                             if debug:
-                                print(f"DEBUG: got response {function_response}")
+                                logger.debug(f"Got response {function_response}")
                         except Exception as e:
                             tb = traceback.extract_tb(e.__traceback__)
                             filename, lineno, funcname, text = tb[-1]
                             if debug:
-                                print(f"DEBUG: function call got error {e}")
+                                logger.debug(f"Function call got error {e}")
                             ret["error"] = f"Error executing tool function {function_name}: {str(e)} in {filename}:{lineno} {funcname}"
                             if debug:
                                 logger.error(f"Returning error: {e}")
@@ -914,10 +945,10 @@ class LLMS:
                                 content=json.dumps(function_response)))
                     # recursively call query
                     if debug:
-                        print(f"DEBUG: recursively calling query with messages:")
+                        logger.debug(f"Recursively calling query with messages:")
                         for idx, msg in enumerate(messages):
-                            print(f"DEBUG: Message {idx}: {msg}")
-                        print(f"DEBUG: recursively_call_info is {recursive_call_info}")                    
+                            logger.debug(f"Message {idx}: {msg}")
+                        logger.debug(f"Recursively_call_info is {recursive_call_info}")
                     return self.query(
                         llmalias, 
                         messages, 
@@ -929,6 +960,7 @@ class LLMS:
                         recursive_call_info=recursive_call_info,
                         **kwargs)
         except Exception as e:
+            logger.debug(f"Exception in query from litellm: {e}")
             tb = traceback.extract_tb(e.__traceback__)
             filename, lineno, funcname, text = tb[-1]
             ret["error"] = str(e) + f" in {filename}:{lineno} {funcname}"

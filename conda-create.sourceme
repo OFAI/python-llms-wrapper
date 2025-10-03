@@ -2,7 +2,7 @@ conda create -y -n llms_wrapper python=3.11
 
 conda activate llms_wrapper
 
-pip install -e .
+pip install -e .[all]
 
 python -m ipykernel install --user --name=llms_wrapper
 
