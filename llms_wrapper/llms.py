@@ -796,10 +796,13 @@ class LLMS:
                         ret["response"] = response
                     ret["answer"] = answer
                     ret["n_chunks"] = n_chunks
-                    ret["cost"] = None
                     ret["elapsed_time"] = time.time() - start
                     ret["ok"] = True
                     ret["error"] = ""
+                    # TODO: for now return 0, may perhaps be possible to do better?
+                    ret["cost"] = 0
+                    ret["n_prompt_tokens"] = 0
+                    ret["n_completion_tokens"] = 0
                     return ret
                 except Exception as e:
                     tb = traceback.extract_tb(e.__traceback__)
