@@ -100,7 +100,7 @@ def read_config_file(filepath: str, update: bool = True) -> dict:
             if not 'llm' in llm:
                 raise ValueError(f"Error: Missing 'llm' field in llm config")
             llm = llm["llm"]
-        if not re.match(r"^[a-zA-Z0-9]+/.+$", llm):
+        if not re.match(r"^[a-zA-Z0-9_-]+/.+$", llm):
             raise ValueError(f"Error: 'llm' field must be in the format 'provider/model' in line: {llm}")
         # add known additional configuration fields: these can get specified using a name like e.g. cost_per_prompt_token
         # but get stored in the config as _cost_per_prompt_token to avoid passing them to the LLM.

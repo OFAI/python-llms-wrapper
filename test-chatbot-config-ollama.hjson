@@ -4,6 +4,12 @@
   [ {
       llm: "ollama/gpt-oss:20b" 
       api_base: "http://localhost:11434"
+      alias: local1
+    }
+    {
+      llm: "openai/gpt-oss-20b" 
+      api_base: "http://localhost:1234/v1" 
+      alias: local2
     }
     {
       llm: openai/gpt-4.1
@@ -102,5 +108,5 @@
       temperature: 0
     }
   ]
-  use_llm: gemini25pro
+  use_llm: local2
 }
