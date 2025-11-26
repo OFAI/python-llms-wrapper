@@ -1,0 +1,1950 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>llms_wrapper.chatbot API documentation</title>
+<meta name="description" content="Module implementing chatbot functionality for LLMs.">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>llms_wrapper.chatbot</code></h1>
+</header>
+<section id="section-intro">
+<p>Module implementing chatbot functionality for LLMs.</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="llms_wrapper.chatbot.run_async_example"><code class="name flex">
+<span>async def <span class="ident">run_async_example</span></span>(<span>schbot: <a title="llms_wrapper.chatbot.SerialChatbot" href="#llms_wrapper.chatbot.SerialChatbot">SerialChatbot</a>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def run_async_example(schbot: SerialChatbot):
+    logger.info(&#34;\n&#34; + &#34;=&#34;*40 + &#34;\n&#34; + &#34;--- Running Async Example ---&#34; + &#34;\n&#34; + &#34;=&#34;*40)
+    chatbot = FlexibleChatbot(schbot)
+    try:
+        # Start the chatbot&#39;s background processing
+        # Add a timeout for the start operation in case it hangs.
+        await asyncio.wait_for(chatbot.start(), timeout=5)
+        logger.info(&#34;Chatbot started successfully.&#34;)
+
+        # Send messages to the chatbot (can be done from other threads/async tasks via .listen)
+        logger.info(&#34;Sending initial messages in async example...&#34;)
+        chatbot.listen(&#34;Hello chatbot!&#34;, dict(author=&#34;Ann&#34;, msg_id=&#34;01&#34;))
+        await asyncio.sleep(0.01) # Give loop a moment to process listen call
+        chatbot.listen(&#34;Tell me a story?&#34;, dict(author=&#34;Joe&#34;, msg_id=&#34;02&#34;))
+        await asyncio.sleep(0.01)
+        chatbot.listen(&#34;Another message.&#34;, dict(author=&#34;Lynn&#34;, msg_id=&#34;03&#34;))
+        await asyncio.sleep(0.01)
+        chatbot.listen(&#34;And yet another message&#34;, dict(author=&#34;Lynn&#34;, msg_id=&#34;04&#34;))
+        await asyncio.sleep(0.01)
+        chatbot.listen(&#34;And a message from Ann&#34;, dict(author=&#34;Ann&#34;, msg_id=&#34;05&#34;))
+        await asyncio.sleep(0.01)
+        chatbot.listen(&#34;And one last message&#34;, dict(author=&#34;Ann&#34;, msg_id=&#34;06&#34;))
+        # await asyncio.sleep(0.01)
+        await asyncio.sleep(0.02)
+
+
+        # Consume responses using the async generator
+        logger.info(&#34;--- Responses (Async) ---&#34;)
+        response_count = 0
+        n_ok = 0
+        n_error = 0
+        n_timeout = 0
+        try:
+            # Consume responses using the async generator interface.
+            # The generator&#39;s loop condition (is_running() or not queue.empty()) handles draining during shutdown.
+            async for response in chatbot.responses():
+                response_count += 1
+                if response:
+                    logger.info(f&#34;Received (Async): {response}&#34;)
+                    if response.get(&#34;is_ok&#34;):
+                        n_ok += 1
+                    else:
+                        n_error += 1
+                else:
+                    logger.info(&#34;Received (Async): None (timeout or no response).&#34;)
+                    n_timeout += 1
+        except Exception as e:
+            # Catch any unexpected exceptions that occur within the async for loop itself.
+            logger.exception(&#34;Exception during async response consumption:&#34;)
+
+        logger.info(f&#34;Async consumption loop finished. Received {response_count} responses, {n_ok} ok, {n_error} errors, {n_timeout} timeouts.&#34;)
+
+    except (ChatbotError, asyncio.TimeoutError) as e:
+        logger.error(f&#34;Failed during async example: {e}&#34;)
+
+    finally:
+        # Ensure the chatbot is stopped gracefully even if errors occurred during consumption or start.
+        # Check if chatbot&#39;s internal thread was started and is alive before attempting to stop.
+        if chatbot._loop_thread and chatbot._loop_thread.is_alive():
+             logger.info(&#34;Async example: Chatbot thread appears to be running, attempting to stop.&#34;)
+             # Add a timeout for the stop operation itself.
+             try:
+                 # Use asyncio.wait_for for the stop operation.
+                 await asyncio.wait_for(chatbot.stop(), timeout=15) # Increased stop timeout
+                 logger.info(&#34;Async example: Chatbot stopped successfully.&#34;)
+             except asyncio.TimeoutError:
+                 logger.error(&#34;Async example: Chatbot stop operation timed out!&#34;)
+             except Exception as e:
+                 logger.exception(f&#34;Async example: Error during chatbot stop: {e}&#34;)
+        else:
+             logger.info(&#34;Async example: Chatbot thread was not running or stopped unexpectedly before explicit stop.&#34;)
+
+    logger.info(&#34;--- Async Example Finished ---&#34;)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.chatbot.run_sync_example"><code class="name flex">
+<span>def <span class="ident">run_sync_example</span></span>(<span>schbot: <a title="llms_wrapper.chatbot.SerialChatbot" href="#llms_wrapper.chatbot.SerialChatbot">SerialChatbot</a>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run_sync_example(schbot: SerialChatbot):
+    logger.info(&#34;\n&#34; + &#34;=&#34;*40 + &#34;\n&#34; + &#34;--- Running Sync Example ---&#34; + &#34;\n&#34; + &#34;=&#34;*40)
+    chatbot = FlexibleChatbot(schbot)
+
+    # Start the chatbot&#39;s internal async loop in its dedicated thread.
+    # Since this function is synchronous, we use asyncio.run() just to await the start() method.
+    # The internal loop then runs in its own thread, independent of the main thread here.
+    logger.info(&#34;Starting Chatbot for sync use...&#34;)
+    try:
+        # Add a timeout for the start operation in case it hangs.
+        asyncio.run(asyncio.wait_for(chatbot.start(), timeout=5))
+        logger.info(&#34;Chatbot started successfully for sync use.&#34;)
+    except (ChatbotError, asyncio.TimeoutError) as e:
+        logger.error(f&#34;Failed to start chatbot for sync use: {e}&#34;)
+        # Attempt to clean up if thread was started but start failed.
+        # Need temporary async context again to join thread using asyncio.to_thread.
+        if chatbot._loop_thread and chatbot._loop_thread.is_alive():
+             logger.warning(&#34;Attempting to join thread after failed start.&#34;)
+             try:
+                 asyncio.run(asyncio.wait_for(asyncio.to_thread(chatbot._loop_thread.join, timeout=1), timeout=1))
+                 logger.debug(&#34;Thread joined after failed start.&#34;)
+             except Exception as join_e:
+                 logger.exception(f&#34;Error joining thread after failed start: {join_e}&#34;)
+
+        return # Cannot proceed if start failed
+
+
+    n_ok = 0
+    n_nok = 0
+    n_timeouts = 0
+    chatbot.listen(&#34;01 Hello chatbot!&#34;, dict(author=&#34;Ann&#34;, msg_id=&#34;01&#34;))
+    # wait for the answer immediately
+    try:
+        response = chatbot.get_next_response(timeout=4.0)  # Timeout per get attempt
+        if response is not None:
+            logger.info(f&#34;Received (Sync) for first: {response}&#34;)
+            n_ok += 1
+        else:
+            logger.info(&#34;WEIRD: Received (Sync) for first: None (timeout after 4.0s).&#34;)
+            n_nok += 1
+            n_timeouts += 1
+    except:
+        logger.exception(&#34;Error during get_next_response in sync example for answer to first question!&#34;)
+        n_nok += 1
+
+    # now send all the other messages quickly, then retrieve all the answers
+    chatbot.listen(&#34;02 Tell me a story?&#34;, dict(author=&#34;Joe&#34;, msg_id=&#34;02&#34;))
+    chatbot.listen(&#34;03 Another message.&#34;, dict(author=&#34;Lynn&#34;, msg_id=&#34;03&#34;))
+    chatbot.listen(&#34;04 And yet another message&#34;, dict(msg_id=&#34;04&#34;))
+    chatbot.listen(&#34;05 And a message from Ann&#34;, dict(author=&#34;Ann&#34;, msg_id=&#34;05&#34;))
+    chatbot.listen(&#34;06 And one last message&#34;, dict(author=&#34;Ann&#34;, msg_id=&#34;06&#34;))
+    time.sleep(20)
+    while True:
+        try:
+            response = chatbot.get_next_response(timeout=2.0)  # Timeout per get attempt
+            if response is not None:
+                logger.info(f&#34;Received (Sync): {response}&#34;)
+                n_ok += 1
+                n_timeouts = 0
+            else:
+                logger.info(f&#34;Received (Sync): None {n_timeouts} (timeout after 2.0s).&#34;)
+                n_timeouts += 1
+                if n_timeouts &gt; 10:
+                    logger.info(&#34;!!!!Stopping sync consumption after 20 timeouts.&#34;)
+                    break
+        except Exception as e:
+            logger.exception(f&#34;Error during get_next_response in sync example for answer to other questions: {e}&#34;)
+            break
+    logger.info(f&#34;============ Sync consumption loop finished. Received {n_ok} responses, {n_nok} errors, {n_timeouts} timeouts.&#34;)
+    logger.info(f&#34;Sync consumption loop finished.&#34;)
+
+    # Ensure the chatbot is stopped after consumption finishes
+    logger.info(&#34;Stopping Chatbot after sync use.&#34;)
+    # Check if the chatbot thread is still alive before attempting to stop
+    if chatbot._loop_thread and chatbot._loop_thread.is_alive():
+        try:
+            # Add a timeout for the stop operation itself to prevent hangs.
+            # Use asyncio.run() just to await the stop() operation within this sync function.
+            # Increased stop timeout to 15s as the process includes waiting for tasks/queues.
+            asyncio.run(asyncio.wait_for(chatbot.stop(), timeout=15))
+            logger.debug(&#34;Chatbot stopped after sync use.&#34;)
+        except asyncio.TimeoutError:
+            logger.error(&#34;Chatbot stop operation timed out!&#34;)
+        except Exception as e:
+            logger.exception(f&#34;Error during chatbot stop for sync use: {e}&#34;)
+    else:
+         logger.warning(&#34;Chatbot thread was not alive when stop was called.&#34;)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="llms_wrapper.chatbot.ChatbotError"><code class="flex name class">
+<span>class <span class="ident">ChatbotError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ChatbotError(Exception):
+    &#34;&#34;&#34;Custom exception for chatbot errors.&#34;&#34;&#34;
+    pass</code></pre>
+</details>
+<div class="desc"><p>Custom exception for chatbot errors.</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="llms_wrapper.chatbot.FlexibleChatbot"><code class="flex name class">
+<span>class <span class="ident">FlexibleChatbot</span></span>
+<span>(</span><span>serial_chatbot: <a title="llms_wrapper.chatbot.SerialChatbot" href="#llms_wrapper.chatbot.SerialChatbot">SerialChatbot</a>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FlexibleChatbot:
+    &#34;&#34;&#34;
+    A chatbot class that processes messages asynchronously in a background thread
+    and allows retrieving responses via either an async generator or a synchronous
+    blocking method.
+    &#34;&#34;&#34;
+    def __init__(
+            self,
+            serial_chatbot: SerialChatbot,
+    ):
+        assert serial_chatbot is not None , &#34;SerialChatbot instance must be provided.&#34;
+        assert isinstance(serial_chatbot, SerialChatbot), &#34;serial_chatbot must be an instance of SerialChatbot.&#34;
+        self.chatbot = serial_chatbot
+
+        # Queues for communication between the listening thread and the async loop thread.
+        # asyncio.Queue is used because the processing loop runs on an asyncio loop.
+        self._incoming_queue = asyncio.Queue()
+        self._outgoing_queue = asyncio.Queue()
+        # self._incoming_queue = LoggingQueue()
+        # self._outgoing_queue = LoggingQueue()
+
+        # Event to signal the processing loop to stop. An asyncio.Event is needed
+        # because the processing loop is async.
+        self._stop_event = asyncio.Event()
+
+        # Thread to run the asyncio event loop in the background.
+        self._loop_thread: threading.Thread | None = None
+        # The asyncio event loop instance running in _loop_thread.
+        self._event_loop: asyncio.AbstractEventLoop | None = None
+
+        # The main asyncio task running the message processing logic.
+        self._processing_task: asyncio.Task | None = None
+
+        # Flag to indicate if the chatbot is intended to be running.
+        self._running = False
+
+        # Lock for the synchronous get_next_response method to prevent
+        # multiple threads from trying to interact with the async loop simultaneously
+        # via this method.
+        self._get_response_lock = threading.Lock()
+
+    def chatbot_implementation(self, message: str, metadata: Optional[Dict[str,str]] = None):
+        # return &#34;Standard response to message: &#34; + message
+        return self.chatbot.reply(message, metadata=metadata)
+
+    def _run_loop_in_thread(self):
+        &#34;&#34;&#34;
+        Target function for the dedicated background thread.
+        It creates and runs the asyncio event loop.
+        &#34;&#34;&#34;
+        logger.debug(&#34;Asyncio loop thread starting.&#34;)
+        # Create a new event loop specifically for this thread.
+        self._event_loop = asyncio.new_event_loop()
+        # Set this loop as the current loop for this thread.
+        asyncio.set_event_loop(self._event_loop)
+
+        try:
+            self._processing_task = self._event_loop.create_task(self._process_messages_loop())
+            logger.debug(&#34;Asyncio loop running until stop event...&#34;)
+            # The loop waits here. Execution continues after stop_event is set.
+            self._event_loop.run_until_complete(self._stop_event.wait())
+            logger.debug(&#34;Asyncio stop event received. Initiating shutdown sequence in loop thread.&#34;)
+
+            # --- Graceful Shutdown Phase in Loop Thread ---
+            # 1. Wait for the main processing task to finish (it exits its loop after stop event).
+            #    This ensures messages currently being processed or already in the queue when
+            #    stop was signalled get handled by _process_messages_loop&#39;s draining logic.
+            logger.debug(&#34;Waiting for processing task to finish after stop signal...&#34;)
+            try:
+                # Use gather with return_exceptions=True to ensure we don&#39;t fail here
+                # if the task raises an error during its final moments.
+                # Add a timeout for the processing task to complete its final cycle(s).
+                self._event_loop.run_until_complete(asyncio.gather(asyncio.wait_for(self._processing_task, timeout=5.0), return_exceptions=True))
+                logger.debug(&#34;Processing task finished.&#34;)
+            except asyncio.TimeoutError:
+                 logger.warning(&#34;Processing task did not finish within timeout after stop signal.&#34;)
+                 # If it didn&#39;t finish, try to cancel it as a fallback.
+                 if self._processing_task and not self._processing_task.done():
+                     logger.warning(&#34;Cancelling processing task...&#34;)
+                     try:
+                         self._processing_task.cancel()
+                         self._event_loop.run_until_complete(asyncio.gather(self._processing_task, return_exceptions=True))
+                         logger.debug(&#34;Processing task cancellation handled.&#34;)
+                     except asyncio.CancelledError:
+                         logger.debug(&#34;Processing task cancellation handled.&#34;)
+                     except Exception as e:
+                         logger.exception(f&#34;Error during processing task cancellation wait: {e}&#34;)
+                 else:
+                      logger.warning(&#34;Processing task was already done but wait_for timed out?&#34;)
+            except Exception as e:
+                 logger.exception(f&#34;Error waiting for processing task to finish: {e}&#34;)
+
+            # 2. Wait for outgoing queue to be fully consumed (task_done called for all items).
+            #    This helps ensure that Queue.get calls from consumers have completed their
+            #    successful path (getting an item and calling task_done) *before* we start
+            #    cancelling pending gets.
+            logger.debug(&#34;Waiting for outgoing queue to drain (max 2s)...&#34;)
+            try:
+                # Use join() with a timeout. If consumers (async generator or sync getter)
+                # haven&#39;t called task_done for all items produced before shutdown,
+                # this will wait up to the timeout.
+                # Use wait_for to prevent join() from blocking indefinitely if task_done isn&#39;t called.
+                self._event_loop.run_until_complete(asyncio.wait_for(self._outgoing_queue.join(), timeout=2.0))
+                logger.debug(&#34;Outgoing queue drained.&#34;)
+            except asyncio.TimeoutError:
+                 logger.warning(&#34;Outgoing queue did not drain within timeout.&#34;)
+            except Exception as e:
+                 logger.exception(f&#34;Error waiting for outgoing queue to drain: {e}&#34;)
+
+
+            # 3. Cancel any remaining tasks on this loop. This is crucial to clean up
+            #    tasks created by run_coroutine_threadsafe (like pending queue.get calls
+            #    from the synchronous get_next_response method) that timed out or
+            #    were still waiting when shutdown began.
+            logger.debug(&#34;Cancelling remaining tasks on the event loop...&#34;)
+            # Get all tasks associated with this event loop.
+            pending_tasks = asyncio.all_tasks(self._event_loop)
+            # Filter out the task running _run_loop_in_thread itself (which is done)
+            # and the processing task (which should be done or cancelling).
+            # We want to cancel other tasks, typically those waiting on queues/futures.
+            tasks_to_cancel = [task for task in pending_tasks if task is not asyncio.current_task(self._event_loop) and not task.done()]
+
+            if tasks_to_cancel:
+                logger.debug(f&#34;Cancelling {len(tasks_to_cancel)} pending tasks.&#34;)
+                # Cancel tasks.
+                for task in tasks_to_cancel:
+                    task.cancel()
+                # Wait for cancellation to complete for these tasks.
+                # Use gather with return_exceptions=True to handle potential
+                # CancelledError or other exceptions during cancellation waiting.
+                # Add a timeout here too, in case cancellation gets stuck.
+                try:
+                    self._event_loop.run_until_complete(asyncio.gather(*tasks_to_cancel, return_exceptions=True))
+                    logger.debug(&#34;Pending tasks cancellation and waiting complete.&#34;)
+                except Exception as e:
+                     logger.exception(f&#34;Error waiting for pending tasks cancellation: {e}&#34;)
+            else:
+                logger.debug(&#34;No pending tasks found to cancel.&#34;)
+
+
+            # 4. Add a small delay to allow any final cleanup logic (like in cancelled tasks) to run
+            #    before closing the loop.
+            logger.debug(&#34;Giving a small moment for final cleanup...&#34;)
+            try:
+                 # Run a very short sleep on the loop.
+                 self._event_loop.run_until_complete(asyncio.sleep(0.05)) # Slightly increased sleep
+            except Exception: # Catch potential errors if loop is already stopping/closed
+                 pass
+
+
+        except Exception as e:
+             # Catch any exceptions that happened *during* the shutdown sequence itself.
+             logger.exception(f&#34;Exception during asyncio loop thread shutdown sequence: {e}&#34;)
+        finally:
+            # 5. Close the loop. This should happen only after tasks are cancelled and awaited.
+            logger.debug(&#34;Closing asyncio event loop.&#34;)
+            # Check if loop is still open before closing
+            if self._event_loop and not self._event_loop.is_closed():
+                try:
+                    self._event_loop.close()
+                    logger.debug(&#34;Asyncio event loop closed.&#34;)
+                except Exception as e:
+                    logger.exception(f&#34;Error closing event loop: {e}&#34;)
+            else:
+                logger.warning(&#34;Attempted to close loop, but it was already None or closed.&#34;)
+
+            # Clear references.
+            asyncio.set_event_loop(None) # Unset loop for this thread
+            self._event_loop = None
+            self._processing_task = None # Ensure this is None
+            logger.debug(&#34;Asyncio loop thread finished.&#34;)
+
+    async def _process_messages_loop(self):
+        &#34;&#34;&#34;
+        Internal asyncio task coroutine that processes messages from the incoming queue.
+        Handles errors during processing and puts responses/errors onto the outgoing queue.
+        Gracefully drains the incoming queue during shutdown.
+        &#34;&#34;&#34;
+        logger.debug(&#34;Chatbot processing loop started.&#34;)
+        # Loop as long as the stop event is not set OR there are items left in the incoming queue
+        # to process. This allows draining the queue during shutdown.
+        while not self._stop_event.is_set() or not self._incoming_queue.empty():
+            try:
+                # Get message:
+                # If the stop event is NOT set, use await get() with a timeout.
+                # If the stop event IS set, use get_nowait() to quickly process any remaining
+                # items in the queue without blocking indefinitely. get_nowait() will raise
+                # QueueEmpty when the queue is fully drained during shutdown, allowing the
+                # loop to exit gracefully.
+                if not self._stop_event.is_set():
+                     # Wait for the next message while not stopping.
+                     # Use a small timeout to allow loop to check stop_event and do periodic tasks.
+                     # This also allows the loop to respond to stop signals promptly if the queue is empty.
+                     message, metadata = await asyncio.wait_for(self._incoming_queue.get(), timeout=0.1)
+                     logger.debug(f&#34;Chatbot received: &#39;{message}&#39;, metadata {metadata}&#39;&#34;)
+                else:
+                     # If stopping, try to get existing messages without waiting.
+                     # This will raise QueueEmpty when the queue is drained.
+                     message, metadata = self._incoming_queue.get_nowait()
+                     logger.debug(f&#34;Chatbot processing remaining queued: &#39;{message}&#39;,  metadata {metadata}&#39;&#34;)
+
+                # --- Chatbot Logic for processing a single message ---
+                try:
+
+                    response = dict(answer=None, error=&#34;DUMMY RESPONSE&#34;, is_ok=False, message=[], metadata=None)
+                    try:
+                        # Use asyncio.to_thread to run the blocking simulation in a separate thread.
+                        # Errors from _simulate_blocking_io will be propagated by await.
+                        response = await asyncio.to_thread(self.chatbot_implementation, message, metadata)
+                    except Exception as io_e:
+                        logger.exception(f&#34;Error during offloaded I/O for &#39;{message}&#39;: {io_e}&#34;)
+                        # On I/O error during processing, put an error message onto the outgoing queue.
+                        response[&#34;error&#34;] = f&#34;Error processing question: {io_e}&#34;
+                        response[&#34;is_ok&#34;] = False
+
+                    if response[&#34;is_ok&#34;] and response[&#34;answer&#34;] is None:  # the chatbot explicitly didn&#39;t give an answer
+                        pass
+                    else:
+                        logger.debug(f&#34;Chatbot generated response: {response}&#34;)
+                        # Put the generated response (or error message) onto the outgoing queue.
+                        await self._outgoing_queue.put(response)
+                        logger.debug(f&#34;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; Queue size is now {self._outgoing_queue.qsize()} after putting response.&#34;)
+
+                except Exception as processing_e:
+                    # Handle exceptions that occur *during* the processing of a single message.
+                    logger.exception(f&#34;Error processing message &#39;{message}&#39;: {processing_e}&#34;)
+                    # Put an error indicator/message onto the outgoing queue so consumers can see it.
+                    await self._outgoing_queue.put(dict(answer=None, error=str(processing_e), is_ok=False, message=message, metadata=metadata))
+                    logger.debug(f&#34;Queue size is now {self._outgoing_queue.qsize()} after putting response.&#34;)
+                finally:
+                    # Ensure task_done is called for the item retrieved from the incoming queue.
+                    # This is crucial if asyncio.Queue.join() is used elsewhere to wait for processing completion.
+                    self._incoming_queue.task_done()
+
+            except asyncio.TimeoutError:
+                # await get(timeout) expired. This happens when not stopping and the incoming queue is empty.
+                # The loop condition allows us to just continue and check again.
+                # This is where periodic actions would be triggered if needed.
+                # logger.debug(&#34;Processing loop timed out waiting for message.&#34;)
+                pass
+            except asyncio.QueueEmpty:
+                 # get_nowait() raised QueueEmpty. This should only happen when stopping
+                 # (because we use await get() when not stopping). When it happens,
+                 # it means the incoming queue is fully drained.
+                 logger.debug(&#34;Incoming queue empty during stopping phase.&#34;)
+                 # The while loop condition will be checked next. If stop_event is set,
+                 # the loop will correctly terminate because the queue is also empty.
+
+            except Exception as e:
+                 # Catch any unexpected exceptions in the outer loop (e.g., issues with get_nowait, etc.).
+                 logger.exception(f&#34;Unexpected error in processing loop outer try block: {e}&#34;)
+                 # If a critical error occurs that indicates the loop is broken, set the stop event
+                 # to signal shutdown.
+                 # self._stop_event.set() # Signal stop
+                 # Add a small sleep here to prevent a tight error loop if the exception is continuous.
+                 await asyncio.sleep(0.1)
+                 # Depending on the severity, you might break the loop immediately:
+                 # break
+
+        logger.debug(&#34;Chatbot processing loop finished.&#34;)
+
+
+    # --- Public Interface ---
+
+    def listen(self, message: str, metadata: Optional[Dict[str,str]] = None):
+        &#34;&#34;&#34;
+        Notify the chatbot about a new message. Can be called from any thread.
+        Messages are queued for asynchronous processing. Non-blocking.
+        &#34;&#34;&#34;
+        # Check if the chatbot&#39;s background loop is running and ready to receive messages.
+        if not self.is_running() or self._event_loop is None or self._event_loop.is_closed():
+            logger.warning(f&#34;Chatbot not running or loop not ready. Message lost: &#39;{message}&#39;, metadata {metadata}&#34;)
+            # A more advanced version could buffer messages internally here until start() is called.
+            return
+
+        try:
+            # Use call_soon_threadsafe to safely schedule the put operation onto the
+            # chatbot&#39;s internal event loop thread. This is necessary because
+            # asyncio.Queue methods are not thread-safe for calls from other threads.
+            # put_nowait is used because listen() should not block the caller thread.
+            # If the queue is full, QueueFull will be raised *in the loop thread*,
+            # which should ideally be handled there (e.g., by logger.a warning).
+            self._event_loop.call_soon_threadsafe(
+                self._incoming_queue.put_nowait, (message, metadata)
+            )
+            logger.debug(f&#34;Message from {message}/{metadata} successfully queued.&#34;)
+
+        except Exception as e:
+             # Catch potential errors from call_soon_threadsafe itself (e.g., loop unexpectedly closed)
+             logger.exception(f&#34;Failed to enqueue message {message}/{metadata} via call_soon_threadsafe: {e}&#34;)
+             # The message might be lost here depending on error handling design choice.
+
+
+    async def start(self):
+        &#34;&#34;&#34;
+        Starts the internal chatbot processing thread and asyncio event loop.
+        This method must be awaited and called from an asyncio context.
+        &#34;&#34;&#34;
+        if self._running:
+            logger.warning(&#34;Chatbot is already running.&#34;)
+            return
+
+        logger.debug(&#34;Starting Chatbot...&#34;)
+        # Reset event and flag before starting the thread.
+        self._stop_event.clear()
+        self._running = True
+
+        # Create and start the thread that will run the asyncio loop.
+        # Use daemon=True so the thread doesn&#39;t prevent the main program from exiting
+        # if the main thread finishes before the chatbot is explicitly stopped.
+        self._loop_thread = threading.Thread(target=self._run_loop_in_thread, daemon=True)
+        self._loop_thread.start()
+
+        # --- Wait for Loop Initialization ---
+        # Wait until the internal loop and processing task are initialized and ready.
+        # Add a timeout for this wait itself to prevent hangs during startup.
+        try:
+            await asyncio.wait_for(self._wait_for_ready(), timeout=5.0) # Wait for internal signal
+        except asyncio.TimeoutError:
+             self._running = False
+             logger.error(&#34;Chatbot failed to signal readiness within timeout.&#34;)
+             # Attempt to join thread if it started but isn&#39;t ready
+             if self._loop_thread and self._loop_thread.is_alive():
+                 logger.warning(&#34;Attempting to join thread after failed start.&#34;)
+                 # Need temporary async context again to join thread using asyncio.to_thread
+                 try:
+                     asyncio.run(asyncio.wait_for(asyncio.to_thread(self._loop_thread.join, timeout=1), timeout=1))
+                     logger.debug(&#34;Thread joined after failed start.&#34;)
+                 except Exception as join_e:
+                     logger.exception(f&#34;Error joining thread after failed start: {join_e}&#34;)
+
+             self._loop_thread = None
+             self._event_loop = None # Ensure state is clean
+             self._processing_task = None
+             raise ChatbotError(&#34;Failed to initialize internal processing within timeout.&#34;) from e
+
+        # Final check after waiting
+        # This check handles cases where _wait_for_ready completed but initialization failed immediately after.
+        if self._event_loop is None or self._event_loop.is_closed() or \
+           self._processing_task is None or self._processing_task.done():
+             self._running = False # Mark as not running if initialization failed
+             logger.error(&#34;Failed to initialize internal asyncio loop or processing task after wait.&#34;)
+             # Attempt to join the thread to clean up resources if it potentially failed immediately.
+             if self._loop_thread and self._loop_thread.is_alive():
+                 self._loop_thread.join(timeout=1) # Don&#39;t block the calling start indefinitely
+             self._loop_thread = None
+             self._event_loop = None # Ensure state is clean
+             self._processing_task = None
+             # Raise a specific error to indicate start failure.
+             raise ChatbotError(&#34;Failed to initialize internal processing.&#34;)
+
+        logger.debug(&#34;Chatbot started successfully.&#34;)
+
+    async def _wait_for_ready(self):
+        &#34;&#34;&#34;Internal coroutine to wait until the loop and task are initialized by the thread.&#34;&#34;&#34;
+        # Wait until event_loop and processing_task are set by _run_loop_in_thread
+        # Also check if the task is actually running (not immediately done/error).
+        while self._event_loop is None or self._processing_task is None or self._processing_task.done():
+            # Need to yield control to the event loop
+            await asyncio.sleep(0.01) # Sleep briefly
+
+
+    async def stop(self):
+        &#34;&#34;&#34;
+        Signals the internal chatbot processing to stop gracefully.
+        This method must be awaited and called from an asyncio context.
+        It waits for the internal processing thread to finish.
+        &#34;&#34;&#34;
+        # Check if the chatbot is in a state that can be stopped.
+        # If not running but thread is alive, still try to signal and join.
+        if not self._running and (self._loop_thread is None or not self._loop_thread.is_alive()):
+            logger.warning(&#34;Chatbot is not running and thread is not active.&#34;)
+            # Clean up state just in case it&#39;s in an inconsistent state.
+            self._running = False
+            self._loop_thread = None
+            self._event_loop = None
+            self._processing_task = None
+            return
+
+        logger.debug(&#34;Stopping Chatbot...&#34;)
+        # Set the running flag to False immediately.
+        self._running = False
+
+        # Signal the processing loop to stop by setting the asyncio event.
+        # This must be called thread-safely onto the internal loop thread.
+        if self._event_loop and not self._event_loop.is_closed():
+             try:
+                # Schedule the event setting on the loop thread.
+                self._event_loop.call_soon_threadsafe(self._stop_event.set)
+                logger.debug(&#34;Stop event signalled thread-safely.&#34;)
+             except Exception as e:
+                 logger.exception(f&#34;Error signalling stop event thread-safely: {e}&#34;)
+                 # Even if signalling fails, proceed with trying to join the thread.
+        else:
+             logger.warning(&#34;Event loop not available or closed during stop signal. Cannot signal stop event.&#34;)
+             # If the loop is gone, the thread might be exiting already, but cleanup might be missed.
+
+
+        # Wait for the thread running the loop to join.
+        # Use asyncio.to_thread to run the blocking .join() call in a separate thread
+        # managed by asyncio, so it doesn&#39;t block the async loop calling stop().
+        logger.debug(&#34;Waiting for internal loop thread to join...&#34;)
+        # Only attempt to join if the thread was actually started.
+        if self._loop_thread is not None:
+            try:
+                # Set a timeout for joining the thread in case it&#39;s stuck (e.g., in blocking I/O).
+                # This prevents the stop() method from hanging indefinitely.
+                await asyncio.to_thread(self._loop_thread.join, timeout=10.0)
+
+                # Check if the thread successfully joined or if the join timed out.
+                if self._loop_thread and self._loop_thread.is_alive():
+                     logger.error(&#34;Internal loop thread did not join within timeout!&#34;)
+                     # Depending on requirements, you might log this and continue,
+                     # or attempt more drastic measures (less recommended in libraries).
+                else:
+                     logger.debug(&#34;Internal loop thread joined successfully.&#34;)
+
+            except Exception as e:
+                 # Catch any exceptions during the asyncio.to_thread or join operation.
+                 logger.exception(f&#34;Error waiting for internal loop thread to join: {e}&#34;)
+
+        # Ensure state is completely reset regardless of join success/failure.
+        self._loop_thread = None
+        self._event_loop = None # Should be None after close in thread (or potentially None if join timed out)
+        self._processing_task = None # Should be None after thread exits or cancellation
+
+        logger.debug(&#34;Chatbot stopped.&#34;)
+
+
+    def is_running(self) -&gt; bool:
+        &#34;&#34;&#34;
+        Returns True if the chatbot&#39;s internal processing is intended to be active
+        and the background thread is alive.
+        &#34;&#34;&#34;
+        # Check the _running flag and the thread status for a more robust check.
+        return self._running and self._loop_thread is not None and self._loop_thread.is_alive()
+
+
+
+    # Async generator to yield responses from the chatbot.
+    async def responses(self, max_timeout: float = 5.0):
+        &#34;&#34;&#34;
+        An async generator that yields responses from the chatbot as they are ready.
+        Consume this using &#39;async for&#39;. Requires an asyncio event loop to be running
+        in the context where this generator is iterated.
+
+        The max_timeout parameter specifies the maximum accumulated time to wait for a response before yielding None.
+        &#34;&#34;&#34;
+        # Check if the chatbot is running before starting consumption.
+        # Allow consumption if not running but queues aren&#39;t empty, to drain remaining items.
+        if not self.is_running() and self._outgoing_queue.empty():
+            logger.warning(&#34;Chatbot not running and outgoing queue is empty, responses generator yielding nothing.&#34;)
+            return # Generator immediately stops if not running and nothing to drain.
+
+        logger.debug(&#34;Async responses generator started.&#34;)
+        # Continue yielding as long as the chatbot is running OR there are items
+        # left in the outgoing queue (to drain messages processed during shutdown).
+        last_response_time = time.time()
+        while self.is_running() or not self._outgoing_queue.empty():
+             try:
+                # Wait for a response with a short timeout.
+                # The timeout allows the loop condition (self.is_running() and queue.empty()) to be checked
+                # and prevents the generator from blocking indefinitely after stop is signalled
+                # and the queue is empty.
+                # If the internal loop is closing, get() might raise CancelledError, handled below.
+
+                response = await asyncio.wait_for(self._outgoing_queue.get(), timeout=0.1) # Small timeout
+                last_response_time = time.time() # Update last response time
+
+                logger.debug(f&#34;Async generator yielding response: {response}&#34;)
+                yield response
+                # Signal that the item has been consumed from the queue.
+                # This must be done on the same loop the queue belongs to, which is the current loop here.
+                self._outgoing_queue.task_done()
+
+             except asyncio.TimeoutError:
+                 # This exception occurs when get(timeout) expires before an item is available.
+                 # The loop condition (while self.is_running() or not self._outgoing_queue.empty())
+                 # will be checked next.
+                 # logger.debug(&#34;Responses generator timed out waiting for response.&#34;)
+
+                 # if the time since the last response is greater than max_timeout, return None
+                 if time.time() - last_response_time &gt; max_timeout:
+                    logger.debug(&#34;Responses generator timed out waiting for response.&#34;)
+                    # Return None to indicate no response was received within the timeout.
+                    # This allows the consumer to handle the timeout case.
+                    yield None
+                    break
+             except asyncio.CancelledError:
+                 # This can happen if the internal loop is stopping/closing and cancels pending gets.
+                 logger.debug(&#34;Async responses generator cancelled during get.&#34;)
+                 # Treat as graceful shutdown, exit the generator.
+                 break
+             except Exception as e:
+                # Catch any other exceptions during queue retrieval or yielding.
+                logger.exception(f&#34;Error in async responses generator while getting/yielding: {e}&#34;)
+                # Decide how to handle error - yield an error message or break the generator?
+                # Yielding an error message allows the consumer to handle it explicitly.
+                yield {&#34;type&#34;: &#34;generator_error&#34;, &#34;content&#34;: f&#34;Error retrieving response: {e}&#34;}
+                # If the error is critical or unrecoverable for the generator, uncomment break:
+                # break # Exit the generator loop on error.
+
+        logger.debug(&#34;Async responses generator finished.&#34;)
+
+
+    # synchronous blocking read but with timeout
+    def get_next_response(self, timeout: float | None = None):
+        &#34;&#34;&#34;
+        Retrieves the next response, blocking until a response is available
+        or the optional timeout occurs. Returns the response or None on timeout.
+        If the response can also be None, there is no way to distinguish between the two.
+        Can be called from any synchronous thread, provided start() has been called.
+        Raises ChatbotError if the chatbot is not running and the queue is empty/loop unavailable.
+        Returns None on timeout or if the chatbot is stopping and the queue becomes empty.
+        &#34;&#34;&#34;
+        # Acquire lock to ensure only one thread calls this method at a time (optional but safer)
+        with self._get_response_lock:
+            # Check if the chatbot&#39;s background loop is running and ready.
+            # If not running but the outgoing queue is NOT empty, we still allow
+            # attempting to get messages to drain the queue during sync shutdown.
+            # If not running AND queue is empty, there&#39;s nothing to get, return None immediately.
+            if not self.is_running() and self._outgoing_queue.empty():
+                 logger.warning(&#34;Sync getter: Not running and queue empty, returning None.&#34;)
+                 return None
+
+            # If not running but queue is NOT empty, or if running, we need the event loop.
+            # Check if the event loop is available before trying to interact with it.
+            if self._event_loop is None or self._event_loop.is_closed():
+                 # This state might be reached if stop() is called and the loop thread is
+                 # in the process of tearing down but the queue isn&#39;t quite empty yet.
+                 # Log a warning and return None, as we cannot reliably interact with the loop.
+                 logger.warning(&#34;Sync getter: Event loop is not available or closed while trying to get item.&#34;)
+                 # Return None, as the consumer should check is_running() or timeout.
+                 return None
+
+
+            # If we reach here, either running OR not running but queue has items, AND loop is available.
+            # Proceed to try and get from the queue via run_coroutine_threadsafe.
+            try:
+                # We need to run an async coroutine (self._outgoing_queue.get()) on the
+                # chatbot&#39;s internal event loop from this external synchronous thread.
+                # asyncio.run_coroutine_threadsafe is the standard and safe tool for this.
+                # Note: asyncio.run_coroutine_threadsafe can raise RuntimeError if the loop is closed
+                # or potentially other issues if called during a messy shutdown.
+
+                logger.debug(f&#34;&gt;&gt;&gt;&gt;&gt;&gt; Sync getter: Attempting to get item from outgoing queue, size is {self._outgoing_queue.qsize()}&#34;)
+                coro = self._outgoing_queue.get()
+                future = asyncio.run_coroutine_threadsafe(coro, self._event_loop)
+
+                # Wait for the future to complete in this thread (the calling synchronous thread),
+                # with the specified timeout. This call blocks the current thread.
+                # This can raise concurrent.futures.TimeoutError or exceptions propagated
+                # from the coroutine (like exceptions put into the queue as error messages)
+                # or concurrent.futures.CancelledError if the internal loop cancels the task.
+                response = future.result(timeout=timeout)
+                logger.debug(f&#34;&gt;&gt;&gt;&gt;&gt;&gt; DEBUG: internal Sync getter got response: {response}&#34;)
+
+                # If we reached here, the .get() operation on the async queue was successful
+                # and returned an item (response or error dict).
+                # Now, signal task_done() back on the event loop thread, thread-safely.
+                # Use call_soon_threadsafe to schedule the task_done operation.
+                # Add check for event loop availability again before scheduling.
+                if self._event_loop and not self._event_loop.is_closed():
+                    try:
+                        self._event_loop.call_soon_threadsafe(self._outgoing_queue.task_done)
+                    except Exception as e:
+                         # Log error if task_done cannot be scheduled (e.g., loop closed just now)
+                         logger.exception(f&#34;Error calling task_done thread-safely for {response}: {e}&#34;)
+                         # Decide if this indicates an unhandled item or just a late cleanup message.
+                         # For now, log and proceed.
+                else:
+                     logger.warning(f&#34;Event loop not available to call task_done for {response}. Item might not be marked as done.&#34;)
+
+                logger.debug(f&#34;Sync getter retrieved response: {response}&#34;)
+                return response
+
+            except concurrent.futures.TimeoutError:
+                 # This exception occurs if future.result(timeout=...) expires.
+                 # It means no item was available in the async queue within the timeout.
+                 # This is a normal occurrence when the queue is empty.
+                 # logger.debug(&#34;Sync getter timed out waiting for response.&#34;)
+                 logger.debug(f&#34;DEBUG: internal Sync getter got TimeoutError exception&#34;)
+                 return None # Standard behavior for blocking get with timeout is returning None.
+
+            except concurrent.futures.CancelledError:
+                 # This happens if the future/task was cancelled while waiting.
+                 # This occurs when the internal asyncio loop is stopping/closing
+                 # and our cleanup logic explicitly cancels pending tasks.
+                 logger.debug(&#34;Sync get operation was cancelled (internal loop shutting down?).&#34;)
+                 # Treat this as a non-critical event indicating shutdown or no more items available.
+                 # Return None to allow consumption loops to check if chatbot is still running.
+                 return None
+
+            except RuntimeError as e:
+                 # Catch RuntimeErrors, specifically &#39;Event loop is closed&#39;, which can happen
+                 # if run_coroutine_threadsafe is called right as the loop is closing,
+                 # or if a future completes after the loop is closed and tries cleanup.
+                 if &#34;Event loop is closed&#34; in str(e):
+                     logger.warning(&#34;Sync get called or completed when event loop is closed.&#34;)
+                     # Return None as the loop is gone and no more items are expected via this path.
+                     return None
+                 else:
+                      logger.exception(f&#34;Unexpected RuntimeError in sync get: {e}&#34;)
+                      # For other RuntimeErrors, re-raise as a ChatbotError
+                      raise ChatbotError(f&#34;Unexpected internal error during retrieval: {e}&#34;) from e
+
+            except Exception as e:
+                # Catch any other unexpected exceptions during future.result retrieval or
+                # exceptions propagated from the coroutine itself (like processing errors
+                # if the consumer code didn&#39;t handle the dict).
+                logger.exception(f&#34;Error in synchronous get_next_response during future result: {e}&#34;)
+                # Decide how to handle - re-raise as a ChatbotError
+                raise ChatbotError(f&#34;Error retrieving response: {e}&#34;) from e</code></pre>
+</details>
+<div class="desc"><p>A chatbot class that processes messages asynchronously in a background thread
+and allows retrieving responses via either an async generator or a synchronous
+blocking method.</p></div>
+<h3>Methods</h3>
+<dl>
+<dt id="llms_wrapper.chatbot.FlexibleChatbot.chatbot_implementation"><code class="name flex">
+<span>def <span class="ident">chatbot_implementation</span></span>(<span>self, message: str, metadata: Dict[str, str] | None = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def chatbot_implementation(self, message: str, metadata: Optional[Dict[str,str]] = None):
+    # return &#34;Standard response to message: &#34; + message
+    return self.chatbot.reply(message, metadata=metadata)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.chatbot.FlexibleChatbot.get_next_response"><code class="name flex">
+<span>def <span class="ident">get_next_response</span></span>(<span>self, timeout: float | None = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_next_response(self, timeout: float | None = None):
+    &#34;&#34;&#34;
+    Retrieves the next response, blocking until a response is available
+    or the optional timeout occurs. Returns the response or None on timeout.
+    If the response can also be None, there is no way to distinguish between the two.
+    Can be called from any synchronous thread, provided start() has been called.
+    Raises ChatbotError if the chatbot is not running and the queue is empty/loop unavailable.
+    Returns None on timeout or if the chatbot is stopping and the queue becomes empty.
+    &#34;&#34;&#34;
+    # Acquire lock to ensure only one thread calls this method at a time (optional but safer)
+    with self._get_response_lock:
+        # Check if the chatbot&#39;s background loop is running and ready.
+        # If not running but the outgoing queue is NOT empty, we still allow
+        # attempting to get messages to drain the queue during sync shutdown.
+        # If not running AND queue is empty, there&#39;s nothing to get, return None immediately.
+        if not self.is_running() and self._outgoing_queue.empty():
+             logger.warning(&#34;Sync getter: Not running and queue empty, returning None.&#34;)
+             return None
+
+        # If not running but queue is NOT empty, or if running, we need the event loop.
+        # Check if the event loop is available before trying to interact with it.
+        if self._event_loop is None or self._event_loop.is_closed():
+             # This state might be reached if stop() is called and the loop thread is
+             # in the process of tearing down but the queue isn&#39;t quite empty yet.
+             # Log a warning and return None, as we cannot reliably interact with the loop.
+             logger.warning(&#34;Sync getter: Event loop is not available or closed while trying to get item.&#34;)
+             # Return None, as the consumer should check is_running() or timeout.
+             return None
+
+
+        # If we reach here, either running OR not running but queue has items, AND loop is available.
+        # Proceed to try and get from the queue via run_coroutine_threadsafe.
+        try:
+            # We need to run an async coroutine (self._outgoing_queue.get()) on the
+            # chatbot&#39;s internal event loop from this external synchronous thread.
+            # asyncio.run_coroutine_threadsafe is the standard and safe tool for this.
+            # Note: asyncio.run_coroutine_threadsafe can raise RuntimeError if the loop is closed
+            # or potentially other issues if called during a messy shutdown.
+
+            logger.debug(f&#34;&gt;&gt;&gt;&gt;&gt;&gt; Sync getter: Attempting to get item from outgoing queue, size is {self._outgoing_queue.qsize()}&#34;)
+            coro = self._outgoing_queue.get()
+            future = asyncio.run_coroutine_threadsafe(coro, self._event_loop)
+
+            # Wait for the future to complete in this thread (the calling synchronous thread),
+            # with the specified timeout. This call blocks the current thread.
+            # This can raise concurrent.futures.TimeoutError or exceptions propagated
+            # from the coroutine (like exceptions put into the queue as error messages)
+            # or concurrent.futures.CancelledError if the internal loop cancels the task.
+            response = future.result(timeout=timeout)
+            logger.debug(f&#34;&gt;&gt;&gt;&gt;&gt;&gt; DEBUG: internal Sync getter got response: {response}&#34;)
+
+            # If we reached here, the .get() operation on the async queue was successful
+            # and returned an item (response or error dict).
+            # Now, signal task_done() back on the event loop thread, thread-safely.
+            # Use call_soon_threadsafe to schedule the task_done operation.
+            # Add check for event loop availability again before scheduling.
+            if self._event_loop and not self._event_loop.is_closed():
+                try:
+                    self._event_loop.call_soon_threadsafe(self._outgoing_queue.task_done)
+                except Exception as e:
+                     # Log error if task_done cannot be scheduled (e.g., loop closed just now)
+                     logger.exception(f&#34;Error calling task_done thread-safely for {response}: {e}&#34;)
+                     # Decide if this indicates an unhandled item or just a late cleanup message.
+                     # For now, log and proceed.
+            else:
+                 logger.warning(f&#34;Event loop not available to call task_done for {response}. Item might not be marked as done.&#34;)
+
+            logger.debug(f&#34;Sync getter retrieved response: {response}&#34;)
+            return response
+
+        except concurrent.futures.TimeoutError:
+             # This exception occurs if future.result(timeout=...) expires.
+             # It means no item was available in the async queue within the timeout.
+             # This is a normal occurrence when the queue is empty.
+             # logger.debug(&#34;Sync getter timed out waiting for response.&#34;)
+             logger.debug(f&#34;DEBUG: internal Sync getter got TimeoutError exception&#34;)
+             return None # Standard behavior for blocking get with timeout is returning None.
+
+        except concurrent.futures.CancelledError:
+             # This happens if the future/task was cancelled while waiting.
+             # This occurs when the internal asyncio loop is stopping/closing
+             # and our cleanup logic explicitly cancels pending tasks.
+             logger.debug(&#34;Sync get operation was cancelled (internal loop shutting down?).&#34;)
+             # Treat this as a non-critical event indicating shutdown or no more items available.
+             # Return None to allow consumption loops to check if chatbot is still running.
+             return None
+
+        except RuntimeError as e:
+             # Catch RuntimeErrors, specifically &#39;Event loop is closed&#39;, which can happen
+             # if run_coroutine_threadsafe is called right as the loop is closing,
+             # or if a future completes after the loop is closed and tries cleanup.
+             if &#34;Event loop is closed&#34; in str(e):
+                 logger.warning(&#34;Sync get called or completed when event loop is closed.&#34;)
+                 # Return None as the loop is gone and no more items are expected via this path.
+                 return None
+             else:
+                  logger.exception(f&#34;Unexpected RuntimeError in sync get: {e}&#34;)
+                  # For other RuntimeErrors, re-raise as a ChatbotError
+                  raise ChatbotError(f&#34;Unexpected internal error during retrieval: {e}&#34;) from e
+
+        except Exception as e:
+            # Catch any other unexpected exceptions during future.result retrieval or
+            # exceptions propagated from the coroutine itself (like processing errors
+            # if the consumer code didn&#39;t handle the dict).
+            logger.exception(f&#34;Error in synchronous get_next_response during future result: {e}&#34;)
+            # Decide how to handle - re-raise as a ChatbotError
+            raise ChatbotError(f&#34;Error retrieving response: {e}&#34;) from e</code></pre>
+</details>
+<div class="desc"><p>Retrieves the next response, blocking until a response is available
+or the optional timeout occurs. Returns the response or None on timeout.
+If the response can also be None, there is no way to distinguish between the two.
+Can be called from any synchronous thread, provided start() has been called.
+Raises ChatbotError if the chatbot is not running and the queue is empty/loop unavailable.
+Returns None on timeout or if the chatbot is stopping and the queue becomes empty.</p></div>
+</dd>
+<dt id="llms_wrapper.chatbot.FlexibleChatbot.is_running"><code class="name flex">
+<span>def <span class="ident">is_running</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_running(self) -&gt; bool:
+    &#34;&#34;&#34;
+    Returns True if the chatbot&#39;s internal processing is intended to be active
+    and the background thread is alive.
+    &#34;&#34;&#34;
+    # Check the _running flag and the thread status for a more robust check.
+    return self._running and self._loop_thread is not None and self._loop_thread.is_alive()</code></pre>
+</details>
+<div class="desc"><p>Returns True if the chatbot's internal processing is intended to be active
+and the background thread is alive.</p></div>
+</dd>
+<dt id="llms_wrapper.chatbot.FlexibleChatbot.listen"><code class="name flex">
+<span>def <span class="ident">listen</span></span>(<span>self, message: str, metadata: Dict[str, str] | None = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def listen(self, message: str, metadata: Optional[Dict[str,str]] = None):
+    &#34;&#34;&#34;
+    Notify the chatbot about a new message. Can be called from any thread.
+    Messages are queued for asynchronous processing. Non-blocking.
+    &#34;&#34;&#34;
+    # Check if the chatbot&#39;s background loop is running and ready to receive messages.
+    if not self.is_running() or self._event_loop is None or self._event_loop.is_closed():
+        logger.warning(f&#34;Chatbot not running or loop not ready. Message lost: &#39;{message}&#39;, metadata {metadata}&#34;)
+        # A more advanced version could buffer messages internally here until start() is called.
+        return
+
+    try:
+        # Use call_soon_threadsafe to safely schedule the put operation onto the
+        # chatbot&#39;s internal event loop thread. This is necessary because
+        # asyncio.Queue methods are not thread-safe for calls from other threads.
+        # put_nowait is used because listen() should not block the caller thread.
+        # If the queue is full, QueueFull will be raised *in the loop thread*,
+        # which should ideally be handled there (e.g., by logger.a warning).
+        self._event_loop.call_soon_threadsafe(
+            self._incoming_queue.put_nowait, (message, metadata)
+        )
+        logger.debug(f&#34;Message from {message}/{metadata} successfully queued.&#34;)
+
+    except Exception as e:
+         # Catch potential errors from call_soon_threadsafe itself (e.g., loop unexpectedly closed)
+         logger.exception(f&#34;Failed to enqueue message {message}/{metadata} via call_soon_threadsafe: {e}&#34;)
+         # The message might be lost here depending on error handling design choice.</code></pre>
+</details>
+<div class="desc"><p>Notify the chatbot about a new message. Can be called from any thread.
+Messages are queued for asynchronous processing. Non-blocking.</p></div>
+</dd>
+<dt id="llms_wrapper.chatbot.FlexibleChatbot.responses"><code class="name flex">
+<span>async def <span class="ident">responses</span></span>(<span>self, max_timeout: float = 5.0)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def responses(self, max_timeout: float = 5.0):
+    &#34;&#34;&#34;
+    An async generator that yields responses from the chatbot as they are ready.
+    Consume this using &#39;async for&#39;. Requires an asyncio event loop to be running
+    in the context where this generator is iterated.
+
+    The max_timeout parameter specifies the maximum accumulated time to wait for a response before yielding None.
+    &#34;&#34;&#34;
+    # Check if the chatbot is running before starting consumption.
+    # Allow consumption if not running but queues aren&#39;t empty, to drain remaining items.
+    if not self.is_running() and self._outgoing_queue.empty():
+        logger.warning(&#34;Chatbot not running and outgoing queue is empty, responses generator yielding nothing.&#34;)
+        return # Generator immediately stops if not running and nothing to drain.
+
+    logger.debug(&#34;Async responses generator started.&#34;)
+    # Continue yielding as long as the chatbot is running OR there are items
+    # left in the outgoing queue (to drain messages processed during shutdown).
+    last_response_time = time.time()
+    while self.is_running() or not self._outgoing_queue.empty():
+         try:
+            # Wait for a response with a short timeout.
+            # The timeout allows the loop condition (self.is_running() and queue.empty()) to be checked
+            # and prevents the generator from blocking indefinitely after stop is signalled
+            # and the queue is empty.
+            # If the internal loop is closing, get() might raise CancelledError, handled below.
+
+            response = await asyncio.wait_for(self._outgoing_queue.get(), timeout=0.1) # Small timeout
+            last_response_time = time.time() # Update last response time
+
+            logger.debug(f&#34;Async generator yielding response: {response}&#34;)
+            yield response
+            # Signal that the item has been consumed from the queue.
+            # This must be done on the same loop the queue belongs to, which is the current loop here.
+            self._outgoing_queue.task_done()
+
+         except asyncio.TimeoutError:
+             # This exception occurs when get(timeout) expires before an item is available.
+             # The loop condition (while self.is_running() or not self._outgoing_queue.empty())
+             # will be checked next.
+             # logger.debug(&#34;Responses generator timed out waiting for response.&#34;)
+
+             # if the time since the last response is greater than max_timeout, return None
+             if time.time() - last_response_time &gt; max_timeout:
+                logger.debug(&#34;Responses generator timed out waiting for response.&#34;)
+                # Return None to indicate no response was received within the timeout.
+                # This allows the consumer to handle the timeout case.
+                yield None
+                break
+         except asyncio.CancelledError:
+             # This can happen if the internal loop is stopping/closing and cancels pending gets.
+             logger.debug(&#34;Async responses generator cancelled during get.&#34;)
+             # Treat as graceful shutdown, exit the generator.
+             break
+         except Exception as e:
+            # Catch any other exceptions during queue retrieval or yielding.
+            logger.exception(f&#34;Error in async responses generator while getting/yielding: {e}&#34;)
+            # Decide how to handle error - yield an error message or break the generator?
+            # Yielding an error message allows the consumer to handle it explicitly.
+            yield {&#34;type&#34;: &#34;generator_error&#34;, &#34;content&#34;: f&#34;Error retrieving response: {e}&#34;}
+            # If the error is critical or unrecoverable for the generator, uncomment break:
+            # break # Exit the generator loop on error.
+
+    logger.debug(&#34;Async responses generator finished.&#34;)</code></pre>
+</details>
+<div class="desc"><p>An async generator that yields responses from the chatbot as they are ready.
+Consume this using 'async for'. Requires an asyncio event loop to be running
+in the context where this generator is iterated.</p>
+<p>The max_timeout parameter specifies the maximum accumulated time to wait for a response before yielding None.</p></div>
+</dd>
+<dt id="llms_wrapper.chatbot.FlexibleChatbot.start"><code class="name flex">
+<span>async def <span class="ident">start</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def start(self):
+    &#34;&#34;&#34;
+    Starts the internal chatbot processing thread and asyncio event loop.
+    This method must be awaited and called from an asyncio context.
+    &#34;&#34;&#34;
+    if self._running:
+        logger.warning(&#34;Chatbot is already running.&#34;)
+        return
+
+    logger.debug(&#34;Starting Chatbot...&#34;)
+    # Reset event and flag before starting the thread.
+    self._stop_event.clear()
+    self._running = True
+
+    # Create and start the thread that will run the asyncio loop.
+    # Use daemon=True so the thread doesn&#39;t prevent the main program from exiting
+    # if the main thread finishes before the chatbot is explicitly stopped.
+    self._loop_thread = threading.Thread(target=self._run_loop_in_thread, daemon=True)
+    self._loop_thread.start()
+
+    # --- Wait for Loop Initialization ---
+    # Wait until the internal loop and processing task are initialized and ready.
+    # Add a timeout for this wait itself to prevent hangs during startup.
+    try:
+        await asyncio.wait_for(self._wait_for_ready(), timeout=5.0) # Wait for internal signal
+    except asyncio.TimeoutError:
+         self._running = False
+         logger.error(&#34;Chatbot failed to signal readiness within timeout.&#34;)
+         # Attempt to join thread if it started but isn&#39;t ready
+         if self._loop_thread and self._loop_thread.is_alive():
+             logger.warning(&#34;Attempting to join thread after failed start.&#34;)
+             # Need temporary async context again to join thread using asyncio.to_thread
+             try:
+                 asyncio.run(asyncio.wait_for(asyncio.to_thread(self._loop_thread.join, timeout=1), timeout=1))
+                 logger.debug(&#34;Thread joined after failed start.&#34;)
+             except Exception as join_e:
+                 logger.exception(f&#34;Error joining thread after failed start: {join_e}&#34;)
+
+         self._loop_thread = None
+         self._event_loop = None # Ensure state is clean
+         self._processing_task = None
+         raise ChatbotError(&#34;Failed to initialize internal processing within timeout.&#34;) from e
+
+    # Final check after waiting
+    # This check handles cases where _wait_for_ready completed but initialization failed immediately after.
+    if self._event_loop is None or self._event_loop.is_closed() or \
+       self._processing_task is None or self._processing_task.done():
+         self._running = False # Mark as not running if initialization failed
+         logger.error(&#34;Failed to initialize internal asyncio loop or processing task after wait.&#34;)
+         # Attempt to join the thread to clean up resources if it potentially failed immediately.
+         if self._loop_thread and self._loop_thread.is_alive():
+             self._loop_thread.join(timeout=1) # Don&#39;t block the calling start indefinitely
+         self._loop_thread = None
+         self._event_loop = None # Ensure state is clean
+         self._processing_task = None
+         # Raise a specific error to indicate start failure.
+         raise ChatbotError(&#34;Failed to initialize internal processing.&#34;)
+
+    logger.debug(&#34;Chatbot started successfully.&#34;)</code></pre>
+</details>
+<div class="desc"><p>Starts the internal chatbot processing thread and asyncio event loop.
+This method must be awaited and called from an asyncio context.</p></div>
+</dd>
+<dt id="llms_wrapper.chatbot.FlexibleChatbot.stop"><code class="name flex">
+<span>async def <span class="ident">stop</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def stop(self):
+    &#34;&#34;&#34;
+    Signals the internal chatbot processing to stop gracefully.
+    This method must be awaited and called from an asyncio context.
+    It waits for the internal processing thread to finish.
+    &#34;&#34;&#34;
+    # Check if the chatbot is in a state that can be stopped.
+    # If not running but thread is alive, still try to signal and join.
+    if not self._running and (self._loop_thread is None or not self._loop_thread.is_alive()):
+        logger.warning(&#34;Chatbot is not running and thread is not active.&#34;)
+        # Clean up state just in case it&#39;s in an inconsistent state.
+        self._running = False
+        self._loop_thread = None
+        self._event_loop = None
+        self._processing_task = None
+        return
+
+    logger.debug(&#34;Stopping Chatbot...&#34;)
+    # Set the running flag to False immediately.
+    self._running = False
+
+    # Signal the processing loop to stop by setting the asyncio event.
+    # This must be called thread-safely onto the internal loop thread.
+    if self._event_loop and not self._event_loop.is_closed():
+         try:
+            # Schedule the event setting on the loop thread.
+            self._event_loop.call_soon_threadsafe(self._stop_event.set)
+            logger.debug(&#34;Stop event signalled thread-safely.&#34;)
+         except Exception as e:
+             logger.exception(f&#34;Error signalling stop event thread-safely: {e}&#34;)
+             # Even if signalling fails, proceed with trying to join the thread.
+    else:
+         logger.warning(&#34;Event loop not available or closed during stop signal. Cannot signal stop event.&#34;)
+         # If the loop is gone, the thread might be exiting already, but cleanup might be missed.
+
+
+    # Wait for the thread running the loop to join.
+    # Use asyncio.to_thread to run the blocking .join() call in a separate thread
+    # managed by asyncio, so it doesn&#39;t block the async loop calling stop().
+    logger.debug(&#34;Waiting for internal loop thread to join...&#34;)
+    # Only attempt to join if the thread was actually started.
+    if self._loop_thread is not None:
+        try:
+            # Set a timeout for joining the thread in case it&#39;s stuck (e.g., in blocking I/O).
+            # This prevents the stop() method from hanging indefinitely.
+            await asyncio.to_thread(self._loop_thread.join, timeout=10.0)
+
+            # Check if the thread successfully joined or if the join timed out.
+            if self._loop_thread and self._loop_thread.is_alive():
+                 logger.error(&#34;Internal loop thread did not join within timeout!&#34;)
+                 # Depending on requirements, you might log this and continue,
+                 # or attempt more drastic measures (less recommended in libraries).
+            else:
+                 logger.debug(&#34;Internal loop thread joined successfully.&#34;)
+
+        except Exception as e:
+             # Catch any exceptions during the asyncio.to_thread or join operation.
+             logger.exception(f&#34;Error waiting for internal loop thread to join: {e}&#34;)
+
+    # Ensure state is completely reset regardless of join success/failure.
+    self._loop_thread = None
+    self._event_loop = None # Should be None after close in thread (or potentially None if join timed out)
+    self._processing_task = None # Should be None after thread exits or cancellation
+
+    logger.debug(&#34;Chatbot stopped.&#34;)</code></pre>
+</details>
+<div class="desc"><p>Signals the internal chatbot processing to stop gracefully.
+This method must be awaited and called from an asyncio context.
+It waits for the internal processing thread to finish.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="llms_wrapper.chatbot.LoggingQueue"><code class="flex name class">
+<span>class <span class="ident">LoggingQueue</span></span>
+<span>(</span><span>maxsize=0)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LoggingQueue(asyncio.Queue):
+    &#34;&#34;&#34;
+    An asyncio.Queue subclass that logs put and get operations.
+    &#34;&#34;&#34;
+    async def put(self, item):
+        &#34;&#34;&#34;Put an item onto the queue and log the operation.&#34;&#34;&#34;
+        logger.debug(f&#34;QUEUE: Attempting to put item onto queue ({super().qsize()}): {item!r}&#34;)
+        await super().put(item)
+        logger.debug(f&#34;QUEUE: Successfully put item onto queue ({super().qsize()}): {item!r}&#34;)
+
+    async def get(self):
+        &#34;&#34;&#34;Retrieve an item from the queue and log the operation.&#34;&#34;&#34;
+        logger.debug(f&#34;QUEUE: Attempting to get item from queue ({super().qsize()})...&#34;)
+        item = await super().get()
+        logger.debug(f&#34;QUEUE: Successfully retrieved item from queue ({super().qsize()}): {item!r}&#34;)
+        return item</code></pre>
+</details>
+<div class="desc"><p>An asyncio.Queue subclass that logs put and get operations.</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>asyncio.queues.Queue</li>
+<li>asyncio.mixins._LoopBoundMixin</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="llms_wrapper.chatbot.LoggingQueue.get"><code class="name flex">
+<span>async def <span class="ident">get</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def get(self):
+    &#34;&#34;&#34;Retrieve an item from the queue and log the operation.&#34;&#34;&#34;
+    logger.debug(f&#34;QUEUE: Attempting to get item from queue ({super().qsize()})...&#34;)
+    item = await super().get()
+    logger.debug(f&#34;QUEUE: Successfully retrieved item from queue ({super().qsize()}): {item!r}&#34;)
+    return item</code></pre>
+</details>
+<div class="desc"><p>Retrieve an item from the queue and log the operation.</p></div>
+</dd>
+<dt id="llms_wrapper.chatbot.LoggingQueue.put"><code class="name flex">
+<span>async def <span class="ident">put</span></span>(<span>self, item)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def put(self, item):
+    &#34;&#34;&#34;Put an item onto the queue and log the operation.&#34;&#34;&#34;
+    logger.debug(f&#34;QUEUE: Attempting to put item onto queue ({super().qsize()}): {item!r}&#34;)
+    await super().put(item)
+    logger.debug(f&#34;QUEUE: Successfully put item onto queue ({super().qsize()}): {item!r}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Put an item onto the queue and log the operation.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="llms_wrapper.chatbot.SerialChatbot"><code class="flex name class">
+<span>class <span class="ident">SerialChatbot</span></span>
+<span>(</span><span>llm,<br>config=None,<br>initial_message=None,<br>message_template=None,<br>max_messages: int = 9999999)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SerialChatbot:
+    def __init__(
+            self,
+            llm,
+            config=None,
+            initial_message=None,
+            message_template=None,
+            max_messages: int = 9999999,
+    ):
+        &#34;&#34;&#34;
+        Initialize the SerialChatbot with an LLM, configuration, and optional initial message and template.
+
+        If the initial message is given, it will passed on as the first message it the whole chat context
+        with the first message to reply to and all subsequent messages.
+
+        If a message template is given, then whenever the reply method gets a string as the message,
+        the template is used and the variable &#34;${message}&#34; is replaced with the string. Also all other variables
+        found in the template are replaced with the corresponding values from the optional metadata dictionary
+        passed to the reply method.
+
+        The template is not used in any way for the initial message, the initial message is used as is.
+
+        Args:
+            llm: The LLM to use for generating responses.
+            config: The full configuration object or None.
+            initial_message: The LLM Message to send initially to the LLM, if None, send nothing.
+            message_template: The prompt template to use if None, just send messages as role user.
+            max_messages: Optional maximum number of messages to keep in the chat history. If None, no limit. If
+                the number of messages exceeds this limit, the method compact_messages() is called to replace
+                the messages with a compacted version.
+        &#34;&#34;&#34;
+        self.llm = llm
+        self.config = config
+        self.llm_messages = []
+        if initial_message:
+            self.initial_message = any2message(initial_message)
+            self.llm_messages.extend(initial_message)
+        else:
+            self.initial_message = None
+        self.message_template = message_template
+        self.max_messages = max_messages
+
+    def reply(
+            self,
+            message: str|Dict[str,str]|List[Dict[str,str]],
+            metadata: Optional[Dict[str,str]] = None):
+        &#34;&#34;&#34;
+        Process a message and return a response.
+        This method is blocking!
+
+        Args:
+            message: The message to process. Can be a string, a dictionary, or a list of dictionaries.
+            metadata: Optional metadata dictionary for additional context.
+        Returns:
+            The response text generated by the LLM.
+            If any error occurs, an exception is raised.
+
+        &#34;&#34;&#34;
+        if isinstance(message,str) and self.message_template:
+            vars = dict(message=message)
+            if metadata:
+                vars.update(metadata)
+            message = any2message(self.message_template, vars=metadata)
+        else:
+            message = any2message(message, vars=metadata)
+        # Add the message to the chat history
+        self.llm_messages.extend(message)
+
+        ret = self.llm.query(self.llm_messages, return_cost=True)
+        if ret.get(&#34;error&#34;):
+            raise ChatbotError(f&#34;Error in LLM query: {ret[&#39;error&#39;]}&#34;)
+        else:
+            answer = ret[&#34;answer&#34;]
+        self.llm_messages.append({&#34;role&#34;: &#34;assistant&#34;, &#34;content&#34;: answer})
+        return dict(answer=answer, error=None, is_ok=True, message=message, metadata=metadata, response=ret)
+
+    def set_llm(self, llm: LLM):
+        &#34;&#34;&#34;
+        Set the LLM to use for generating responses.
+        &#34;&#34;&#34;
+        self.llm = llm
+
+    def clear_history(self):
+        &#34;&#34;&#34;
+        Clear the chat history. This removes all messages from the chat history and re-initiralizes with
+        the initial message, if any.
+        &#34;&#34;&#34;
+        if self.initial_message is not None:
+            self.llm_messages = deepcopy(self.initial_message)
+        else:
+            self.llm_messages = []
+
+    def append_messages(self, messages: list[dict]):
+        &#34;&#34;&#34;Append messages to the chat history and shorten the history if necessary&#34;&#34;&#34;
+        self.llm_messages.extend(messages)
+        # shorten the messages if necessary
+        if len(self.llm_messages) &gt; self.max_messages:
+            self.compact_messages()
+
+    def compact_messages(self):
+        &#34;&#34;&#34;
+        Default strategy for compacting messages in the chat history. This will keep max_messages
+        last messages if there was no initial message, or max_messages - 1 if there was an initial message.
+        &#34;&#34;&#34;
+        cur_messages = self.llm_messages
+        if self.initial_message is not None:
+            self.llm_messages = [self.initial_message] + cur_messages[-(self.max_messages - 1):]
+        else:
+            self.llm_messages = cur_messages[-self.max_messages:]</code></pre>
+</details>
+<div class="desc"><p>Initialize the SerialChatbot with an LLM, configuration, and optional initial message and template.</p>
+<p>If the initial message is given, it will passed on as the first message it the whole chat context
+with the first message to reply to and all subsequent messages.</p>
+<p>If a message template is given, then whenever the reply method gets a string as the message,
+the template is used and the variable "${message}" is replaced with the string. Also all other variables
+found in the template are replaced with the corresponding values from the optional metadata dictionary
+passed to the reply method.</p>
+<p>The template is not used in any way for the initial message, the initial message is used as is.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>llm</code></strong></dt>
+<dd>The LLM to use for generating responses.</dd>
+<dt><strong><code>config</code></strong></dt>
+<dd>The full configuration object or None.</dd>
+<dt><strong><code>initial_message</code></strong></dt>
+<dd>The LLM Message to send initially to the LLM, if None, send nothing.</dd>
+<dt><strong><code>message_template</code></strong></dt>
+<dd>The prompt template to use if None, just send messages as role user.</dd>
+<dt><strong><code>max_messages</code></strong></dt>
+<dd>Optional maximum number of messages to keep in the chat history. If None, no limit. If
+the number of messages exceeds this limit, the method compact_messages() is called to replace
+the messages with a compacted version.</dd>
+</dl></div>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="llms_wrapper.chatbot.SimpleSerialChatbot" href="#llms_wrapper.chatbot.SimpleSerialChatbot">SimpleSerialChatbot</a></li>
+<li><a title="llms_wrapper.chatbot.TestSerialChatbot" href="#llms_wrapper.chatbot.TestSerialChatbot">TestSerialChatbot</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="llms_wrapper.chatbot.SerialChatbot.append_messages"><code class="name flex">
+<span>def <span class="ident">append_messages</span></span>(<span>self, messages: list[dict])</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def append_messages(self, messages: list[dict]):
+    &#34;&#34;&#34;Append messages to the chat history and shorten the history if necessary&#34;&#34;&#34;
+    self.llm_messages.extend(messages)
+    # shorten the messages if necessary
+    if len(self.llm_messages) &gt; self.max_messages:
+        self.compact_messages()</code></pre>
+</details>
+<div class="desc"><p>Append messages to the chat history and shorten the history if necessary</p></div>
+</dd>
+<dt id="llms_wrapper.chatbot.SerialChatbot.clear_history"><code class="name flex">
+<span>def <span class="ident">clear_history</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def clear_history(self):
+    &#34;&#34;&#34;
+    Clear the chat history. This removes all messages from the chat history and re-initiralizes with
+    the initial message, if any.
+    &#34;&#34;&#34;
+    if self.initial_message is not None:
+        self.llm_messages = deepcopy(self.initial_message)
+    else:
+        self.llm_messages = []</code></pre>
+</details>
+<div class="desc"><p>Clear the chat history. This removes all messages from the chat history and re-initiralizes with
+the initial message, if any.</p></div>
+</dd>
+<dt id="llms_wrapper.chatbot.SerialChatbot.compact_messages"><code class="name flex">
+<span>def <span class="ident">compact_messages</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compact_messages(self):
+    &#34;&#34;&#34;
+    Default strategy for compacting messages in the chat history. This will keep max_messages
+    last messages if there was no initial message, or max_messages - 1 if there was an initial message.
+    &#34;&#34;&#34;
+    cur_messages = self.llm_messages
+    if self.initial_message is not None:
+        self.llm_messages = [self.initial_message] + cur_messages[-(self.max_messages - 1):]
+    else:
+        self.llm_messages = cur_messages[-self.max_messages:]</code></pre>
+</details>
+<div class="desc"><p>Default strategy for compacting messages in the chat history. This will keep max_messages
+last messages if there was no initial message, or max_messages - 1 if there was an initial message.</p></div>
+</dd>
+<dt id="llms_wrapper.chatbot.SerialChatbot.reply"><code class="name flex">
+<span>def <span class="ident">reply</span></span>(<span>self,<br>message: str | Dict[str, str] | List[Dict[str, str]],<br>metadata: Dict[str, str] | None = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reply(
+        self,
+        message: str|Dict[str,str]|List[Dict[str,str]],
+        metadata: Optional[Dict[str,str]] = None):
+    &#34;&#34;&#34;
+    Process a message and return a response.
+    This method is blocking!
+
+    Args:
+        message: The message to process. Can be a string, a dictionary, or a list of dictionaries.
+        metadata: Optional metadata dictionary for additional context.
+    Returns:
+        The response text generated by the LLM.
+        If any error occurs, an exception is raised.
+
+    &#34;&#34;&#34;
+    if isinstance(message,str) and self.message_template:
+        vars = dict(message=message)
+        if metadata:
+            vars.update(metadata)
+        message = any2message(self.message_template, vars=metadata)
+    else:
+        message = any2message(message, vars=metadata)
+    # Add the message to the chat history
+    self.llm_messages.extend(message)
+
+    ret = self.llm.query(self.llm_messages, return_cost=True)
+    if ret.get(&#34;error&#34;):
+        raise ChatbotError(f&#34;Error in LLM query: {ret[&#39;error&#39;]}&#34;)
+    else:
+        answer = ret[&#34;answer&#34;]
+    self.llm_messages.append({&#34;role&#34;: &#34;assistant&#34;, &#34;content&#34;: answer})
+    return dict(answer=answer, error=None, is_ok=True, message=message, metadata=metadata, response=ret)</code></pre>
+</details>
+<div class="desc"><p>Process a message and return a response.
+This method is blocking!</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>message</code></strong></dt>
+<dd>The message to process. Can be a string, a dictionary, or a list of dictionaries.</dd>
+<dt><strong><code>metadata</code></strong></dt>
+<dd>Optional metadata dictionary for additional context.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>The response text generated by the LLM.
+If any error occurs, an exception is raised.</p></div>
+</dd>
+<dt id="llms_wrapper.chatbot.SerialChatbot.set_llm"><code class="name flex">
+<span>def <span class="ident">set_llm</span></span>(<span>self,<br>llm: <a title="llms_wrapper.llms.LLM" href="llms.html#llms_wrapper.llms.LLM">LLM</a>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_llm(self, llm: LLM):
+    &#34;&#34;&#34;
+    Set the LLM to use for generating responses.
+    &#34;&#34;&#34;
+    self.llm = llm</code></pre>
+</details>
+<div class="desc"><p>Set the LLM to use for generating responses.</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="llms_wrapper.chatbot.SimpleSerialChatbot"><code class="flex name class">
+<span>class <span class="ident">SimpleSerialChatbot</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SimpleSerialChatbot(SerialChatbot):
+    &#34;&#34;&#34;
+    This implementation limits the reply function to just string messages.
+    &#34;&#34;&#34;
+    def __init__(
+            self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # list of tuples containing user requests and responses
+        self.history: list = []
+
+    def clear_history(self):
+        &#34;&#34;&#34;Clear the chat history&#34;&#34;&#34;
+        super().clear_history()
+        self.history = []
+
+    def reply(self, request: str) -&gt; dict:
+        new_messages = any2message(request)
+        logger.debug(f&#34;SimpleSerialChatbot: reply called with request: {request}, new_messages: {new_messages}&#34;)
+        self.append_messages(new_messages)
+        logger.debug(f&#34;SimpleSerialChatbot: reply: llm_messages before query: {self.llm_messages}&#34;)
+        response = self.llm.query(self.llm_messages, return_cost=True)
+        logger.debug(f&#34;SimpleSerialChatbot: reply: response is {response}&#34;)
+        if response.get(&#34;error&#34;):
+            error = response[&#34;error&#34;]
+            self.history.append((request, error))
+            self.append_messages([dict(role=&#34;assistant&#34;, content=f&#34;Error: {error}&#34;)])
+            return dict(
+                error=response[&#34;error&#34;],
+                answer=None, is_ok=False,
+                cost=response.get(&#34;cost&#34;, 0),
+                n_prompt_tokens=response.get(&#34;n_prompt_tokens&#34;, 0),
+                n_completion_tokens=response.get(&#34;n_completion_tokens&#34;, 0),
+                response=response)
+        else:
+            self.append_messages([dict(role=&#34;assistant&#34;, content=response[&#34;answer&#34;])])
+            return dict(
+                error=None,
+                answer=response[&#34;answer&#34;],
+                cost=response.get(&#34;cost&#34;, 0),
+                n_prompt_tokens=response.get(&#34;n_prompt_tokens&#34;, 0),
+                n_completion_tokens=response.get(&#34;n_completion_tokens&#34;, 0),
+                is_ok=True,
+                response=response,
+            )</code></pre>
+</details>
+<div class="desc"><p>This implementation limits the reply function to just string messages.</p>
+<p>Initialize the SerialChatbot with an LLM, configuration, and optional initial message and template.</p>
+<p>If the initial message is given, it will passed on as the first message it the whole chat context
+with the first message to reply to and all subsequent messages.</p>
+<p>If a message template is given, then whenever the reply method gets a string as the message,
+the template is used and the variable "${message}" is replaced with the string. Also all other variables
+found in the template are replaced with the corresponding values from the optional metadata dictionary
+passed to the reply method.</p>
+<p>The template is not used in any way for the initial message, the initial message is used as is.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>llm</code></strong></dt>
+<dd>The LLM to use for generating responses.</dd>
+<dt><strong><code>config</code></strong></dt>
+<dd>The full configuration object or None.</dd>
+<dt><strong><code>initial_message</code></strong></dt>
+<dd>The LLM Message to send initially to the LLM, if None, send nothing.</dd>
+<dt><strong><code>message_template</code></strong></dt>
+<dd>The prompt template to use if None, just send messages as role user.</dd>
+<dt><strong><code>max_messages</code></strong></dt>
+<dd>Optional maximum number of messages to keep in the chat history. If None, no limit. If
+the number of messages exceeds this limit, the method compact_messages() is called to replace
+the messages with a compacted version.</dd>
+</dl></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="llms_wrapper.chatbot.SerialChatbot" href="#llms_wrapper.chatbot.SerialChatbot">SerialChatbot</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="llms_wrapper.chatbot.SimpleSerialChatbot.clear_history"><code class="name flex">
+<span>def <span class="ident">clear_history</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def clear_history(self):
+    &#34;&#34;&#34;Clear the chat history&#34;&#34;&#34;
+    super().clear_history()
+    self.history = []</code></pre>
+</details>
+<div class="desc"><p>Clear the chat history</p></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="llms_wrapper.chatbot.SerialChatbot" href="#llms_wrapper.chatbot.SerialChatbot">SerialChatbot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="llms_wrapper.chatbot.SerialChatbot.append_messages" href="#llms_wrapper.chatbot.SerialChatbot.append_messages">append_messages</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.SerialChatbot.compact_messages" href="#llms_wrapper.chatbot.SerialChatbot.compact_messages">compact_messages</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.SerialChatbot.reply" href="#llms_wrapper.chatbot.SerialChatbot.reply">reply</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.SerialChatbot.set_llm" href="#llms_wrapper.chatbot.SerialChatbot.set_llm">set_llm</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="llms_wrapper.chatbot.TestSerialChatbot"><code class="flex name class">
+<span>class <span class="ident">TestSerialChatbot</span></span>
+<span>(</span><span>llm,<br>config=None,<br>initial_message=None,<br>message_template=None,<br>max_messages: int = 9999999)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TestSerialChatbot(SerialChatbot):
+
+    def reply(self, message: str, metadata: Optional[Dict[str,str]] = None) -&gt; dict:
+        &#34;&#34;&#34;
+        Simulate a simple chatbot reply. This is a blocking call.
+        &#34;&#34;&#34;
+        if metadata is None:
+            metadata = dict(
+                waittime = random.uniform(0.5, 2.0),
+                msg_id = &#34;??&#34;,
+                simulate_error = False, simulate_no_answer = False)
+        msg_id = metadata.get(&#34;msg_id&#34;, &#34;??&#34;)
+        wait_time = metadata.get(&#34;wait_time&#34;, 0.5)
+        simulate_error = metadata.get(&#34;simulate_error&#34;, False)
+        simulate_no_answer = metadata.get(&#34;simulate_no_answer&#34;, False)
+        time.sleep(wait_time)
+        if simulate_error:
+            raise Exception(f&#34;{msg_id} &gt;TestSerialChatbot: Simulated processing error.&#34;)
+        if simulate_no_answer:
+            answer = None
+        else:
+            answer = f&#34;TestSerialChatbot: returning response to &#39;{message}&#39;&#34;
+        return dict(answer=answer, metadata=metadata, message=message, is_ok=True, error=None)</code></pre>
+</details>
+<div class="desc"><p>Initialize the SerialChatbot with an LLM, configuration, and optional initial message and template.</p>
+<p>If the initial message is given, it will passed on as the first message it the whole chat context
+with the first message to reply to and all subsequent messages.</p>
+<p>If a message template is given, then whenever the reply method gets a string as the message,
+the template is used and the variable "${message}" is replaced with the string. Also all other variables
+found in the template are replaced with the corresponding values from the optional metadata dictionary
+passed to the reply method.</p>
+<p>The template is not used in any way for the initial message, the initial message is used as is.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>llm</code></strong></dt>
+<dd>The LLM to use for generating responses.</dd>
+<dt><strong><code>config</code></strong></dt>
+<dd>The full configuration object or None.</dd>
+<dt><strong><code>initial_message</code></strong></dt>
+<dd>The LLM Message to send initially to the LLM, if None, send nothing.</dd>
+<dt><strong><code>message_template</code></strong></dt>
+<dd>The prompt template to use if None, just send messages as role user.</dd>
+<dt><strong><code>max_messages</code></strong></dt>
+<dd>Optional maximum number of messages to keep in the chat history. If None, no limit. If
+the number of messages exceeds this limit, the method compact_messages() is called to replace
+the messages with a compacted version.</dd>
+</dl></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="llms_wrapper.chatbot.SerialChatbot" href="#llms_wrapper.chatbot.SerialChatbot">SerialChatbot</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="llms_wrapper.chatbot.TestSerialChatbot.reply"><code class="name flex">
+<span>def <span class="ident">reply</span></span>(<span>self, message: str, metadata: Dict[str, str] | None = None) ‑> dict</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reply(self, message: str, metadata: Optional[Dict[str,str]] = None) -&gt; dict:
+    &#34;&#34;&#34;
+    Simulate a simple chatbot reply. This is a blocking call.
+    &#34;&#34;&#34;
+    if metadata is None:
+        metadata = dict(
+            waittime = random.uniform(0.5, 2.0),
+            msg_id = &#34;??&#34;,
+            simulate_error = False, simulate_no_answer = False)
+    msg_id = metadata.get(&#34;msg_id&#34;, &#34;??&#34;)
+    wait_time = metadata.get(&#34;wait_time&#34;, 0.5)
+    simulate_error = metadata.get(&#34;simulate_error&#34;, False)
+    simulate_no_answer = metadata.get(&#34;simulate_no_answer&#34;, False)
+    time.sleep(wait_time)
+    if simulate_error:
+        raise Exception(f&#34;{msg_id} &gt;TestSerialChatbot: Simulated processing error.&#34;)
+    if simulate_no_answer:
+        answer = None
+    else:
+        answer = f&#34;TestSerialChatbot: returning response to &#39;{message}&#39;&#34;
+    return dict(answer=answer, metadata=metadata, message=message, is_ok=True, error=None)</code></pre>
+</details>
+<div class="desc"><p>Simulate a simple chatbot reply. This is a blocking call.</p></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="llms_wrapper.chatbot.SerialChatbot" href="#llms_wrapper.chatbot.SerialChatbot">SerialChatbot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="llms_wrapper.chatbot.SerialChatbot.append_messages" href="#llms_wrapper.chatbot.SerialChatbot.append_messages">append_messages</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.SerialChatbot.clear_history" href="#llms_wrapper.chatbot.SerialChatbot.clear_history">clear_history</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.SerialChatbot.compact_messages" href="#llms_wrapper.chatbot.SerialChatbot.compact_messages">compact_messages</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.SerialChatbot.set_llm" href="#llms_wrapper.chatbot.SerialChatbot.set_llm">set_llm</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="llms_wrapper" href="index.html">llms_wrapper</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="llms_wrapper.chatbot.run_async_example" href="#llms_wrapper.chatbot.run_async_example">run_async_example</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.run_sync_example" href="#llms_wrapper.chatbot.run_sync_example">run_sync_example</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="llms_wrapper.chatbot.ChatbotError" href="#llms_wrapper.chatbot.ChatbotError">ChatbotError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="llms_wrapper.chatbot.FlexibleChatbot" href="#llms_wrapper.chatbot.FlexibleChatbot">FlexibleChatbot</a></code></h4>
+<ul class="">
+<li><code><a title="llms_wrapper.chatbot.FlexibleChatbot.chatbot_implementation" href="#llms_wrapper.chatbot.FlexibleChatbot.chatbot_implementation">chatbot_implementation</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.FlexibleChatbot.get_next_response" href="#llms_wrapper.chatbot.FlexibleChatbot.get_next_response">get_next_response</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.FlexibleChatbot.is_running" href="#llms_wrapper.chatbot.FlexibleChatbot.is_running">is_running</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.FlexibleChatbot.listen" href="#llms_wrapper.chatbot.FlexibleChatbot.listen">listen</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.FlexibleChatbot.responses" href="#llms_wrapper.chatbot.FlexibleChatbot.responses">responses</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.FlexibleChatbot.start" href="#llms_wrapper.chatbot.FlexibleChatbot.start">start</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.FlexibleChatbot.stop" href="#llms_wrapper.chatbot.FlexibleChatbot.stop">stop</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="llms_wrapper.chatbot.LoggingQueue" href="#llms_wrapper.chatbot.LoggingQueue">LoggingQueue</a></code></h4>
+<ul class="">
+<li><code><a title="llms_wrapper.chatbot.LoggingQueue.get" href="#llms_wrapper.chatbot.LoggingQueue.get">get</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.LoggingQueue.put" href="#llms_wrapper.chatbot.LoggingQueue.put">put</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="llms_wrapper.chatbot.SerialChatbot" href="#llms_wrapper.chatbot.SerialChatbot">SerialChatbot</a></code></h4>
+<ul class="">
+<li><code><a title="llms_wrapper.chatbot.SerialChatbot.append_messages" href="#llms_wrapper.chatbot.SerialChatbot.append_messages">append_messages</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.SerialChatbot.clear_history" href="#llms_wrapper.chatbot.SerialChatbot.clear_history">clear_history</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.SerialChatbot.compact_messages" href="#llms_wrapper.chatbot.SerialChatbot.compact_messages">compact_messages</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.SerialChatbot.reply" href="#llms_wrapper.chatbot.SerialChatbot.reply">reply</a></code></li>
+<li><code><a title="llms_wrapper.chatbot.SerialChatbot.set_llm" href="#llms_wrapper.chatbot.SerialChatbot.set_llm">set_llm</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="llms_wrapper.chatbot.SimpleSerialChatbot" href="#llms_wrapper.chatbot.SimpleSerialChatbot">SimpleSerialChatbot</a></code></h4>
+<ul class="">
+<li><code><a title="llms_wrapper.chatbot.SimpleSerialChatbot.clear_history" href="#llms_wrapper.chatbot.SimpleSerialChatbot.clear_history">clear_history</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="llms_wrapper.chatbot.TestSerialChatbot" href="#llms_wrapper.chatbot.TestSerialChatbot">TestSerialChatbot</a></code></h4>
+<ul class="">
+<li><code><a title="llms_wrapper.chatbot.TestSerialChatbot.reply" href="#llms_wrapper.chatbot.TestSerialChatbot.reply">reply</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

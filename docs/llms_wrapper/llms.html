@@ -1,0 +1,2431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>llms_wrapper.llms API documentation</title>
+<meta name="description" content="Module related to using LLMs.">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>llms_wrapper.llms</code></h1>
+</header>
+<section id="section-intro">
+<p>Module related to using LLMs.</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="llms_wrapper.llms.any2message"><code class="name flex">
+<span>def <span class="ident">any2message</span></span>(<span>message: str | Dict[str, str] | List[Dict[str, str]],<br>vars: Dict | None = None) ‑> List[Dict[str, str]]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def any2message(message: str|List[Dict[str,str]]|Dict[str,str], vars: Optional[Dict] = None) -&gt; List[Dict[str,str]]:
+    &#34;&#34;&#34;
+    Convert the different representations of prompt messages we use to the standard representation
+    used by OpenAI and others.
+    The standard representation is a list of dictionaries with the keys &#34;role&#34; and &#34;content&#34;.
+    The role is one of &#34;user&#34;, &#34;assistant&#34; or &#34;system&#34;. The content is the text of the message.
+
+    If a string is passed, it is converted to a message with role &#34;user&#34;.
+    If a list of dictionaries is passed, we assume it is already in the standard format.
+    If a dictionary is passed, then each key is assumed to be a role and the value is the content.
+
+    Any of the content/message texts may contain template variables of the form ${varname} which will
+    get replaced, if possible, with the value of the variable varname in the vars dictionary.
+
+    Args:
+        message: A string, list of dictionaries or a dictionary representing the message(s).
+        vars: A dictionary of variables to replace in the content of the messages.
+
+    Returns:
+        A list of message dictionaries with the keys &#34;role&#34; and &#34;content&#34;.
+    &#34;&#34;&#34;
+    ret = []
+    if isinstance(message, str):
+        ret = [{&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: message}]
+    elif isinstance(message, list):
+        # check if the list is a list of dicts and if the dicts contain the keys &#34;role&#34; and &#34;content&#34;
+        if all(isinstance(m, dict) and &#34;role&#34; in m and &#34;content&#34; in m for m in message):
+            ret = message
+        else:
+            raise ValueError(f&#34;Error: message is a list but not a list of dicts: {message}&#34;)
+    elif isinstance(message, dict):
+        # check if the dict is a dict of strings
+        if all(isinstance(v, str) for v in message.values()):
+            for role, content in message.items():
+                ret.append({&#34;role&#34;: role, &#34;content&#34;: content})
+        else:
+            raise ValueError(f&#34;Error: message is a dict but not a dict of strings: {message}&#34;)
+    else:
+        raise ValueError(f&#34;Error: message is not a string or list or dict: {message}&#34;)
+    if vars:
+        for d in ret:
+            if d[&#34;content&#34;]:
+                for k, v in vars.items():
+                    d[&#34;content&#34;] = d[&#34;content&#34;].replace(f&#34;${{{k}}}&#34;, str(v))
+    return ret</code></pre>
+</details>
+<div class="desc"><p>Convert the different representations of prompt messages we use to the standard representation
+used by OpenAI and others.
+The standard representation is a list of dictionaries with the keys "role" and "content".
+The role is one of "user", "assistant" or "system". The content is the text of the message.</p>
+<p>If a string is passed, it is converted to a message with role "user".
+If a list of dictionaries is passed, we assume it is already in the standard format.
+If a dictionary is passed, then each key is assumed to be a role and the value is the content.</p>
+<p>Any of the content/message texts may contain template variables of the form ${varname} which will
+get replaced, if possible, with the value of the variable varname in the vars dictionary.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>message</code></strong></dt>
+<dd>A string, list of dictionaries or a dictionary representing the message(s).</dd>
+<dt><strong><code>vars</code></strong></dt>
+<dd>A dictionary of variables to replace in the content of the messages.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A list of message dictionaries with the keys "role" and "content".</p></div>
+</dd>
+<dt id="llms_wrapper.llms.function2schema"><code class="name flex">
+<span>def <span class="ident">function2schema</span></span>(<span>func, include_return_type=True)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def function2schema(func, include_return_type=True):
+    &#34;&#34;&#34;
+    Convert a function to a JSON schema.
+    
+    Args:
+        func: Function to convert.
+        include_return_type: Whether to include the return type in the schema.
+    
+    Returns:
+        JSON schema for the given function.
+    
+    Raises:
+        ValueError: If the function docstring is empty.
+    &#34;&#34;&#34; 
+    doc = docstring_parser.parse(func.__doc__)
+    desc = doc.short_description + &#34;\n\n&#34; + doc.long_description if doc.long_description else doc.short_description
+    if not desc:
+        raise ValueError(&#34;Function docstring is empty&#34;)
+    argdescs = {arg.arg_name: arg.description for arg in doc.params}    
+    argtypes = {}
+    for arg in doc.params:
+        argtype = arg.type_name
+        # if the argtype is not specified, skip, we will use the argument type
+        if argtype is None:
+            continue
+        # if the argtype starts with a brace, we assume it is already specified as a JSON schema
+        if argtype.startswith(&#34;{&#34;):
+            argtypes[arg.arg_name] = json.loads(argtype)
+        else:
+            # otherwise, we assume it is a python type            
+            argtypes[arg.arg_name] = ptype2schema(argtype)
+    retdesc = doc.returns.description if doc.returns else &#34;&#34;
+    if not retdesc:
+        raise ValueError(&#34;Function return type is not specified in docstring&#34;)
+    retschema = ptype2schema(func.__annotations__.get(&#34;return&#34;, None))
+    desc = desc + &#34;\n\n&#34; + &#34;The function returns: &#34; + str(retdesc)
+    if include_return_type:
+        desc = desc + &#34;\n\n&#34; + &#34;The return type is: &#34; + str(retschema)
+    sig = inspect.signature(func)
+    parameters = sig.parameters
+
+    props = {}
+    required = []
+
+    for name, param in parameters.items():
+        if name == &#39;self&#39;:
+            continue
+
+        if name in argtypes:
+            schema = argtypes[name]
+        else:
+            # Use the type annotation if available, otherwise default to string
+            ptype = param.annotation if param.annotation != inspect.Parameter.empty else str
+            schema = ptype2schema(ptype)
+        schema[&#34;description&#34;] = argdescs.get(name, &#34;&#34;)
+
+        if param.default != inspect.Parameter.empty:
+            schema[&#34;default&#34;] = param.default
+        else:
+            required.append(name)
+
+        props[name] = schema
+
+    funcschema = {
+        &#34;name&#34;: func.__name__,
+        &#34;description&#34;: desc,
+        &#34;parameters&#34;: {
+            &#34;type&#34;: &#34;object&#34;,
+            &#34;properties&#34;: props,
+            &#34;required&#34;: required
+        }
+    }
+    toolschema = dict(type=&#34;function&#34;, function=funcschema)
+    return toolschema</code></pre>
+</details>
+<div class="desc"><p>Convert a function to a JSON schema.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>func</code></strong></dt>
+<dd>Function to convert.</dd>
+<dt><strong><code>include_return_type</code></strong></dt>
+<dd>Whether to include the return type in the schema.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>JSON schema for the given function.</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>If the function docstring is empty.</dd>
+</dl></div>
+</dd>
+<dt id="llms_wrapper.llms.get_func_by_name"><code class="name flex">
+<span>def <span class="ident">get_func_by_name</span></span>(<span>name)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_func_by_name(name):
+    &#34;&#34;&#34;
+    Get a function by name.
+    
+    Args:
+        name: Name of the function.
+    
+    Returns:
+        Function if found, None otherwise.
+    
+    Raises:
+        Exception: If a function is not found.
+    &#34;&#34;&#34;
+    for frame_info in inspect.stack():
+        frame = frame_info.frame
+        func = frame.f_locals.get(name) or frame.f_globals.get(name)
+        if callable(func):
+            return func
+    return None  # Not found</code></pre>
+</details>
+<div class="desc"><p>Get a function by name.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong></dt>
+<dd>Name of the function.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Function if found, None otherwise.</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>Exception</code></dt>
+<dd>If a function is not found.</dd>
+</dl></div>
+</dd>
+<dt id="llms_wrapper.llms.ptype2schema"><code class="name flex">
+<span>def <span class="ident">ptype2schema</span></span>(<span>py_type)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ptype2schema(py_type):
+    &#34;&#34;&#34;
+    Convert a Python type to a JSON schema.
+    
+    Args:
+        py_type: Python type to convert.
+    
+    Returns:
+        JSON schema for the given Python type.
+    
+    Raises:
+        ValueError: If the type is not supported.
+    &#34;&#34;&#34; 
+    # Handle bare None
+    if py_type is type(None):
+        return {&#34;type&#34;: &#34;null&#34;}
+
+    origin = get_origin(py_type)
+    args = get_args(py_type)
+
+    if origin is None:
+        # Base types
+        if py_type is str:
+            return {&#34;type&#34;: &#34;string&#34;}
+        elif py_type is int:
+            return {&#34;type&#34;: &#34;integer&#34;}
+        elif py_type is float:
+            return {&#34;type&#34;: &#34;number&#34;}
+        elif py_type is bool:
+            return {&#34;type&#34;: &#34;boolean&#34;}
+        elif py_type is type(None):
+            return {&#34;type&#34;: &#34;null&#34;}
+        else:
+            return {&#34;type&#34;: &#34;string&#34;}  # Fallback
+
+    elif origin is list or origin is typing.List:
+        item_type = ptype2schema(args[0]) if args else {&#34;type&#34;: &#34;string&#34;}
+        return {&#34;type&#34;: &#34;array&#34;, &#34;items&#34;: item_type}
+
+    elif origin is dict or origin is typing.Dict:
+        key_type, val_type = args if args else (str, str)
+        # JSON Schema requires string keys
+        if key_type != str:
+            raise ValueError(&#34;JSON object keys must be strings&#34;)
+        return {&#34;type&#34;: &#34;object&#34;, &#34;additionalProperties&#34;: ptype2schema(val_type)}
+
+    elif origin is typing.Union:
+        # Flatten nested Union
+        flat_args = []
+        for arg in args:
+            if get_origin(arg) is typing.Union:
+                flat_args.extend(get_args(arg))
+            else:
+                flat_args.append(arg)
+
+        schemas = [ptype2schema(a) for a in flat_args]
+        return {&#34;anyOf&#34;: schemas}
+
+    elif origin is typing.Literal:
+        return {&#34;enum&#34;: list(args)}
+
+    else:
+        return {&#34;type&#34;: &#34;string&#34;}  # fallback for unsupported/unknown</code></pre>
+</details>
+<div class="desc"><p>Convert a Python type to a JSON schema.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>py_type</code></strong></dt>
+<dd>Python type to convert.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>JSON schema for the given Python type.</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>If the type is not supported.</dd>
+</dl></div>
+</dd>
+<dt id="llms_wrapper.llms.toolnames2funcs"><code class="name flex">
+<span>def <span class="ident">toolnames2funcs</span></span>(<span>tools)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def toolnames2funcs(tools):
+    &#34;&#34;&#34;
+    Convert a list of tool names to a dictionary of functions.
+    
+    Args:
+        tools: List of tools, each with a name.
+    
+    Returns:
+        Dictionary of function names to functions.
+
+    Raises:
+        Exception: If a function is not found.
+    &#34;&#34;&#34;
+    fmap = {}
+    for tool in tools:
+        name = tool[&#34;function&#34;][&#34;name&#34;]
+        func = get_func_by_name(name)
+        if func is None:
+            raise Exception(f&#34;Function {name} not found&#34;)
+        fmap[name] = func
+    return fmap</code></pre>
+</details>
+<div class="desc"><p>Convert a list of tool names to a dictionary of functions.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>tools</code></strong></dt>
+<dd>List of tools, each with a name.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Dictionary of function names to functions.</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>Exception</code></dt>
+<dd>If a function is not found.</dd>
+</dl></div>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="llms_wrapper.llms.LLM"><code class="flex name class">
+<span>class <span class="ident">LLM</span></span>
+<span>(</span><span>config: Dict,<br>llmsobject: <a title="llms_wrapper.llms.LLMS" href="#llms_wrapper.llms.LLMS">LLMS</a>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LLM:
+    def __init__(self, config: Dict, llmsobject: LLMS):
+        self.config = config
+        self.llmsobject = llmsobject
+
+    def __getitem__(self, item: str) -&gt; any:
+        return self.config[item]
+
+    def __setitem__(self, key: str, value: any):
+        self.config[key] = value
+
+    def get(self, item: str, default=None) -&gt; any:
+        return self.config.get(item, default)
+
+    def items(self):
+        return self.config.items()
+
+    def query(
+            self,
+            messages: List[Dict[str, str]],
+            tools: Optional[List[Dict]] = None,
+            return_cost: bool = False,
+            return_response: bool = False,
+            debug=False,
+            **kwargs,
+    ) -&gt; Dict[str, any]:
+        llmalias = self.config[&#34;alias&#34;]
+        return self.llmsobject.query(
+            llmalias,
+            messages=messages,
+            tools=tools,
+            return_cost=return_cost,
+            return_response=return_response,
+            debug=debug, **kwargs)
+
+    def __str__(self):
+        return f&#34;LLM({self.config[&#39;alias&#39;]})&#34;
+
+    def __repr__(self):
+        return f&#34;LLM({self.config[&#39;alias&#39;]})&#34;
+
+    # other methods which get delegated to the parent LLMS object
+    def make_messages(self, query: Optional[str] = None, prompt: Optional[Dict[str, str]] = None,
+                      messages: Optional[List[Dict[str, str]]] = None, keep_n: Optional[int] = None) -&gt; List[Dict[str, str]]:
+        return self.llmsobject.make_messages(query, prompt, messages, keep_n)
+
+    def cost_per_token(self) -&gt; Tuple[float, float]:
+        return self.llmsobject.cost_per_token(self.config[&#34;alias&#34;])
+
+    def max_output_tokens(self) -&gt; int:
+        return self.llmsobject.max_output_tokens(self.config[&#34;alias&#34;])
+
+    def max_input_tokens(self) -&gt; Optional[int]:
+        return self.llmsobject.max_input_tokens(self.config[&#34;alias&#34;])
+
+    def set_model_attributes(self, input_cost_per_token: float, output_cost_per_token: float,
+                             input_cost_per_second: float, max_prompt_tokens: int):
+        return self.llmsobject.set_model_attributes(self.config[&#34;alias&#34;], input_cost_per_token, output_cost_per_token,
+                                                   input_cost_per_second, max_prompt_tokens)
+
+    def elapsed(self):
+        return self.llmsobject.elapsed(self.config[&#34;alias&#34;])
+
+    def cost(self):
+        return self.llmsobject.cost(self.config[&#34;alias&#34;])
+
+    def supports_response_format(self) -&gt; bool:
+        return self.llmsobject.supports_response_format(self.config[&#34;alias&#34;])
+
+    def supports_json_schema(self) -&gt; bool:
+        return self.llmsobject.supports_json_schema(self.config[&#34;alias&#34;])
+
+    def supports_function_calling(self, parallel=False) -&gt; bool:
+        return self.llmsobject.supports_function_calling(self.config[&#34;alias&#34;], parallel)
+
+    def supports_file_upload(self) -&gt; bool:
+        return self.llmsobject.supports_file_upload(self.config[&#34;alias&#34;])
+
+    def count_tokens(self, messages: List[Dict[str, str]]) -&gt; int:
+        return self.llmsobject.count_tokens(self.config[&#34;alias&#34;], messages)</code></pre>
+</details>
+<div class="desc"></div>
+<h3>Methods</h3>
+<dl>
+<dt id="llms_wrapper.llms.LLM.cost"><code class="name flex">
+<span>def <span class="ident">cost</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cost(self):
+    return self.llmsobject.cost(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.cost_per_token"><code class="name flex">
+<span>def <span class="ident">cost_per_token</span></span>(<span>self) ‑> Tuple[float, float]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cost_per_token(self) -&gt; Tuple[float, float]:
+    return self.llmsobject.cost_per_token(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.count_tokens"><code class="name flex">
+<span>def <span class="ident">count_tokens</span></span>(<span>self, messages: List[Dict[str, str]]) ‑> int</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def count_tokens(self, messages: List[Dict[str, str]]) -&gt; int:
+    return self.llmsobject.count_tokens(self.config[&#34;alias&#34;], messages)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.elapsed"><code class="name flex">
+<span>def <span class="ident">elapsed</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def elapsed(self):
+    return self.llmsobject.elapsed(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, item: str, default=None) ‑> <built-in function any></span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get(self, item: str, default=None) -&gt; any:
+    return self.config.get(item, default)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.items"><code class="name flex">
+<span>def <span class="ident">items</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def items(self):
+    return self.config.items()</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.make_messages"><code class="name flex">
+<span>def <span class="ident">make_messages</span></span>(<span>self,<br>query: str | None = None,<br>prompt: Dict[str, str] | None = None,<br>messages: List[Dict[str, str]] | None = None,<br>keep_n: int | None = None) ‑> List[Dict[str, str]]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def make_messages(self, query: Optional[str] = None, prompt: Optional[Dict[str, str]] = None,
+                  messages: Optional[List[Dict[str, str]]] = None, keep_n: Optional[int] = None) -&gt; List[Dict[str, str]]:
+    return self.llmsobject.make_messages(query, prompt, messages, keep_n)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.max_input_tokens"><code class="name flex">
+<span>def <span class="ident">max_input_tokens</span></span>(<span>self) ‑> int | None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def max_input_tokens(self) -&gt; Optional[int]:
+    return self.llmsobject.max_input_tokens(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.max_output_tokens"><code class="name flex">
+<span>def <span class="ident">max_output_tokens</span></span>(<span>self) ‑> int</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def max_output_tokens(self) -&gt; int:
+    return self.llmsobject.max_output_tokens(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.query"><code class="name flex">
+<span>def <span class="ident">query</span></span>(<span>self,<br>messages: List[Dict[str, str]],<br>tools: List[Dict] | None = None,<br>return_cost: bool = False,<br>return_response: bool = False,<br>debug=False,<br>**kwargs) ‑> Dict[str, <built-in function any>]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def query(
+        self,
+        messages: List[Dict[str, str]],
+        tools: Optional[List[Dict]] = None,
+        return_cost: bool = False,
+        return_response: bool = False,
+        debug=False,
+        **kwargs,
+) -&gt; Dict[str, any]:
+    llmalias = self.config[&#34;alias&#34;]
+    return self.llmsobject.query(
+        llmalias,
+        messages=messages,
+        tools=tools,
+        return_cost=return_cost,
+        return_response=return_response,
+        debug=debug, **kwargs)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.set_model_attributes"><code class="name flex">
+<span>def <span class="ident">set_model_attributes</span></span>(<span>self,<br>input_cost_per_token: float,<br>output_cost_per_token: float,<br>input_cost_per_second: float,<br>max_prompt_tokens: int)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_model_attributes(self, input_cost_per_token: float, output_cost_per_token: float,
+                         input_cost_per_second: float, max_prompt_tokens: int):
+    return self.llmsobject.set_model_attributes(self.config[&#34;alias&#34;], input_cost_per_token, output_cost_per_token,
+                                               input_cost_per_second, max_prompt_tokens)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.supports_file_upload"><code class="name flex">
+<span>def <span class="ident">supports_file_upload</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def supports_file_upload(self) -&gt; bool:
+    return self.llmsobject.supports_file_upload(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.supports_function_calling"><code class="name flex">
+<span>def <span class="ident">supports_function_calling</span></span>(<span>self, parallel=False) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def supports_function_calling(self, parallel=False) -&gt; bool:
+    return self.llmsobject.supports_function_calling(self.config[&#34;alias&#34;], parallel)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.supports_json_schema"><code class="name flex">
+<span>def <span class="ident">supports_json_schema</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def supports_json_schema(self) -&gt; bool:
+    return self.llmsobject.supports_json_schema(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.llms.LLM.supports_response_format"><code class="name flex">
+<span>def <span class="ident">supports_response_format</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def supports_response_format(self) -&gt; bool:
+    return self.llmsobject.supports_response_format(self.config[&#34;alias&#34;])</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="llms_wrapper.llms.LLMS"><code class="flex name class">
+<span>class <span class="ident">LLMS</span></span>
+<span>(</span><span>config: Dict = None,<br>debug: bool = False,<br>use_phoenix: str | Tuple[str, str] | None = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LLMS:
+    &#34;&#34;&#34;
+    Class that represents a preconfigured set of large language modelservices.
+    &#34;&#34;&#34;
+
+    def __init__(self, config: Dict = None, debug: bool = False, use_phoenix: Optional[Union[str | Tuple[str, str]]] = None):
+        &#34;&#34;&#34;
+        Initialize the LLMS object with the given configuration.
+
+        Use phoenix is either None or the URI of the phoenix endpoing or a tuple with the URI and the
+        project name (so far this only works for local phoenix instances). Default URI for a local installation
+        is &#34;http://0.0.0.0:6006/v1/traces&#34;
+        &#34;&#34;&#34;
+        if config is None:
+            config = dict(llms=[])
+        self.config = deepcopy(config)
+        self.debug = debug
+        if not use_phoenix and config.get(&#34;use_phoenix&#34;):
+            use_phoenix = config[&#34;use_phoenix&#34;]
+        if use_phoenix:
+            if isinstance(use_phoenix, str):
+                use_phoenix = (use_phoenix, &#34;default&#34;)
+                print(&#34;importing&#34;)
+            from phoenix.otel import register
+            from openinference.instrumentation.litellm import LiteLLMInstrumentor
+            # register
+            tracer_provider = register(
+                project_name=use_phoenix[1],  # Default is &#39;default&#39;
+                # auto_instrument=True,  # Auto-instrument your app based on installed OI dependencies
+                endpoint=use_phoenix[0],
+            )
+            # instrument
+            LiteLLMInstrumentor().instrument(tracer_provider=tracer_provider)
+        # convert the config into a dictionary of LLM objects where the key is the alias of the LLM
+        self.llms: Dict[str, &#34;LLM&#34;] = {}
+        for llm in self.config[&#34;llms&#34;]:
+            if not isinstance(llm, dict):
+                raise ValueError(f&#34;Error: LLM entry is not a dict: {llm}&#34;)
+            alias = llm.get(&#34;alias&#34;, llm[&#34;llm&#34;])
+            if alias in self.llms:
+                raise ValueError(f&#34;Error: Duplicate LLM alis {alias} in configuration&#34;)
+            llmdict = deepcopy(llm)
+            llmdict[&#34;_cost&#34;] = 0
+            llmdict[&#34;_last_request_time&#34;] = 0
+            llmdict[&#34;_elapsed_time&#34;] = 0
+            llm = LLM(llmdict, self)
+            self.llms[alias] = llm
+
+    def known_models(self, provider=None) -&gt; List[str]:
+        &#34;&#34;&#34;
+        Get a list of known models.
+        &#34;&#34;&#34;
+        return model_list(provider)
+
+    def list_models(self) -&gt; List[&#34;LLM&#34;]:
+        &#34;&#34;&#34;
+        Get a list of model configuration objects
+        &#34;&#34;&#34;
+        return [llm for llm in self.llms.values()]
+
+    def list_aliases(self) -&gt; List[str]:
+        &#34;&#34;&#34;
+        List the (unique) alias names in the configuration.
+        &#34;&#34;&#34;
+        return list(self.llms.keys())
+
+    def get(self, alias: str) -&gt; Optional[Dict]:
+        &#34;&#34;&#34;
+        Get the LLM configuration object with the given alias.
+        &#34;&#34;&#34;
+        return self.llms.get(alias, None)
+
+    def __getitem__(self, item: str) -&gt; &#34;LLM&#34;:
+        &#34;&#34;&#34;
+        Get the LLM configuration object with the given alias.
+        &#34;&#34;&#34;
+        return self.llms[item]
+
+    def elapsed(self, llmalias: Union[str, List[str], None] = None):
+        &#34;&#34;&#34;
+        Return the elapsed time so far for the given llm alias given list of llm aliases
+        or all llms if llmalias is None. Elapsed time is only accumulated for invocations of
+        the query method with return_cost=True.
+        &#34;&#34;&#34;
+        if llmalias is None:
+            return sum([llm[&#34;_elapsed_time&#34;] for llm in self.llms.values()])
+        if isinstance(llmalias, str):
+            return self.llms[llmalias][&#34;_elapsed_time&#34;]
+        return sum([self.llms[alias][&#34;_elapsed_time&#34;] for alias in llmalias])
+    
+    def get_llm_info(self, llmalias: str, name: str) -&gt; any:
+        &#34;&#34;&#34;
+        For convenience, any parameter with a name staring with an underscore can be used to configure 
+        our own properties of the LLM object. This method returns the value of the given parameter name of None
+        if not defined, where the name should not include the leading underscore.
+        &#34;&#34;&#34;
+        return self.llms[llmalias].config.get(&#34;_&#34;+name, None)
+    
+    def default_max_tokens(self, llmalias: str) -&gt; int:
+        &#34;&#34;&#34;
+        Return the default maximum number of tokens that the LLM will produce. This is sometimes smaller thant the actual
+        max_tokens, but not supported by LiteLLM, so we use whatever is configured in the config and fall back
+        to the actual max_tokens if not defined.
+        &#34;&#34;&#34;
+        ret = self.llms[llmalias].config.get(&#34;default_max_tokens&#34;)
+        if ret is None:
+            ret = self.max_output_tokens(llmalias)
+        return ret
+    
+
+    def cost(self, llmalias: Union[str, List[str], None] = None):
+        &#34;&#34;&#34;
+        Return the cost accumulated so far for the given llm alias given list of llm aliases
+        or all llms if llmalias is None. Costs are only accumulated for invocations of
+        the query method with return_cost=True.
+        &#34;&#34;&#34;
+        if llmalias is None:
+            return sum([llm[&#34;_cost&#34;] for llm in self.llms.values()])
+        if isinstance(llmalias, str):
+            return self.llms[llmalias][&#34;_cost&#34;]
+        return sum([self.llms[alias][&#34;_cost&#34;] for alias in llmalias])
+
+    def cost_per_token(self, llmalias: str) -&gt; Tuple[Optional[float], Optional[float]]:
+        &#34;&#34;&#34;
+        Return the estimated cost per prompt and completion token for the given model.
+        This may be wrong or cost may get calculated in a different way, e.g. depending on
+        cache, response time etc.
+        If the model is not in the configuration, this makes and attempt to just get the cost as 
+        defined by the LiteLLM backend.
+        If no cost is known this returns 0.0, 0.0
+        &#34;&#34;&#34;
+        llm = self.llms.get(llmalias)
+        cc, cp = None, None
+        if llm is not None:
+            cc = llm.get(&#34;cost_per_prompt_token&#34;)
+            cp = llm.get(&#34;cost_per_completion_token&#34;)
+            llmname = llm[&#34;llm&#34;]
+        else:
+            llmname = llmalias
+        if cc is None or cp is None:
+            try:
+                tmpcp, tmpcc = litellm.cost_per_token(llmname, prompt_tokens=1, completion_tokens=1)
+            except:
+                tmpcp, tmpcc = None, None
+            if cc is None:
+                cc = tmpcc
+            if cp is None:
+                cp = tmpcp
+        return cc, cp
+
+    def max_output_tokens(self, llmalias: str) -&gt; Optional[int]:
+        &#34;&#34;&#34;
+        Return the maximum number of prompt tokens that can be sent to the model.
+        &#34;&#34;&#34;
+        llm = self.llms.get(llmalias)
+        ret = None
+        if llm is not None:
+            llmname = llm[&#34;llm&#34;]
+            ret = llm.get(&#34;max_output_tokens&#34;)
+        else:
+            llmname = llmalias
+        if ret is None:
+            try:
+                # ret = litellm.get_max_tokens(self.llms[llmalias][&#34;llm&#34;])
+                info = get_model_info(llmname)
+                ret = info.get(&#34;max_output_tokens&#34;)
+            except:
+                ret = None
+        return ret
+
+    def max_input_tokens(self, llmalias: str) -&gt; Optional[int]:
+        &#34;&#34;&#34;
+        Return the maximum number of tokens possible in the prompt or None if not known.
+        &#34;&#34;&#34;
+        llm = self.llms.get(llmalias)
+        ret = None
+        if llm is not None:
+            ret = llm.get(&#34;max_input_tokens&#34;)
+            llmname = llm[&#34;llm&#34;]
+        else:
+            llmname = llmalias
+        if ret is None:
+            try:
+                info = get_model_info(llmname)
+                ret = info.get(&#34;max_input_tokens&#34;)
+            except:
+                ret = None
+        return ret
+
+    def set_model_attributes(
+            self, llmalias: str,
+            input_cost_per_token: float,
+            output_cost_per_token: float,
+            input_cost_per_second: float,
+            max_prompt_tokens: int,
+    ):
+        &#34;&#34;&#34;
+        Set or override the attributes for the given model.
+
+        NOTE: instead of using this method, the same parameters can alos
+        be set in the configuration file to be passed to the model invocation call.
+        &#34;&#34;&#34;
+        llmname = self.llms[llmalias][&#34;llm&#34;]
+        provider, model = llmname.split(&#34;/&#34;, 1)
+        litellm.register_model(
+            {
+                model: {
+                    &#34;max_tokens&#34;: max_prompt_tokens,
+                    &#34;output_cost_per_token&#34;: output_cost_per_token,
+                    &#34;input_cost_per_token&#34;: input_cost_per_token,
+                    &#34;input_cost_per_second&#34;: input_cost_per_second,
+                    &#34;litellm_provider&#34;: provider,
+                    &#34;mode&#34;: &#34;chat&#34;,
+                }
+            }
+        )
+
+    @staticmethod
+    def make_messages(
+            query: Optional[str] = None,
+            prompt: Optional[Dict[str, str]] = None,
+            message: Optional[Dict[str, str]] = None,
+            messages: Optional[List[Dict[str, str]]] = None,
+            keep_n: Optional[int] = None,
+    ) -&gt; List[Dict[str, str]]:
+        &#34;&#34;&#34;
+        Construct updated messages from the query and/or prompt data.
+
+        Args:
+            query: A query text, if no prompt or message is given, a message with this text for role user is created.
+                Otherwise, this string is used to replace &#34;${query}&#34; in the prompt content if that is a string.
+            prompt: a dict mapping roles to text templates, where the text template may contain the string &#34;${query}&#34;
+                A prompt looks like this: {&#34;user&#34;: &#34;What is the capital of ${query}?&#34;, &#34;system&#34;: &#34;Be totally helpful!&#34;}
+                If prompt is specified, the query string is used to replace &#34;${query}&#34; in the prompt content.
+            message: a message to use as is; if messages is given, this message is added to messages and the
+                combination is sent to the LLM, if messages is None, this message is sent as is.
+                A message looks like this: {&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: &#34;What is the capital of France?&#34;}
+                If message is specified, query and prompt are ignored.
+            messages: previous messages to include in the new messages
+            keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
+                the last keep_n-1 messages are kept.
+
+        Returns:
+            A list of message dictionaries
+        &#34;&#34;&#34;
+        if messages is None:
+            messages = []
+        if query is None and prompt is None and message is None:
+            raise ValueError(&#34;Error: All of query and prompt and message are None&#34;)
+        if message is not None:
+            messages.append(message)
+            return messages
+        elif prompt is not None:
+            if query:
+                for role, content in prompt.items():
+                    if content and role in ROLES:
+                        messages.append(dict(role=role, content=content.replace(&#34;${query}&#34;, query)))
+            else:
+                # convert the prompt as is to messages
+                for role, content in prompt.items():
+                    if content and role in ROLES:
+                        messages.append(dict(role=role, content=content))
+        else:
+            messages.append({&#34;content&#34;: query, &#34;role&#34;: &#34;user&#34;})
+        # if we have more than keep_n messages, remove oldest message but the first so that we have keep_n messages
+        if keep_n is not None and len(messages) &gt; keep_n:
+            messages = messages[:1] + messages[-keep_n:]
+        return messages
+
+    @staticmethod
+    def make_tooling(functions: Union[Callable, List[Callable]]) -&gt; List[Dict]:
+        &#34;&#34;&#34;
+        Automatically create the tooling descriptions for a function or list of functions, based on the
+        function(s) documentation strings.
+
+        The documentation string for each of the functions should be in in a format supported
+        by the docstring_parser package (Google, Numpy, or ReST).
+
+        The description of the function should be given in detail and in a way that will
+        be useful to the LLM. The same goes for the description of each of the arguments for
+        the function.       
+
+        The type of all arguments and of the function return value should get specified using 
+        standard Python type annotations. These types will get converted to json schema types.
+
+        Each argument and the return value must be documented in the docstring. 
+
+        If the type of a parameter is specified in the docstring, that type will get used
+        instead of the type annotation specified in the function signature. 
+        If the type of a parameter is specified in the docstring as a json schema type
+        starting and ending with a brace, that schema is directly used. 
+
+        See https://platform.openai.com/docs/guides/function-calling
+
+        Args:
+            functions: a function or list of functions. 
+
+        Returns:
+            A list of tool dictionaries, each dictionary describing a tool.
+        &#34;&#34;&#34;
+        if not isinstance(functions, list):
+            functions = [functions]
+        tools = []
+        for func in functions:
+            tools.append(function2schema(func))
+        return tools
+
+
+    def supports_response_format(self, llmalias: str) -&gt; bool:
+        &#34;&#34;&#34;
+        Check if the model supports the response format parameters. This usually just indicates support
+        for response_format &#34;json&#34;.
+        &#34;&#34;&#34;
+        params = get_supported_openai_params(model=self.llms[llmalias][&#34;llm&#34;],
+                                             custom_llm_provider=self.llms[llmalias].get(&#34;custom_provider&#34;))
+        ret = &#34;response_format&#34; in params
+        return ret
+
+    def supports_json_schema(self, llmalias: str) -&gt; bool:
+        &#34;&#34;&#34;
+        Check if the model supports the json_schema parameter
+        &#34;&#34;&#34;
+        return supports_response_schema(model=self.llms[llmalias][&#34;llm&#34;],
+                                        custom_llm_provider=self.llms[llmalias].get(&#34;custom_provider&#34;))
+
+    def supports_function_calling(self, llmalias: str, parallel=False) -&gt; bool:
+        &#34;&#34;&#34;
+        Check if the model supports function calling
+        &#34;&#34;&#34;
+        if parallel:
+            return supports_parallel_function_calling(
+                model=self.llms[llmalias][&#34;llm&#34;],
+                )
+        return supports_function_calling(
+            model=self.llms[llmalias][&#34;llm&#34;],
+            custom_llm_provider=self.llms[llmalias].get(&#34;custom_provider&#34;))
+
+    def supports_file_upload(self, llmalias: str) -&gt; bool:
+        &#34;&#34;&#34;
+        Check if the model supports file upload
+
+        NOTE: LiteLLM itself does not seem to support this, so we set this false by default and add specific
+        models or providers where we know it works.
+        &#34;&#34;&#34;
+        return False
+
+    def count_tokens(self, llmalias: Union[str, List[Dict[str, any]]], messages: List[Dict[str, any]]) -&gt; int:
+        &#34;&#34;&#34;
+        Count the number of tokens in the given messages. If messages is a string, convert it to a
+        single user message first.
+        &#34;&#34;&#34;
+        if isinstance(messages, str):
+            messages = [{&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: messages}]
+        return token_counter(model=self.llms[llmalias][&#34;llm&#34;], messages=messages)
+
+    def query(
+            self,
+            llmalias: str,
+            messages: List[Dict[str, str]],
+            tools: Optional[List[Dict]] = None,
+            return_cost: bool = False,
+            return_response: bool = False,
+            debug=False,
+            litellm_debug=None,
+            stream=False,
+            via_streaming=False,
+            recursive_call_info: Optional[Dict[str, any]] = None,
+            **kwargs,
+    ) -&gt; Dict[str, any]:
+        &#34;&#34;&#34;
+        Query the specified LLM with the given messages.
+
+        Args:
+            llmalias: the alias/name of the LLM to query
+            messages: a list of message dictionaries with role and content keys
+            tools: a list of tool dictionaries, each dictionary describing a tool. 
+                See https://docs.litellm.ai/docs/completion/function_call for the format. 
+                However, this can be created using the `make_tooling` function.
+            return_cost: whether or not LLM invocation costs should get returned
+            return_response: whether or not the complete reponse should get returned
+            debug: if True, emits debug messages to aid development and debugging
+            litellm_debug: if True, litellm debug logging is enabled, if False, disabled, if None, use debug setting
+            stream: if True, the returned object contains the stream that can be iterated over. Streaming
+                may not work for all models.
+            via_streaming: if True, ignores the stream parameters, the response data is retrieved internally via streaming.
+                This may be useful if the non-streaming response keeps timing out.
+            recursive_call_info: internal use only
+            kwargs: any additional keyword arguments to pass on to the LLM 
+
+        Returns:
+            A dictionary with keys answer and error and optionally cost-related keys and optionally
+                the full original response. If there is an error, answer is the empty string and error contains the error,
+                otherwise answer contains the response and error is the empty string.
+                The boolean key &#34;ok&#34; is True if there is no error, False otherwise.
+        &#34;&#34;&#34;
+        def cleaned_args(args: dict):
+            &#34;&#34;&#34;If there is an API key in the dict, censor it&#34;&#34;&#34;
+            args = args.copy()
+            if &#34;api_key&#34; in args:
+                args[&#34;api_key&#34;] = &#34;***&#34;
+            return args
+        if self.debug:
+            debug = True
+        if litellm_debug is None and debug or litellm_debug:
+            #  litellm.set_verbose = True    ## deprecated!
+            os.environ[&#39;LITELLM_LOG&#39;] = &#39;DEBUG&#39;
+            litellm_enable_debugging()
+            litellm._turn_on_debug()
+        else:
+            # make sure we turn off debugging if it is still on from a previous call
+            litellm_disable_debugging()
+            os.environ[&#39;LITELLM_LOG&#39;] = &#39;INFO&#39;
+        llm = self.llms[llmalias].config
+        logger.debug(f&#34;llm config: {cleaned_args(llm)}&#34;)
+        # allow to specify via_streaming and stream in the llm config as well, the value in the config will override the call
+        if &#34;via_streaming&#34; in llm and llm[&#34;via_streaming&#34;]:
+            via_streaming = True
+        if &#34;stream&#34; in llm and llm[&#34;stream&#34;]:
+            stream = True
+        if not messages:
+            raise ValueError(f&#34;Error: No messages to send to the LLM: {llmalias}, messages: {messages}&#34;)
+        if debug:
+            logger.debug(f&#34;Sending messages to {llmalias}: {messages}&#34;)
+        # prepare the keyword arguments for colling completion
+        completion_kwargs = dict_except(
+            llm,
+            KNOWN_LLM_CONFIG_FIELDS,
+            ignore_underscored=True,
+        )
+        logger.debug(f&#34;Options: via_streaming: {via_streaming}, stream: {stream}&#34;)
+        logger.debug(f&#34;Initial completion kwargs: {cleaned_args(completion_kwargs)}&#34;)
+        if recursive_call_info is None:
+            recursive_call_info = {}            
+        if llm.get(&#34;api_key&#34;):
+            completion_kwargs[&#34;api_key&#34;] = llm[&#34;api_key&#34;]
+        elif llm.get(&#34;api_key_env&#34;):
+            completion_kwargs[&#34;api_key&#34;] = os.getenv(llm[&#34;api_key_env&#34;])
+        if llm.get(&#34;api_url&#34;):
+            completion_kwargs[&#34;api_base&#34;] = llm[&#34;api_url&#34;]
+        if tools is not None:
+            # add tooling-related arguments to completion_kwargs
+            completion_kwargs[&#34;tools&#34;] = tools
+            if not self.supports_function_calling(llmalias):
+                # see https://docs.litellm.ai/docs/completion/function_call#function-calling-for-models-wout-function-calling-support
+                litellm.add_function_to_prompt = True
+            else:
+                if &#34;tool_choice&#34;  not in completion_kwargs:
+                    # this is the default, but lets be explicit
+                    completion_kwargs[&#34;tool_choice&#34;] = &#34;auto&#34;  
+                # Not known/supported by litellm, apparently
+                # if &#34;parallel_tool_choice&#34; not in completion_kwargs:
+                #     completion_kwargs[&#34;parallel_tool_choice&#34;] = True 
+            fmap = toolnames2funcs(tools)
+        else:
+            fmap = {}
+        if via_streaming:
+            # TODO: check if model supports streaming
+            completion_kwargs[&#34;stream&#34;] = True
+            logger.debug(f&#34;completion kwargs after detecting via_streaming: {cleaned_args(completion_kwargs)}&#34;)
+        elif stream:
+            # TODO: check if model supports streaming
+            # if streaming is enabled, we always return the original response
+            return_response = True
+            completion_kwargs[&#34;stream&#34;] = True
+            logger.debug(f&#34;completion kwargs after detecting stream: {cleaned_args(completion_kwargs)}&#34;)
+        ret = {}
+        # before adding the kwargs, save the recursive_call_info and remove it from kwargs
+        if debug:
+            logger.debug(f&#34;Received recursive call info: {recursive_call_info}&#34;)
+        if kwargs:
+            completion_kwargs.update(dict_except(kwargs,  KNOWN_LLM_CONFIG_FIELDS, ignore_underscored=True))
+        if debug:
+            logger.debug(f&#34;calling query with completion kwargs: {cleaned_args(completion_kwargs)}&#34;)
+        # if we have min_delay set, we look at the _last_request_time for the LLM and caclulate the time
+        # to wait until we can send the next request and then just wait
+        min_delay = llm.get(&#34;min_delay&#34;, kwargs.get(&#34;min_delay&#34;, 0.0))
+        if min_delay &gt; 0:
+            elapsed = time.time() - llm[&#34;_last_request_time&#34;]
+            if elapsed &lt; min_delay:
+                time.sleep(min_delay - elapsed)
+        llm[&#34;_last_request_time&#34;] = time.time()
+        if &#34;min_delay&#34; in completion_kwargs:
+            raise ValueError(&#34;Error: min_delay should not be passed as a keyword argument&#34;)
+        try:
+            # if we have been called recursively and the recursive_call_info has a start time, 
+            # use that as the start time
+            if recursive_call_info.get(&#34;start&#34;) is not None:
+                start = recursive_call_info[&#34;start&#34;]
+            else:
+                start = time.time()
+                recursive_call_info[&#34;start&#34;] = start
+            response = litellm.completion(
+                model=llm[&#34;llm&#34;],
+                messages=messages,
+                drop_params=False,     # we do not drop, so typos in the query call can be detected easier!
+                **completion_kwargs)
+            logger.debug(f&#34;Received response from litellm&#34;)
+            if via_streaming:
+                # retrieve the response using streaming, return once we have everything
+                try:
+                    answer = &#34;&#34;
+                    logger.debug(f&#34;Retrieving chunks ...&#34;)
+                    n_chunks = 0
+                    for chunk in response:
+                        choice0 = chunk[&#34;choices&#34;][0]
+                        if choice0.finish_reason == &#34;stop&#34;:
+                            logger.debug(f&#34;Streaming got stop. Chunk {chunk}&#34;)
+                            break
+                        n_chunks += 1
+                        content = choice0[&#34;delta&#34;].get(&#34;content&#34;, &#34;&#34;)
+                        logger.debug(f&#34;Got streaming content: {content}&#34;)
+                        answer += content
+                    if return_response:
+                        ret[&#34;response&#34;] = response
+                    ret[&#34;answer&#34;] = answer
+                    ret[&#34;n_chunks&#34;] = n_chunks
+                    ret[&#34;elapsed_time&#34;] = time.time() - start
+                    ret[&#34;ok&#34;] = True
+                    ret[&#34;error&#34;] = &#34;&#34;
+                    # TODO: for now return 0, may perhaps be possible to do better?
+                    ret[&#34;cost&#34;] = 0
+                    ret[&#34;n_prompt_tokens&#34;] = 0
+                    ret[&#34;n_completion_tokens&#34;] = 0
+                    return ret
+                except Exception as e:
+                    tb = traceback.extract_tb(e.__traceback__)
+                    filename, lineno, funcname, text = tb[-1]
+                    ret[&#34;error&#34;] = str(e) + f&#34; in {filename}:{lineno} {funcname}&#34;
+                    if debug:
+                        logger.error(f&#34;Returning error: {e}&#34;)
+                    ret[&#34;answer&#34;] = &#34;&#34;
+                    ret[&#34;ok&#34;] = False
+                    return ret
+            elif stream:
+                def chunk_generator(model_generator, retobj):
+                    try:
+                        for chunk in model_generator:
+                            choice0 = chunk[&#34;choices&#34;][0]
+                            if choice0.finish_reason == &#34;stop&#34;:
+                                break
+                            content = choice0[&#34;delta&#34;].get(&#34;content&#34;, &#34;&#34;)
+                            yield dict(error=&#34;&#34;, answer=content, ok=True)
+                    except Exception as e:
+                        yield dict(error=str(e), answer=&#34;&#34;, ok=False)
+                    finally:
+                        # TODO: add cost and elapsed time information into retobj
+                        # litellm does not support cost on streaming responses
+                        # response.__hidden_params[&#34;response_cost&#34;] is 0.0
+                        ret[&#34;cost&#34;] = None
+                        ret[&#34;elapsed_time&#34;] = time.time() - start
+                        pass
+                if return_response:
+                    ret[&#34;response&#34;] = response
+                ret[&#34;chunks&#34;] = chunk_generator(response, ret)
+                ret[&#34;ok&#34;] = True
+                ret[&#34;error&#34;] = &#34;&#34;
+                return ret
+            elapsed = time.time() - start
+            logger.debug(f&#34;Full Response: {response}&#34;)
+            llm[&#34;_elapsed_time&#34;] += elapsed
+            ret[&#34;elapsed_time&#34;] = elapsed
+            ret[&#34;n_chunks&#34;] = 1
+            if return_response:
+                ret[&#34;response&#34;] = response
+                # prevent the api key from leaking out
+                if &#34;api_key&#34; in completion_kwargs:
+                    del completion_kwargs[&#34;api_key&#34;]
+                ret[&#34;kwargs&#34;] = completion_kwargs
+            if return_cost:
+                # TODO: replace with response._hidden_params[&#34;response_cost&#34;] ? 
+                #     but what if cost not supported for the model?
+                
+                try:
+                    ret[&#34;cost&#34;] = completion_cost(
+                        completion_response=response,
+                        model=llm[&#34;llm&#34;],
+                        messages=messages,
+                    )
+                    if debug:
+                        logger.debug(f&#34;Cost for this call {ret[&#39;cost&#39;]}&#34;)
+                except Exception as e:
+                    logger.debug(f&#34;Error in completion_cost for model {llm[&#39;llm&#39;]}: {e}&#34;)
+                    ret[&#34;cost&#34;] = 0.0
+                llm[&#34;_cost&#34;] += ret[&#34;cost&#34;]
+                usage = response[&#39;usage&#39;]
+                logger.debug(f&#34;Usage: {usage}&#34;)
+                ret[&#34;n_completion_tokens&#34;] = usage.completion_tokens
+                ret[&#34;n_prompt_tokens&#34;] = usage.prompt_tokens
+                ret[&#34;n_total_tokens&#34;] = usage.total_tokens
+                # add the cost and tokens from the recursive call info, if available
+                if recursive_call_info.get(&#34;cost&#34;) is not None:
+                    ret[&#34;cost&#34;] += recursive_call_info[&#34;cost&#34;]
+                    if debug:
+                        logger.debug(f&#34;Cost for this and previous calls {ret[&#39;cost&#39;]}&#34;)
+                if recursive_call_info.get(&#34;n_completion_tokens&#34;) is not None:
+                    ret[&#34;n_completion_tokens&#34;] += recursive_call_info[&#34;n_completion_tokens&#34;]
+                if recursive_call_info.get(&#34;n_prompt_tokens&#34;) is not None:
+                    ret[&#34;n_prompt_tokens&#34;] += recursive_call_info[&#34;n_prompt_tokens&#34;]
+                if recursive_call_info.get(&#34;n_total_tokens&#34;) is not None:
+                    ret[&#34;n_total_tokens&#34;] += recursive_call_info[&#34;n_total_tokens&#34;]
+                recursive_call_info[&#34;cost&#34;] = ret[&#34;cost&#34;]
+                recursive_call_info[&#34;n_completion_tokens&#34;] = ret[&#34;n_completion_tokens&#34;]
+                recursive_call_info[&#34;n_prompt_tokens&#34;] = ret[&#34;n_prompt_tokens&#34;]
+                recursive_call_info[&#34;n_total_tokens&#34;] = ret[&#34;n_total_tokens&#34;]
+                    
+            response_message = response[&#39;choices&#39;][0][&#39;message&#39;]
+            # Does not seem to work see https://github.com/BerriAI/litellm/issues/389
+            # ret[&#34;response_ms&#34;] = response[&#34;response_ms&#34;]
+            ret[&#34;finish_reason&#34;] = response[&#39;choices&#39;][0].get(&#39;finish_reason&#39;, &#34;UNKNOWN&#34;)
+            ret[&#34;answer&#34;] = response_message[&#39;content&#39;]
+            ret[&#34;error&#34;] = &#34;&#34;
+            ret[&#34;ok&#34;] = True
+            # TODO: if feasable handle all tool calling here or in a separate method which does
+            #   all the tool calling steps (up to a specified maximum).
+            if debug:
+                logger.debug(f&#34;Checking for tool_calls: {response_message}, have tools: {tools is not None}&#34;)
+            if tools is not None:
+                # TODO: if streaming is enabled we need to gather the complete response before
+                #   we can process the tool calls
+                if hasattr(response_message, &#34;tool_calls&#34;) and response_message.tool_calls is not None:
+                    tool_calls = response_message.tool_calls
+                else:
+                    tool_calls = []
+                if stream:
+                    raise ValueError(&#34;Error: streaming is not supported for tool calls yet&#34;)
+                if debug:
+                    logger.debug(f&#34;Got {len(tool_calls)} tool calls:&#34;)
+                    for tool_call in tool_calls:
+                        logger.debug(f&#34;Tool call: {tool_call}&#34;)
+                if len(tool_calls) &gt; 0:   # not an empty list
+                    if debug:
+                        logger.debug(f&#34;Appending response message: {response_message}&#34;)
+                    messages.append(response_message)
+                    for tool_call in tool_calls:
+                        function_name = tool_call.function.name
+                        if debug:
+                            logger.debug(f&#34;Tool call {function_name}&#34;)
+                        fun2call = fmap.get(function_name)
+                        if fun2call is None:
+                            ret[&#34;error&#34;] = f&#34;Unknown tooling function name: {function_name}&#34;
+                            ret[&#34;answer&#34;] = &#34;&#34;
+                            ret[&#34;ok&#34;] = False
+                            return ret
+                        function_args = json.loads(tool_call.function.arguments)
+                        try:
+                            if debug:
+                                logger.debug(f&#34;Calling {function_name} with args {function_args}&#34;)
+                            function_response = fun2call(**function_args)
+                            if debug:
+                                logger.debug(f&#34;Got response {function_response}&#34;)
+                        except Exception as e:
+                            tb = traceback.extract_tb(e.__traceback__)
+                            filename, lineno, funcname, text = tb[-1]
+                            if debug:
+                                logger.debug(f&#34;Function call got error {e}&#34;)
+                            ret[&#34;error&#34;] = f&#34;Error executing tool function {function_name}: {str(e)} in {filename}:{lineno} {funcname}&#34;
+                            if debug:
+                                logger.error(f&#34;Returning error: {e}&#34;)
+                            ret[&#34;answer&#34;] = &#34;&#34;
+                            ret[&#34;ok&#34;] = False
+                            return ret
+                        messages.append(
+                            dict(
+                                tool_call_id=tool_call.id, 
+                                role=&#34;tool&#34;, name=function_name, 
+                                content=json.dumps(function_response)))
+                    # recursively call query
+                    if debug:
+                        logger.debug(f&#34;Recursively calling query with messages:&#34;)
+                        for idx, msg in enumerate(messages):
+                            logger.debug(f&#34;Message {idx}: {msg}&#34;)
+                        logger.debug(f&#34;Recursively_call_info is {recursive_call_info}&#34;)
+                    return self.query(
+                        llmalias, 
+                        messages, 
+                        tools=tools, 
+                        return_cost=return_cost, 
+                        return_response=return_response, 
+                        debug=debug, 
+                        litellm_debug=litellm_debug, 
+                        recursive_call_info=recursive_call_info,
+                        **kwargs)
+        except Exception as e:
+            logger.debug(f&#34;Exception in query from litellm: {e}&#34;)
+            tb = traceback.extract_tb(e.__traceback__)
+            filename, lineno, funcname, text = tb[-1]
+            ret[&#34;error&#34;] = str(e) + f&#34; in {filename}:{lineno} {funcname}&#34;
+            if debug:
+                logger.error(f&#34;Returning error: {e}&#34;)
+            ret[&#34;answer&#34;] = &#34;&#34;
+            ret[&#34;ok&#34;] = False
+        return ret</code></pre>
+</details>
+<div class="desc"><p>Class that represents a preconfigured set of large language modelservices.</p>
+<p>Initialize the LLMS object with the given configuration.</p>
+<p>Use phoenix is either None or the URI of the phoenix endpoing or a tuple with the URI and the
+project name (so far this only works for local phoenix instances). Default URI for a local installation
+is "http://0.0.0.0:6006/v1/traces"</p></div>
+<h3>Static methods</h3>
+<dl>
+<dt id="llms_wrapper.llms.LLMS.make_messages"><code class="name flex">
+<span>def <span class="ident">make_messages</span></span>(<span>query: str | None = None,<br>prompt: Dict[str, str] | None = None,<br>message: Dict[str, str] | None = None,<br>messages: List[Dict[str, str]] | None = None,<br>keep_n: int | None = None) ‑> List[Dict[str, str]]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def make_messages(
+        query: Optional[str] = None,
+        prompt: Optional[Dict[str, str]] = None,
+        message: Optional[Dict[str, str]] = None,
+        messages: Optional[List[Dict[str, str]]] = None,
+        keep_n: Optional[int] = None,
+) -&gt; List[Dict[str, str]]:
+    &#34;&#34;&#34;
+    Construct updated messages from the query and/or prompt data.
+
+    Args:
+        query: A query text, if no prompt or message is given, a message with this text for role user is created.
+            Otherwise, this string is used to replace &#34;${query}&#34; in the prompt content if that is a string.
+        prompt: a dict mapping roles to text templates, where the text template may contain the string &#34;${query}&#34;
+            A prompt looks like this: {&#34;user&#34;: &#34;What is the capital of ${query}?&#34;, &#34;system&#34;: &#34;Be totally helpful!&#34;}
+            If prompt is specified, the query string is used to replace &#34;${query}&#34; in the prompt content.
+        message: a message to use as is; if messages is given, this message is added to messages and the
+            combination is sent to the LLM, if messages is None, this message is sent as is.
+            A message looks like this: {&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: &#34;What is the capital of France?&#34;}
+            If message is specified, query and prompt are ignored.
+        messages: previous messages to include in the new messages
+        keep_n: the number of messages to keep, if None, all messages are kept, otherwise the first message and
+            the last keep_n-1 messages are kept.
+
+    Returns:
+        A list of message dictionaries
+    &#34;&#34;&#34;
+    if messages is None:
+        messages = []
+    if query is None and prompt is None and message is None:
+        raise ValueError(&#34;Error: All of query and prompt and message are None&#34;)
+    if message is not None:
+        messages.append(message)
+        return messages
+    elif prompt is not None:
+        if query:
+            for role, content in prompt.items():
+                if content and role in ROLES:
+                    messages.append(dict(role=role, content=content.replace(&#34;${query}&#34;, query)))
+        else:
+            # convert the prompt as is to messages
+            for role, content in prompt.items():
+                if content and role in ROLES:
+                    messages.append(dict(role=role, content=content))
+    else:
+        messages.append({&#34;content&#34;: query, &#34;role&#34;: &#34;user&#34;})
+    # if we have more than keep_n messages, remove oldest message but the first so that we have keep_n messages
+    if keep_n is not None and len(messages) &gt; keep_n:
+        messages = messages[:1] + messages[-keep_n:]
+    return messages</code></pre>
+</details>
+<div class="desc"><p>Construct updated messages from the query and/or prompt data.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>query</code></strong></dt>
+<dd>A query text, if no prompt or message is given, a message with this text for role user is created.
+Otherwise, this string is used to replace "${query}" in the prompt content if that is a string.</dd>
+<dt><strong><code>prompt</code></strong></dt>
+<dd>a dict mapping roles to text templates, where the text template may contain the string "${query}"
+A prompt looks like this: {"user": "What is the capital of ${query}?", "system": "Be totally helpful!"}
+If prompt is specified, the query string is used to replace "${query}" in the prompt content.</dd>
+<dt><strong><code>message</code></strong></dt>
+<dd>a message to use as is; if messages is given, this message is added to messages and the
+combination is sent to the LLM, if messages is None, this message is sent as is.
+A message looks like this: {"role": "user", "content": "What is the capital of France?"}
+If message is specified, query and prompt are ignored.</dd>
+<dt><strong><code>messages</code></strong></dt>
+<dd>previous messages to include in the new messages</dd>
+<dt><strong><code>keep_n</code></strong></dt>
+<dd>the number of messages to keep, if None, all messages are kept, otherwise the first message and
+the last keep_n-1 messages are kept.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A list of message dictionaries</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.make_tooling"><code class="name flex">
+<span>def <span class="ident">make_tooling</span></span>(<span>functions: Callable | List[Callable]) ‑> List[Dict]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def make_tooling(functions: Union[Callable, List[Callable]]) -&gt; List[Dict]:
+    &#34;&#34;&#34;
+    Automatically create the tooling descriptions for a function or list of functions, based on the
+    function(s) documentation strings.
+
+    The documentation string for each of the functions should be in in a format supported
+    by the docstring_parser package (Google, Numpy, or ReST).
+
+    The description of the function should be given in detail and in a way that will
+    be useful to the LLM. The same goes for the description of each of the arguments for
+    the function.       
+
+    The type of all arguments and of the function return value should get specified using 
+    standard Python type annotations. These types will get converted to json schema types.
+
+    Each argument and the return value must be documented in the docstring. 
+
+    If the type of a parameter is specified in the docstring, that type will get used
+    instead of the type annotation specified in the function signature. 
+    If the type of a parameter is specified in the docstring as a json schema type
+    starting and ending with a brace, that schema is directly used. 
+
+    See https://platform.openai.com/docs/guides/function-calling
+
+    Args:
+        functions: a function or list of functions. 
+
+    Returns:
+        A list of tool dictionaries, each dictionary describing a tool.
+    &#34;&#34;&#34;
+    if not isinstance(functions, list):
+        functions = [functions]
+    tools = []
+    for func in functions:
+        tools.append(function2schema(func))
+    return tools</code></pre>
+</details>
+<div class="desc"><p>Automatically create the tooling descriptions for a function or list of functions, based on the
+function(s) documentation strings.</p>
+<p>The documentation string for each of the functions should be in in a format supported
+by the docstring_parser package (Google, Numpy, or ReST).</p>
+<p>The description of the function should be given in detail and in a way that will
+be useful to the LLM. The same goes for the description of each of the arguments for
+the function.
+</p>
+<p>The type of all arguments and of the function return value should get specified using
+standard Python type annotations. These types will get converted to json schema types.</p>
+<p>Each argument and the return value must be documented in the docstring. </p>
+<p>If the type of a parameter is specified in the docstring, that type will get used
+instead of the type annotation specified in the function signature.
+If the type of a parameter is specified in the docstring as a json schema type
+starting and ending with a brace, that schema is directly used. </p>
+<p>See <a href="https://platform.openai.com/docs/guides/function-calling">https://platform.openai.com/docs/guides/function-calling</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>functions</code></strong></dt>
+<dd>a function or list of functions. </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A list of tool dictionaries, each dictionary describing a tool.</p></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="llms_wrapper.llms.LLMS.cost"><code class="name flex">
+<span>def <span class="ident">cost</span></span>(<span>self, llmalias: str | List[str] | None = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cost(self, llmalias: Union[str, List[str], None] = None):
+    &#34;&#34;&#34;
+    Return the cost accumulated so far for the given llm alias given list of llm aliases
+    or all llms if llmalias is None. Costs are only accumulated for invocations of
+    the query method with return_cost=True.
+    &#34;&#34;&#34;
+    if llmalias is None:
+        return sum([llm[&#34;_cost&#34;] for llm in self.llms.values()])
+    if isinstance(llmalias, str):
+        return self.llms[llmalias][&#34;_cost&#34;]
+    return sum([self.llms[alias][&#34;_cost&#34;] for alias in llmalias])</code></pre>
+</details>
+<div class="desc"><p>Return the cost accumulated so far for the given llm alias given list of llm aliases
+or all llms if llmalias is None. Costs are only accumulated for invocations of
+the query method with return_cost=True.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.cost_per_token"><code class="name flex">
+<span>def <span class="ident">cost_per_token</span></span>(<span>self, llmalias: str) ‑> Tuple[float | None, float | None]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cost_per_token(self, llmalias: str) -&gt; Tuple[Optional[float], Optional[float]]:
+    &#34;&#34;&#34;
+    Return the estimated cost per prompt and completion token for the given model.
+    This may be wrong or cost may get calculated in a different way, e.g. depending on
+    cache, response time etc.
+    If the model is not in the configuration, this makes and attempt to just get the cost as 
+    defined by the LiteLLM backend.
+    If no cost is known this returns 0.0, 0.0
+    &#34;&#34;&#34;
+    llm = self.llms.get(llmalias)
+    cc, cp = None, None
+    if llm is not None:
+        cc = llm.get(&#34;cost_per_prompt_token&#34;)
+        cp = llm.get(&#34;cost_per_completion_token&#34;)
+        llmname = llm[&#34;llm&#34;]
+    else:
+        llmname = llmalias
+    if cc is None or cp is None:
+        try:
+            tmpcp, tmpcc = litellm.cost_per_token(llmname, prompt_tokens=1, completion_tokens=1)
+        except:
+            tmpcp, tmpcc = None, None
+        if cc is None:
+            cc = tmpcc
+        if cp is None:
+            cp = tmpcp
+    return cc, cp</code></pre>
+</details>
+<div class="desc"><p>Return the estimated cost per prompt and completion token for the given model.
+This may be wrong or cost may get calculated in a different way, e.g. depending on
+cache, response time etc.
+If the model is not in the configuration, this makes and attempt to just get the cost as
+defined by the LiteLLM backend.
+If no cost is known this returns 0.0, 0.0</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.count_tokens"><code class="name flex">
+<span>def <span class="ident">count_tokens</span></span>(<span>self,<br>llmalias: str | List[Dict[str, <built-in function any>]],<br>messages: List[Dict[str, <built-in function any>]]) ‑> int</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def count_tokens(self, llmalias: Union[str, List[Dict[str, any]]], messages: List[Dict[str, any]]) -&gt; int:
+    &#34;&#34;&#34;
+    Count the number of tokens in the given messages. If messages is a string, convert it to a
+    single user message first.
+    &#34;&#34;&#34;
+    if isinstance(messages, str):
+        messages = [{&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: messages}]
+    return token_counter(model=self.llms[llmalias][&#34;llm&#34;], messages=messages)</code></pre>
+</details>
+<div class="desc"><p>Count the number of tokens in the given messages. If messages is a string, convert it to a
+single user message first.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.default_max_tokens"><code class="name flex">
+<span>def <span class="ident">default_max_tokens</span></span>(<span>self, llmalias: str) ‑> int</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def default_max_tokens(self, llmalias: str) -&gt; int:
+    &#34;&#34;&#34;
+    Return the default maximum number of tokens that the LLM will produce. This is sometimes smaller thant the actual
+    max_tokens, but not supported by LiteLLM, so we use whatever is configured in the config and fall back
+    to the actual max_tokens if not defined.
+    &#34;&#34;&#34;
+    ret = self.llms[llmalias].config.get(&#34;default_max_tokens&#34;)
+    if ret is None:
+        ret = self.max_output_tokens(llmalias)
+    return ret</code></pre>
+</details>
+<div class="desc"><p>Return the default maximum number of tokens that the LLM will produce. This is sometimes smaller thant the actual
+max_tokens, but not supported by LiteLLM, so we use whatever is configured in the config and fall back
+to the actual max_tokens if not defined.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.elapsed"><code class="name flex">
+<span>def <span class="ident">elapsed</span></span>(<span>self, llmalias: str | List[str] | None = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def elapsed(self, llmalias: Union[str, List[str], None] = None):
+    &#34;&#34;&#34;
+    Return the elapsed time so far for the given llm alias given list of llm aliases
+    or all llms if llmalias is None. Elapsed time is only accumulated for invocations of
+    the query method with return_cost=True.
+    &#34;&#34;&#34;
+    if llmalias is None:
+        return sum([llm[&#34;_elapsed_time&#34;] for llm in self.llms.values()])
+    if isinstance(llmalias, str):
+        return self.llms[llmalias][&#34;_elapsed_time&#34;]
+    return sum([self.llms[alias][&#34;_elapsed_time&#34;] for alias in llmalias])</code></pre>
+</details>
+<div class="desc"><p>Return the elapsed time so far for the given llm alias given list of llm aliases
+or all llms if llmalias is None. Elapsed time is only accumulated for invocations of
+the query method with return_cost=True.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, alias: str) ‑> Dict | None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get(self, alias: str) -&gt; Optional[Dict]:
+    &#34;&#34;&#34;
+    Get the LLM configuration object with the given alias.
+    &#34;&#34;&#34;
+    return self.llms.get(alias, None)</code></pre>
+</details>
+<div class="desc"><p>Get the LLM configuration object with the given alias.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.get_llm_info"><code class="name flex">
+<span>def <span class="ident">get_llm_info</span></span>(<span>self, llmalias: str, name: str) ‑> <built-in function any></span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_llm_info(self, llmalias: str, name: str) -&gt; any:
+    &#34;&#34;&#34;
+    For convenience, any parameter with a name staring with an underscore can be used to configure 
+    our own properties of the LLM object. This method returns the value of the given parameter name of None
+    if not defined, where the name should not include the leading underscore.
+    &#34;&#34;&#34;
+    return self.llms[llmalias].config.get(&#34;_&#34;+name, None)</code></pre>
+</details>
+<div class="desc"><p>For convenience, any parameter with a name staring with an underscore can be used to configure
+our own properties of the LLM object. This method returns the value of the given parameter name of None
+if not defined, where the name should not include the leading underscore.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.known_models"><code class="name flex">
+<span>def <span class="ident">known_models</span></span>(<span>self, provider=None) ‑> List[str]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def known_models(self, provider=None) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Get a list of known models.
+    &#34;&#34;&#34;
+    return model_list(provider)</code></pre>
+</details>
+<div class="desc"><p>Get a list of known models.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.list_aliases"><code class="name flex">
+<span>def <span class="ident">list_aliases</span></span>(<span>self) ‑> List[str]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def list_aliases(self) -&gt; List[str]:
+    &#34;&#34;&#34;
+    List the (unique) alias names in the configuration.
+    &#34;&#34;&#34;
+    return list(self.llms.keys())</code></pre>
+</details>
+<div class="desc"><p>List the (unique) alias names in the configuration.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.list_models"><code class="name flex">
+<span>def <span class="ident">list_models</span></span>(<span>self) ‑> List[<a title="llms_wrapper.llms.LLM" href="#llms_wrapper.llms.LLM">LLM</a>]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def list_models(self) -&gt; List[&#34;LLM&#34;]:
+    &#34;&#34;&#34;
+    Get a list of model configuration objects
+    &#34;&#34;&#34;
+    return [llm for llm in self.llms.values()]</code></pre>
+</details>
+<div class="desc"><p>Get a list of model configuration objects</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.max_input_tokens"><code class="name flex">
+<span>def <span class="ident">max_input_tokens</span></span>(<span>self, llmalias: str) ‑> int | None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def max_input_tokens(self, llmalias: str) -&gt; Optional[int]:
+    &#34;&#34;&#34;
+    Return the maximum number of tokens possible in the prompt or None if not known.
+    &#34;&#34;&#34;
+    llm = self.llms.get(llmalias)
+    ret = None
+    if llm is not None:
+        ret = llm.get(&#34;max_input_tokens&#34;)
+        llmname = llm[&#34;llm&#34;]
+    else:
+        llmname = llmalias
+    if ret is None:
+        try:
+            info = get_model_info(llmname)
+            ret = info.get(&#34;max_input_tokens&#34;)
+        except:
+            ret = None
+    return ret</code></pre>
+</details>
+<div class="desc"><p>Return the maximum number of tokens possible in the prompt or None if not known.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.max_output_tokens"><code class="name flex">
+<span>def <span class="ident">max_output_tokens</span></span>(<span>self, llmalias: str) ‑> int | None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def max_output_tokens(self, llmalias: str) -&gt; Optional[int]:
+    &#34;&#34;&#34;
+    Return the maximum number of prompt tokens that can be sent to the model.
+    &#34;&#34;&#34;
+    llm = self.llms.get(llmalias)
+    ret = None
+    if llm is not None:
+        llmname = llm[&#34;llm&#34;]
+        ret = llm.get(&#34;max_output_tokens&#34;)
+    else:
+        llmname = llmalias
+    if ret is None:
+        try:
+            # ret = litellm.get_max_tokens(self.llms[llmalias][&#34;llm&#34;])
+            info = get_model_info(llmname)
+            ret = info.get(&#34;max_output_tokens&#34;)
+        except:
+            ret = None
+    return ret</code></pre>
+</details>
+<div class="desc"><p>Return the maximum number of prompt tokens that can be sent to the model.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.query"><code class="name flex">
+<span>def <span class="ident">query</span></span>(<span>self,<br>llmalias: str,<br>messages: List[Dict[str, str]],<br>tools: List[Dict] | None = None,<br>return_cost: bool = False,<br>return_response: bool = False,<br>debug=False,<br>litellm_debug=None,<br>stream=False,<br>via_streaming=False,<br>recursive_call_info: Dict[str, <built-in function any>] | None = None,<br>**kwargs) ‑> Dict[str, <built-in function any>]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def query(
+        self,
+        llmalias: str,
+        messages: List[Dict[str, str]],
+        tools: Optional[List[Dict]] = None,
+        return_cost: bool = False,
+        return_response: bool = False,
+        debug=False,
+        litellm_debug=None,
+        stream=False,
+        via_streaming=False,
+        recursive_call_info: Optional[Dict[str, any]] = None,
+        **kwargs,
+) -&gt; Dict[str, any]:
+    &#34;&#34;&#34;
+    Query the specified LLM with the given messages.
+
+    Args:
+        llmalias: the alias/name of the LLM to query
+        messages: a list of message dictionaries with role and content keys
+        tools: a list of tool dictionaries, each dictionary describing a tool. 
+            See https://docs.litellm.ai/docs/completion/function_call for the format. 
+            However, this can be created using the `make_tooling` function.
+        return_cost: whether or not LLM invocation costs should get returned
+        return_response: whether or not the complete reponse should get returned
+        debug: if True, emits debug messages to aid development and debugging
+        litellm_debug: if True, litellm debug logging is enabled, if False, disabled, if None, use debug setting
+        stream: if True, the returned object contains the stream that can be iterated over. Streaming
+            may not work for all models.
+        via_streaming: if True, ignores the stream parameters, the response data is retrieved internally via streaming.
+            This may be useful if the non-streaming response keeps timing out.
+        recursive_call_info: internal use only
+        kwargs: any additional keyword arguments to pass on to the LLM 
+
+    Returns:
+        A dictionary with keys answer and error and optionally cost-related keys and optionally
+            the full original response. If there is an error, answer is the empty string and error contains the error,
+            otherwise answer contains the response and error is the empty string.
+            The boolean key &#34;ok&#34; is True if there is no error, False otherwise.
+    &#34;&#34;&#34;
+    def cleaned_args(args: dict):
+        &#34;&#34;&#34;If there is an API key in the dict, censor it&#34;&#34;&#34;
+        args = args.copy()
+        if &#34;api_key&#34; in args:
+            args[&#34;api_key&#34;] = &#34;***&#34;
+        return args
+    if self.debug:
+        debug = True
+    if litellm_debug is None and debug or litellm_debug:
+        #  litellm.set_verbose = True    ## deprecated!
+        os.environ[&#39;LITELLM_LOG&#39;] = &#39;DEBUG&#39;
+        litellm_enable_debugging()
+        litellm._turn_on_debug()
+    else:
+        # make sure we turn off debugging if it is still on from a previous call
+        litellm_disable_debugging()
+        os.environ[&#39;LITELLM_LOG&#39;] = &#39;INFO&#39;
+    llm = self.llms[llmalias].config
+    logger.debug(f&#34;llm config: {cleaned_args(llm)}&#34;)
+    # allow to specify via_streaming and stream in the llm config as well, the value in the config will override the call
+    if &#34;via_streaming&#34; in llm and llm[&#34;via_streaming&#34;]:
+        via_streaming = True
+    if &#34;stream&#34; in llm and llm[&#34;stream&#34;]:
+        stream = True
+    if not messages:
+        raise ValueError(f&#34;Error: No messages to send to the LLM: {llmalias}, messages: {messages}&#34;)
+    if debug:
+        logger.debug(f&#34;Sending messages to {llmalias}: {messages}&#34;)
+    # prepare the keyword arguments for colling completion
+    completion_kwargs = dict_except(
+        llm,
+        KNOWN_LLM_CONFIG_FIELDS,
+        ignore_underscored=True,
+    )
+    logger.debug(f&#34;Options: via_streaming: {via_streaming}, stream: {stream}&#34;)
+    logger.debug(f&#34;Initial completion kwargs: {cleaned_args(completion_kwargs)}&#34;)
+    if recursive_call_info is None:
+        recursive_call_info = {}            
+    if llm.get(&#34;api_key&#34;):
+        completion_kwargs[&#34;api_key&#34;] = llm[&#34;api_key&#34;]
+    elif llm.get(&#34;api_key_env&#34;):
+        completion_kwargs[&#34;api_key&#34;] = os.getenv(llm[&#34;api_key_env&#34;])
+    if llm.get(&#34;api_url&#34;):
+        completion_kwargs[&#34;api_base&#34;] = llm[&#34;api_url&#34;]
+    if tools is not None:
+        # add tooling-related arguments to completion_kwargs
+        completion_kwargs[&#34;tools&#34;] = tools
+        if not self.supports_function_calling(llmalias):
+            # see https://docs.litellm.ai/docs/completion/function_call#function-calling-for-models-wout-function-calling-support
+            litellm.add_function_to_prompt = True
+        else:
+            if &#34;tool_choice&#34;  not in completion_kwargs:
+                # this is the default, but lets be explicit
+                completion_kwargs[&#34;tool_choice&#34;] = &#34;auto&#34;  
+            # Not known/supported by litellm, apparently
+            # if &#34;parallel_tool_choice&#34; not in completion_kwargs:
+            #     completion_kwargs[&#34;parallel_tool_choice&#34;] = True 
+        fmap = toolnames2funcs(tools)
+    else:
+        fmap = {}
+    if via_streaming:
+        # TODO: check if model supports streaming
+        completion_kwargs[&#34;stream&#34;] = True
+        logger.debug(f&#34;completion kwargs after detecting via_streaming: {cleaned_args(completion_kwargs)}&#34;)
+    elif stream:
+        # TODO: check if model supports streaming
+        # if streaming is enabled, we always return the original response
+        return_response = True
+        completion_kwargs[&#34;stream&#34;] = True
+        logger.debug(f&#34;completion kwargs after detecting stream: {cleaned_args(completion_kwargs)}&#34;)
+    ret = {}
+    # before adding the kwargs, save the recursive_call_info and remove it from kwargs
+    if debug:
+        logger.debug(f&#34;Received recursive call info: {recursive_call_info}&#34;)
+    if kwargs:
+        completion_kwargs.update(dict_except(kwargs,  KNOWN_LLM_CONFIG_FIELDS, ignore_underscored=True))
+    if debug:
+        logger.debug(f&#34;calling query with completion kwargs: {cleaned_args(completion_kwargs)}&#34;)
+    # if we have min_delay set, we look at the _last_request_time for the LLM and caclulate the time
+    # to wait until we can send the next request and then just wait
+    min_delay = llm.get(&#34;min_delay&#34;, kwargs.get(&#34;min_delay&#34;, 0.0))
+    if min_delay &gt; 0:
+        elapsed = time.time() - llm[&#34;_last_request_time&#34;]
+        if elapsed &lt; min_delay:
+            time.sleep(min_delay - elapsed)
+    llm[&#34;_last_request_time&#34;] = time.time()
+    if &#34;min_delay&#34; in completion_kwargs:
+        raise ValueError(&#34;Error: min_delay should not be passed as a keyword argument&#34;)
+    try:
+        # if we have been called recursively and the recursive_call_info has a start time, 
+        # use that as the start time
+        if recursive_call_info.get(&#34;start&#34;) is not None:
+            start = recursive_call_info[&#34;start&#34;]
+        else:
+            start = time.time()
+            recursive_call_info[&#34;start&#34;] = start
+        response = litellm.completion(
+            model=llm[&#34;llm&#34;],
+            messages=messages,
+            drop_params=False,     # we do not drop, so typos in the query call can be detected easier!
+            **completion_kwargs)
+        logger.debug(f&#34;Received response from litellm&#34;)
+        if via_streaming:
+            # retrieve the response using streaming, return once we have everything
+            try:
+                answer = &#34;&#34;
+                logger.debug(f&#34;Retrieving chunks ...&#34;)
+                n_chunks = 0
+                for chunk in response:
+                    choice0 = chunk[&#34;choices&#34;][0]
+                    if choice0.finish_reason == &#34;stop&#34;:
+                        logger.debug(f&#34;Streaming got stop. Chunk {chunk}&#34;)
+                        break
+                    n_chunks += 1
+                    content = choice0[&#34;delta&#34;].get(&#34;content&#34;, &#34;&#34;)
+                    logger.debug(f&#34;Got streaming content: {content}&#34;)
+                    answer += content
+                if return_response:
+                    ret[&#34;response&#34;] = response
+                ret[&#34;answer&#34;] = answer
+                ret[&#34;n_chunks&#34;] = n_chunks
+                ret[&#34;elapsed_time&#34;] = time.time() - start
+                ret[&#34;ok&#34;] = True
+                ret[&#34;error&#34;] = &#34;&#34;
+                # TODO: for now return 0, may perhaps be possible to do better?
+                ret[&#34;cost&#34;] = 0
+                ret[&#34;n_prompt_tokens&#34;] = 0
+                ret[&#34;n_completion_tokens&#34;] = 0
+                return ret
+            except Exception as e:
+                tb = traceback.extract_tb(e.__traceback__)
+                filename, lineno, funcname, text = tb[-1]
+                ret[&#34;error&#34;] = str(e) + f&#34; in {filename}:{lineno} {funcname}&#34;
+                if debug:
+                    logger.error(f&#34;Returning error: {e}&#34;)
+                ret[&#34;answer&#34;] = &#34;&#34;
+                ret[&#34;ok&#34;] = False
+                return ret
+        elif stream:
+            def chunk_generator(model_generator, retobj):
+                try:
+                    for chunk in model_generator:
+                        choice0 = chunk[&#34;choices&#34;][0]
+                        if choice0.finish_reason == &#34;stop&#34;:
+                            break
+                        content = choice0[&#34;delta&#34;].get(&#34;content&#34;, &#34;&#34;)
+                        yield dict(error=&#34;&#34;, answer=content, ok=True)
+                except Exception as e:
+                    yield dict(error=str(e), answer=&#34;&#34;, ok=False)
+                finally:
+                    # TODO: add cost and elapsed time information into retobj
+                    # litellm does not support cost on streaming responses
+                    # response.__hidden_params[&#34;response_cost&#34;] is 0.0
+                    ret[&#34;cost&#34;] = None
+                    ret[&#34;elapsed_time&#34;] = time.time() - start
+                    pass
+            if return_response:
+                ret[&#34;response&#34;] = response
+            ret[&#34;chunks&#34;] = chunk_generator(response, ret)
+            ret[&#34;ok&#34;] = True
+            ret[&#34;error&#34;] = &#34;&#34;
+            return ret
+        elapsed = time.time() - start
+        logger.debug(f&#34;Full Response: {response}&#34;)
+        llm[&#34;_elapsed_time&#34;] += elapsed
+        ret[&#34;elapsed_time&#34;] = elapsed
+        ret[&#34;n_chunks&#34;] = 1
+        if return_response:
+            ret[&#34;response&#34;] = response
+            # prevent the api key from leaking out
+            if &#34;api_key&#34; in completion_kwargs:
+                del completion_kwargs[&#34;api_key&#34;]
+            ret[&#34;kwargs&#34;] = completion_kwargs
+        if return_cost:
+            # TODO: replace with response._hidden_params[&#34;response_cost&#34;] ? 
+            #     but what if cost not supported for the model?
+            
+            try:
+                ret[&#34;cost&#34;] = completion_cost(
+                    completion_response=response,
+                    model=llm[&#34;llm&#34;],
+                    messages=messages,
+                )
+                if debug:
+                    logger.debug(f&#34;Cost for this call {ret[&#39;cost&#39;]}&#34;)
+            except Exception as e:
+                logger.debug(f&#34;Error in completion_cost for model {llm[&#39;llm&#39;]}: {e}&#34;)
+                ret[&#34;cost&#34;] = 0.0
+            llm[&#34;_cost&#34;] += ret[&#34;cost&#34;]
+            usage = response[&#39;usage&#39;]
+            logger.debug(f&#34;Usage: {usage}&#34;)
+            ret[&#34;n_completion_tokens&#34;] = usage.completion_tokens
+            ret[&#34;n_prompt_tokens&#34;] = usage.prompt_tokens
+            ret[&#34;n_total_tokens&#34;] = usage.total_tokens
+            # add the cost and tokens from the recursive call info, if available
+            if recursive_call_info.get(&#34;cost&#34;) is not None:
+                ret[&#34;cost&#34;] += recursive_call_info[&#34;cost&#34;]
+                if debug:
+                    logger.debug(f&#34;Cost for this and previous calls {ret[&#39;cost&#39;]}&#34;)
+            if recursive_call_info.get(&#34;n_completion_tokens&#34;) is not None:
+                ret[&#34;n_completion_tokens&#34;] += recursive_call_info[&#34;n_completion_tokens&#34;]
+            if recursive_call_info.get(&#34;n_prompt_tokens&#34;) is not None:
+                ret[&#34;n_prompt_tokens&#34;] += recursive_call_info[&#34;n_prompt_tokens&#34;]
+            if recursive_call_info.get(&#34;n_total_tokens&#34;) is not None:
+                ret[&#34;n_total_tokens&#34;] += recursive_call_info[&#34;n_total_tokens&#34;]
+            recursive_call_info[&#34;cost&#34;] = ret[&#34;cost&#34;]
+            recursive_call_info[&#34;n_completion_tokens&#34;] = ret[&#34;n_completion_tokens&#34;]
+            recursive_call_info[&#34;n_prompt_tokens&#34;] = ret[&#34;n_prompt_tokens&#34;]
+            recursive_call_info[&#34;n_total_tokens&#34;] = ret[&#34;n_total_tokens&#34;]
+                
+        response_message = response[&#39;choices&#39;][0][&#39;message&#39;]
+        # Does not seem to work see https://github.com/BerriAI/litellm/issues/389
+        # ret[&#34;response_ms&#34;] = response[&#34;response_ms&#34;]
+        ret[&#34;finish_reason&#34;] = response[&#39;choices&#39;][0].get(&#39;finish_reason&#39;, &#34;UNKNOWN&#34;)
+        ret[&#34;answer&#34;] = response_message[&#39;content&#39;]
+        ret[&#34;error&#34;] = &#34;&#34;
+        ret[&#34;ok&#34;] = True
+        # TODO: if feasable handle all tool calling here or in a separate method which does
+        #   all the tool calling steps (up to a specified maximum).
+        if debug:
+            logger.debug(f&#34;Checking for tool_calls: {response_message}, have tools: {tools is not None}&#34;)
+        if tools is not None:
+            # TODO: if streaming is enabled we need to gather the complete response before
+            #   we can process the tool calls
+            if hasattr(response_message, &#34;tool_calls&#34;) and response_message.tool_calls is not None:
+                tool_calls = response_message.tool_calls
+            else:
+                tool_calls = []
+            if stream:
+                raise ValueError(&#34;Error: streaming is not supported for tool calls yet&#34;)
+            if debug:
+                logger.debug(f&#34;Got {len(tool_calls)} tool calls:&#34;)
+                for tool_call in tool_calls:
+                    logger.debug(f&#34;Tool call: {tool_call}&#34;)
+            if len(tool_calls) &gt; 0:   # not an empty list
+                if debug:
+                    logger.debug(f&#34;Appending response message: {response_message}&#34;)
+                messages.append(response_message)
+                for tool_call in tool_calls:
+                    function_name = tool_call.function.name
+                    if debug:
+                        logger.debug(f&#34;Tool call {function_name}&#34;)
+                    fun2call = fmap.get(function_name)
+                    if fun2call is None:
+                        ret[&#34;error&#34;] = f&#34;Unknown tooling function name: {function_name}&#34;
+                        ret[&#34;answer&#34;] = &#34;&#34;
+                        ret[&#34;ok&#34;] = False
+                        return ret
+                    function_args = json.loads(tool_call.function.arguments)
+                    try:
+                        if debug:
+                            logger.debug(f&#34;Calling {function_name} with args {function_args}&#34;)
+                        function_response = fun2call(**function_args)
+                        if debug:
+                            logger.debug(f&#34;Got response {function_response}&#34;)
+                    except Exception as e:
+                        tb = traceback.extract_tb(e.__traceback__)
+                        filename, lineno, funcname, text = tb[-1]
+                        if debug:
+                            logger.debug(f&#34;Function call got error {e}&#34;)
+                        ret[&#34;error&#34;] = f&#34;Error executing tool function {function_name}: {str(e)} in {filename}:{lineno} {funcname}&#34;
+                        if debug:
+                            logger.error(f&#34;Returning error: {e}&#34;)
+                        ret[&#34;answer&#34;] = &#34;&#34;
+                        ret[&#34;ok&#34;] = False
+                        return ret
+                    messages.append(
+                        dict(
+                            tool_call_id=tool_call.id, 
+                            role=&#34;tool&#34;, name=function_name, 
+                            content=json.dumps(function_response)))
+                # recursively call query
+                if debug:
+                    logger.debug(f&#34;Recursively calling query with messages:&#34;)
+                    for idx, msg in enumerate(messages):
+                        logger.debug(f&#34;Message {idx}: {msg}&#34;)
+                    logger.debug(f&#34;Recursively_call_info is {recursive_call_info}&#34;)
+                return self.query(
+                    llmalias, 
+                    messages, 
+                    tools=tools, 
+                    return_cost=return_cost, 
+                    return_response=return_response, 
+                    debug=debug, 
+                    litellm_debug=litellm_debug, 
+                    recursive_call_info=recursive_call_info,
+                    **kwargs)
+    except Exception as e:
+        logger.debug(f&#34;Exception in query from litellm: {e}&#34;)
+        tb = traceback.extract_tb(e.__traceback__)
+        filename, lineno, funcname, text = tb[-1]
+        ret[&#34;error&#34;] = str(e) + f&#34; in {filename}:{lineno} {funcname}&#34;
+        if debug:
+            logger.error(f&#34;Returning error: {e}&#34;)
+        ret[&#34;answer&#34;] = &#34;&#34;
+        ret[&#34;ok&#34;] = False
+    return ret</code></pre>
+</details>
+<div class="desc"><p>Query the specified LLM with the given messages.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>llmalias</code></strong></dt>
+<dd>the alias/name of the LLM to query</dd>
+<dt><strong><code>messages</code></strong></dt>
+<dd>a list of message dictionaries with role and content keys</dd>
+<dt><strong><code>tools</code></strong></dt>
+<dd>a list of tool dictionaries, each dictionary describing a tool.
+See <a href="https://docs.litellm.ai/docs/completion/function_call">https://docs.litellm.ai/docs/completion/function_call</a> for the format.
+However, this can be created using the <code>make_tooling</code> function.</dd>
+<dt><strong><code>return_cost</code></strong></dt>
+<dd>whether or not LLM invocation costs should get returned</dd>
+<dt><strong><code>return_response</code></strong></dt>
+<dd>whether or not the complete reponse should get returned</dd>
+<dt><strong><code>debug</code></strong></dt>
+<dd>if True, emits debug messages to aid development and debugging</dd>
+<dt><strong><code>litellm_debug</code></strong></dt>
+<dd>if True, litellm debug logging is enabled, if False, disabled, if None, use debug setting</dd>
+<dt><strong><code>stream</code></strong></dt>
+<dd>if True, the returned object contains the stream that can be iterated over. Streaming
+may not work for all models.</dd>
+<dt><strong><code>via_streaming</code></strong></dt>
+<dd>if True, ignores the stream parameters, the response data is retrieved internally via streaming.
+This may be useful if the non-streaming response keeps timing out.</dd>
+<dt><strong><code>recursive_call_info</code></strong></dt>
+<dd>internal use only</dd>
+<dt><strong><code>kwargs</code></strong></dt>
+<dd>any additional keyword arguments to pass on to the LLM </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A dictionary with keys answer and error and optionally cost-related keys and optionally
+the full original response. If there is an error, answer is the empty string and error contains the error,
+otherwise answer contains the response and error is the empty string.
+The boolean key "ok" is True if there is no error, False otherwise.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.set_model_attributes"><code class="name flex">
+<span>def <span class="ident">set_model_attributes</span></span>(<span>self,<br>llmalias: str,<br>input_cost_per_token: float,<br>output_cost_per_token: float,<br>input_cost_per_second: float,<br>max_prompt_tokens: int)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_model_attributes(
+        self, llmalias: str,
+        input_cost_per_token: float,
+        output_cost_per_token: float,
+        input_cost_per_second: float,
+        max_prompt_tokens: int,
+):
+    &#34;&#34;&#34;
+    Set or override the attributes for the given model.
+
+    NOTE: instead of using this method, the same parameters can alos
+    be set in the configuration file to be passed to the model invocation call.
+    &#34;&#34;&#34;
+    llmname = self.llms[llmalias][&#34;llm&#34;]
+    provider, model = llmname.split(&#34;/&#34;, 1)
+    litellm.register_model(
+        {
+            model: {
+                &#34;max_tokens&#34;: max_prompt_tokens,
+                &#34;output_cost_per_token&#34;: output_cost_per_token,
+                &#34;input_cost_per_token&#34;: input_cost_per_token,
+                &#34;input_cost_per_second&#34;: input_cost_per_second,
+                &#34;litellm_provider&#34;: provider,
+                &#34;mode&#34;: &#34;chat&#34;,
+            }
+        }
+    )</code></pre>
+</details>
+<div class="desc"><p>Set or override the attributes for the given model.</p>
+<p>NOTE: instead of using this method, the same parameters can alos
+be set in the configuration file to be passed to the model invocation call.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.supports_file_upload"><code class="name flex">
+<span>def <span class="ident">supports_file_upload</span></span>(<span>self, llmalias: str) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def supports_file_upload(self, llmalias: str) -&gt; bool:
+    &#34;&#34;&#34;
+    Check if the model supports file upload
+
+    NOTE: LiteLLM itself does not seem to support this, so we set this false by default and add specific
+    models or providers where we know it works.
+    &#34;&#34;&#34;
+    return False</code></pre>
+</details>
+<div class="desc"><p>Check if the model supports file upload</p>
+<p>NOTE: LiteLLM itself does not seem to support this, so we set this false by default and add specific
+models or providers where we know it works.</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.supports_function_calling"><code class="name flex">
+<span>def <span class="ident">supports_function_calling</span></span>(<span>self, llmalias: str, parallel=False) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def supports_function_calling(self, llmalias: str, parallel=False) -&gt; bool:
+    &#34;&#34;&#34;
+    Check if the model supports function calling
+    &#34;&#34;&#34;
+    if parallel:
+        return supports_parallel_function_calling(
+            model=self.llms[llmalias][&#34;llm&#34;],
+            )
+    return supports_function_calling(
+        model=self.llms[llmalias][&#34;llm&#34;],
+        custom_llm_provider=self.llms[llmalias].get(&#34;custom_provider&#34;))</code></pre>
+</details>
+<div class="desc"><p>Check if the model supports function calling</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.supports_json_schema"><code class="name flex">
+<span>def <span class="ident">supports_json_schema</span></span>(<span>self, llmalias: str) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def supports_json_schema(self, llmalias: str) -&gt; bool:
+    &#34;&#34;&#34;
+    Check if the model supports the json_schema parameter
+    &#34;&#34;&#34;
+    return supports_response_schema(model=self.llms[llmalias][&#34;llm&#34;],
+                                    custom_llm_provider=self.llms[llmalias].get(&#34;custom_provider&#34;))</code></pre>
+</details>
+<div class="desc"><p>Check if the model supports the json_schema parameter</p></div>
+</dd>
+<dt id="llms_wrapper.llms.LLMS.supports_response_format"><code class="name flex">
+<span>def <span class="ident">supports_response_format</span></span>(<span>self, llmalias: str) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def supports_response_format(self, llmalias: str) -&gt; bool:
+    &#34;&#34;&#34;
+    Check if the model supports the response format parameters. This usually just indicates support
+    for response_format &#34;json&#34;.
+    &#34;&#34;&#34;
+    params = get_supported_openai_params(model=self.llms[llmalias][&#34;llm&#34;],
+                                         custom_llm_provider=self.llms[llmalias].get(&#34;custom_provider&#34;))
+    ret = &#34;response_format&#34; in params
+    return ret</code></pre>
+</details>
+<div class="desc"><p>Check if the model supports the response format parameters. This usually just indicates support
+for response_format "json".</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="llms_wrapper" href="index.html">llms_wrapper</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="llms_wrapper.llms.any2message" href="#llms_wrapper.llms.any2message">any2message</a></code></li>
+<li><code><a title="llms_wrapper.llms.function2schema" href="#llms_wrapper.llms.function2schema">function2schema</a></code></li>
+<li><code><a title="llms_wrapper.llms.get_func_by_name" href="#llms_wrapper.llms.get_func_by_name">get_func_by_name</a></code></li>
+<li><code><a title="llms_wrapper.llms.ptype2schema" href="#llms_wrapper.llms.ptype2schema">ptype2schema</a></code></li>
+<li><code><a title="llms_wrapper.llms.toolnames2funcs" href="#llms_wrapper.llms.toolnames2funcs">toolnames2funcs</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="llms_wrapper.llms.LLM" href="#llms_wrapper.llms.LLM">LLM</a></code></h4>
+<ul class="">
+<li><code><a title="llms_wrapper.llms.LLM.cost" href="#llms_wrapper.llms.LLM.cost">cost</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.cost_per_token" href="#llms_wrapper.llms.LLM.cost_per_token">cost_per_token</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.count_tokens" href="#llms_wrapper.llms.LLM.count_tokens">count_tokens</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.elapsed" href="#llms_wrapper.llms.LLM.elapsed">elapsed</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.get" href="#llms_wrapper.llms.LLM.get">get</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.items" href="#llms_wrapper.llms.LLM.items">items</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.make_messages" href="#llms_wrapper.llms.LLM.make_messages">make_messages</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.max_input_tokens" href="#llms_wrapper.llms.LLM.max_input_tokens">max_input_tokens</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.max_output_tokens" href="#llms_wrapper.llms.LLM.max_output_tokens">max_output_tokens</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.query" href="#llms_wrapper.llms.LLM.query">query</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.set_model_attributes" href="#llms_wrapper.llms.LLM.set_model_attributes">set_model_attributes</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.supports_file_upload" href="#llms_wrapper.llms.LLM.supports_file_upload">supports_file_upload</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.supports_function_calling" href="#llms_wrapper.llms.LLM.supports_function_calling">supports_function_calling</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.supports_json_schema" href="#llms_wrapper.llms.LLM.supports_json_schema">supports_json_schema</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLM.supports_response_format" href="#llms_wrapper.llms.LLM.supports_response_format">supports_response_format</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="llms_wrapper.llms.LLMS" href="#llms_wrapper.llms.LLMS">LLMS</a></code></h4>
+<ul class="">
+<li><code><a title="llms_wrapper.llms.LLMS.cost" href="#llms_wrapper.llms.LLMS.cost">cost</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.cost_per_token" href="#llms_wrapper.llms.LLMS.cost_per_token">cost_per_token</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.count_tokens" href="#llms_wrapper.llms.LLMS.count_tokens">count_tokens</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.default_max_tokens" href="#llms_wrapper.llms.LLMS.default_max_tokens">default_max_tokens</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.elapsed" href="#llms_wrapper.llms.LLMS.elapsed">elapsed</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.get" href="#llms_wrapper.llms.LLMS.get">get</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.get_llm_info" href="#llms_wrapper.llms.LLMS.get_llm_info">get_llm_info</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.known_models" href="#llms_wrapper.llms.LLMS.known_models">known_models</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.list_aliases" href="#llms_wrapper.llms.LLMS.list_aliases">list_aliases</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.list_models" href="#llms_wrapper.llms.LLMS.list_models">list_models</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.make_messages" href="#llms_wrapper.llms.LLMS.make_messages">make_messages</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.make_tooling" href="#llms_wrapper.llms.LLMS.make_tooling">make_tooling</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.max_input_tokens" href="#llms_wrapper.llms.LLMS.max_input_tokens">max_input_tokens</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.max_output_tokens" href="#llms_wrapper.llms.LLMS.max_output_tokens">max_output_tokens</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.query" href="#llms_wrapper.llms.LLMS.query">query</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.set_model_attributes" href="#llms_wrapper.llms.LLMS.set_model_attributes">set_model_attributes</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.supports_file_upload" href="#llms_wrapper.llms.LLMS.supports_file_upload">supports_file_upload</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.supports_function_calling" href="#llms_wrapper.llms.LLMS.supports_function_calling">supports_function_calling</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.supports_json_schema" href="#llms_wrapper.llms.LLMS.supports_json_schema">supports_json_schema</a></code></li>
+<li><code><a title="llms_wrapper.llms.LLMS.supports_response_format" href="#llms_wrapper.llms.LLMS.supports_response_format">supports_response_format</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

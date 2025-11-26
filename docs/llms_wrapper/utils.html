@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>llms_wrapper.utils API documentation</title>
+<meta name="description" content="Module for various utility functions.">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>llms_wrapper.utils</code></h1>
+</header>
+<section id="section-intro">
+<p>Module for various utility functions.</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="llms_wrapper.utils.check_prompts"><code class="name flex">
+<span>def <span class="ident">check_prompts</span></span>(<span>pdict: Dict)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def check_prompts(pdict: Dict):
+    &#34;&#34;&#34;
+    Check the content of a prompts dictionary: each key is assumed to be a pid and the value is either a prompt represented
+    as a dict (mapping role names to content strings/templates) or a list representing a standard message list
+    (each dict in the list has the keys &#34;role&#34; and &#34;content&#34;).
+
+    If the value is a dict we make sure the pid is part of the dict and matches the key.
+    &#34;&#34;&#34;
+    for pid, prompt in pdict.items():
+        if isinstance(prompt, dict):
+            if &#34;pid&#34; not in prompt:
+                prompt[&#34;pid&#34;] = pid
+            if pid != prompt[&#34;pid&#34;]:
+                logger.error(&#34;Prompt pid does not match key in prompts dictionary&#34;)
+                sys.exit(1)
+        elif isinstance(prompt, list):
+            pass # we assume this is a standard message list
+        elif isinstance(prompt, str):
+            # convert the string to a prompt dict with role user and the string being the content
+            # TODO: this probably cannot be done while we are iterating over the dictionary!!!
+            pdict[pid] = {&#34;user&#34;: prompt}
+        else:
+            logger.error(f&#34;Invalid prompt format, prompt for pid {pid} is neither a dict nor a list but {type(prompt)}&#34;)
+            sys.exit(1)</code></pre>
+</details>
+<div class="desc"><p>Check the content of a prompts dictionary: each key is assumed to be a pid and the value is either a prompt represented
+as a dict (mapping role names to content strings/templates) or a list representing a standard message list
+(each dict in the list has the keys "role" and "content").</p>
+<p>If the value is a dict we make sure the pid is part of the dict and matches the key.</p></div>
+</dd>
+<dt id="llms_wrapper.utils.dict_except"><code class="name flex">
+<span>def <span class="ident">dict_except</span></span>(<span>d: dict, keys, ignore_underscored=True)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dict_except(d: dict, keys, ignore_underscored=True):
+    &#34;&#34;&#34;
+    Return a copy of the dict d, except for the keys in the list keys.
+    &#34;&#34;&#34;
+    if isinstance(keys, str):
+        keys = [keys]
+    if ignore_underscored:
+        keys = [k for k in d.keys() if k.startswith(&#34;_&#34;)] + keys
+    return {k: v for k, v in d.items() if k not in keys}</code></pre>
+</details>
+<div class="desc"><p>Return a copy of the dict d, except for the keys in the list keys.</p></div>
+</dd>
+<dt id="llms_wrapper.utils.load_prompts"><code class="name flex">
+<span>def <span class="ident">load_prompts</span></span>(<span>fname: str, as_messages=False) ‑> Dict</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_prompts(fname: str, as_messages=False) -&gt; Dict:
+    &#34;&#34;&#34;
+    Load prompts from a json or hjson file and return a dictionary mapping pids to prompts.
+    The following structures are supported:
+    * a list of dictionaries, where each dictionary maps role names to content strings/templates and also has
+      a pid key. If the pid key is missing the string representation of the index is used as the pid.
+    * a dictionary mapping pids to dictionaries, where each dictionary maps role names to content strings/templates.
+      The pid key is optional, if it is missing the key of the dictionary is used as the pid and added to the prompt
+      dictionary.
+    * a dictionary mapping pids to a standard list of messages, each message is a dict with the keys &#34;role&#34; and &#34;content&#34;.
+
+    If the as_messages flag is set to True, the prompts are returned as a dict where the key is the pid and each
+    prompt is represented in standard message list format. Otherwise the prompts are returned as a dict where the key
+    is the pid and each prompt is a dict mapping role names to content strings/templates.
+    &#34;&#34;&#34;
+    if fname.endswith(&#34;.json&#34;):
+        import json
+        with open(fname, &#34;r&#34;) as f:
+            prompts = json.load(f)
+    elif fname.endswith(&#34;.hjson&#34;):
+        import hjson
+        with open(fname, &#34;r&#34;) as f:
+            prompts = hjson.load(f)
+    else:
+        logger.error(&#34;Prompts file must be in json or hjson format&#34;)
+        sys.exit(1)
+    # if prompts is a dict and has a top-level key &#34;prompts&#34;, we use the value of this key as the prompts
+    if isinstance(prompts, dict) and &#34;prompts&#34; in prompts:
+        prompts = prompts[&#34;prompts&#34;]
+
+    # the content should be either a list of prompts as a dictionary or a dictionary mapping pids to prompts
+    # if it is a list, we convert it to a dictionary mapping pids to prompts and require every dict to contain a pid,
+    # if it is a dict, we make sure every prompt gets the pid from the key or has already a pid that is identical to
+    # the key
+    if isinstance(prompts, list):
+        prompts = promptlist2dict(prompts)
+    elif isinstance(prompts, dict):
+        check_prompts(prompts)
+    else:
+        logger.error(&#34;Prompts file must contain a list of prompts or a dictionary mapping pids to prompts&#34;)
+        sys.exit(1)
+    if as_messages:
+        prompts = prompts_as_messages(prompts)
+    return prompts</code></pre>
+</details>
+<div class="desc"><p>Load prompts from a json or hjson file and return a dictionary mapping pids to prompts.
+The following structures are supported:
+* a list of dictionaries, where each dictionary maps role names to content strings/templates and also has
+a pid key. If the pid key is missing the string representation of the index is used as the pid.
+* a dictionary mapping pids to dictionaries, where each dictionary maps role names to content strings/templates.
+The pid key is optional, if it is missing the key of the dictionary is used as the pid and added to the prompt
+dictionary.
+* a dictionary mapping pids to a standard list of messages, each message is a dict with the keys "role" and "content".</p>
+<p>If the as_messages flag is set to True, the prompts are returned as a dict where the key is the pid and each
+prompt is represented in standard message list format. Otherwise the prompts are returned as a dict where the key
+is the pid and each prompt is a dict mapping role names to content strings/templates.</p></div>
+</dd>
+<dt id="llms_wrapper.utils.pp_config"><code class="name flex">
+<span>def <span class="ident">pp_config</span></span>(<span>config)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pp_config(config):
+    &#34;&#34;&#34;
+    Pretty print the config dict
+    &#34;&#34;&#34;
+    return json.dumps(config, indent=4, sort_keys=True)</code></pre>
+</details>
+<div class="desc"><p>Pretty print the config dict</p></div>
+</dd>
+<dt id="llms_wrapper.utils.promptlist2dict"><code class="name flex">
+<span>def <span class="ident">promptlist2dict</span></span>(<span>plist: List[dict]) ‑> Dict</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def promptlist2dict(plist: List[dict]) -&gt; Dict:
+    new_prompts = {}
+    for prompt in plist:
+        if &#34;pid&#34; not in prompt:
+            logger.error(&#34;Prompt does not contain a pid&#34;)
+            sys.exit(1)
+        if prompt[&#34;pid&#34;] in new_prompts:
+            logger.error(f&#34;Duplicate pid {prompt[&#39;pid&#39;]} in prompts&#34;)
+            sys.exit(1)
+        new_prompts[prompt[&#34;pid&#34;]] = prompt
+    return new_prompts</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="llms_wrapper.utils.prompts_as_messages"><code class="name flex">
+<span>def <span class="ident">prompts_as_messages</span></span>(<span>prompts: Dict) ‑> Dict</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def prompts_as_messages(prompts: Dict) -&gt; Dict:
+    &#34;&#34;&#34;
+    Convert a list of prompts represented by dicts mapping roles to content, or a dict of prompts where each
+    value is a dict mapping roles to content to a dict of prompts where each value is a standard list of messages.
+    If the prompts are already in message list format, they are returned unchanged.
+
+    :param prompts:
+    :return:
+    &#34;&#34;&#34;
+    # check if the prompts are already in dict format, if not convert to dict. If the prompt dict does not
+    # contain a pid, we use the string representation of the index as the pid
+    if isinstance(prompts, list):
+        # convert the list of prompts to a dict
+        prompts = promptlist2dict(prompts)
+    # now convert each prompt to message list format, if necessary
+    ret = {}
+    for pid, prompt in prompts.items():
+        if isinstance(prompt, dict):
+            # convert the prompt to a message list
+            ret[pid] = [{&#34;role&#34;: role, &#34;content&#34;: content} for role, content in prompt.items() if role != &#34;pid&#34;]
+        elif isinstance(prompt, list):
+            # we assume this is already in message list format
+            ret[pid] = prompt
+        else:
+            logger.error(f&#34;Invalid prompt format, prompt for pid {pid} is neither a dict nor a list but {type(prompt)}&#34;)
+            sys.exit(1)
+    return ret</code></pre>
+</details>
+<div class="desc"><p>Convert a list of prompts represented by dicts mapping roles to content, or a dict of prompts where each
+value is a dict mapping roles to content to a dict of prompts where each value is a standard list of messages.
+If the prompts are already in message list format, they are returned unchanged.</p>
+<p>:param prompts:
+:return:</p></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="llms_wrapper" href="index.html">llms_wrapper</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="llms_wrapper.utils.check_prompts" href="#llms_wrapper.utils.check_prompts">check_prompts</a></code></li>
+<li><code><a title="llms_wrapper.utils.dict_except" href="#llms_wrapper.utils.dict_except">dict_except</a></code></li>
+<li><code><a title="llms_wrapper.utils.load_prompts" href="#llms_wrapper.utils.load_prompts">load_prompts</a></code></li>
+<li><code><a title="llms_wrapper.utils.pp_config" href="#llms_wrapper.utils.pp_config">pp_config</a></code></li>
+<li><code><a title="llms_wrapper.utils.promptlist2dict" href="#llms_wrapper.utils.promptlist2dict">promptlist2dict</a></code></li>
+<li><code><a title="llms_wrapper.utils.prompts_as_messages" href="#llms_wrapper.utils.prompts_as_messages">prompts_as_messages</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>
