@@ -15,6 +15,6 @@ This documentation contains the following sections:
 * [Usage](usage)
 * [Python Docs](pythondoc/llms_wrapper)
 
-LLMs currently supported: support is based on [LiteLLM](https://github.com/BerriAI/litellm) which supports the following [providers](https://docs.litellm.ai/docs/providers/)
+LLMs currently supported: all [providers](https://docs.litellm.ai/docs/providers/) supported by [LiteLLM](https://github.com/BerriAI/litellm).
 
 
