@@ -1,4 +1,100 @@
 [build-system]
-requires = ["setuptools >= 64"]
+# Use 'hatchling' or 'setuptools' for the build backend. 
+# We'll stick with setuptools as you had it, but define the metadata in pyproject.toml
+# You could easily switch to hatchling or flit here.
+requires = ["setuptools>=64.0.0", "setuptools_scm>=8"] # setuptools_scm is good practice for versioning
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "llms-wrapper"
+version = "0.0.0" # This will be managed by setuptools_scm or your existing version.py
+description = "Package for simple usage of diverse LLMs and configuring them using human readable config files"
+readme = "README.md"
+authors = [
+    { name = "Johann Petrak", email = "johann.petrak@gmail.com" },
+]
+license = { text = "Apache Software License" }
+requires-python = ">=3.11"
+# The 'dependencies' section lists your core requirements (REQUIREMENTS_DEFAULT)
+# The full list of dependencies is moved to requirements.txt (see section 2) for better uv integration
+# However, for an installable package, this must be defined here for pip/uv install -e .
+dependencies = [
+    "litellm",
+    "tenacity",
+    "hjson",
+    "loguru",
+    "docstring_parser",
+]
+
+# This is where your optional dependency groups (extras_require) are defined.
+[project.optional-dependencies]
+# Note: You can keep 'all' if you want, but it's often better to let users combine the groups.
+dev = [
+    "pdoc3",
+    "pytest",
+    "pytest-cov",
+    "ipython",
+    "jupyter",
+    "jupyterlab",
+    "ipykernel",
+    "notebook",
+]
+webchat = [
+    "pyperclip",
+    "python-fasthtml",
+]
+phoenix = [
+    "openinference-instrumentation-litellm",
+    "arize-phoenix-otel",
+]
+all = [
+    # Include all other optional dependencies here, similar to your setup.py
+    "llms-wrapper[dev,webchat,phoenix]",
+]
+
+[project.urls]
+# Documentation = "" # Uncomment and fill if needed
+# Source = "" # Uncomment and fill if needed
+
+[project.scripts]
+# entry_points={"console_scripts": [...] } is moved here
+llms_wrapper_test = "llms_wrapper.llms_wrapper_test:main"
+llms_wrapper_llminfo = "llms_wrapper.llms_wrapper_llminfo:main"
+llms_wrapper_webchat = "llms_wrapper.llms_wrapper_webchat:main"
+
+[project.classifiers]
+# Classifiers from setup.py
+dynamic = ["classifiers"]
+# Use dynamic if you want to pull from setuptools_scm or other plugins
+# Otherwise, manually list:
+# classifiers = [
+#     "Development Status :: 4 - Beta",
+#     "License :: OSI Approved :: Apache Software License",
+#     "Programming Language :: Python :: 3.11",
+#     # ... other classifiers
+# ]
+
+
+# Tool-specific configuration sections
+# ---
+[tool.setuptools]
+# Instead of `packages=find_packages()`, you use `packages = ["llms_wrapper"]` 
+# or configure setuptools to find them
+packages = ["llms_wrapper"]
+
+# [tool.setuptools.dynamic]
+# version = {attr = "llms_wrapper.version.__version__"} 
+# Use this if you want to read version from version.py as you did before
+# Alternatively, use setuptools_scm for Git-based versioning (recommended).
+
+[tool.pytest.ini_options]
+# Configuration from setup.cfg
+log_cli = true
+log_cli_level = "WARN"
+addopts = "-r A"
+norecursedirs = [
+    "dist",
+    "build",
+    "docs",
+    "examples",
+]
