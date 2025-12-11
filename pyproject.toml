@@ -25,6 +25,7 @@ dependencies = [
     "hjson",
     "loguru",
     "docstring_parser",
+    "python-dotenv",
 ]
 
 [project.optional-dependencies]

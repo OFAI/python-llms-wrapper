@@ -724,6 +724,8 @@ get replaced, if possible, with the value of the variable varname in the vars di
         project name (so far this only works for local phoenix instances). Default URI for a local installation
         is &#34;http://0.0.0.0:6006/v1/traces&#34;
         &#34;&#34;&#34;
+        # before anything, make sure we have loaded any dotenv file to override any env var settings for the api keys
+        load_dotenv(override=True)
         if config is None:
             config = dict(llms=[])
         self.config = deepcopy(config)

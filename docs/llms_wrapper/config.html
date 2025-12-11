@@ -98,6 +98,7 @@ one of the following formats: json, hjson, yaml, toml. This module only cares ab
         A dict with the configuration
     &#34;&#34;&#34;
     # read config file as json, yaml or toml, depending on file extension
+    load_dotenv(override=True)
     if filepath.endswith(&#34;.json&#34;):
         with open(filepath, &#39;r&#39;) as f:
             config = json.load(f)
@@ -229,6 +230,7 @@ The same is true for the "providers" field.</p>
     Returns:
         the updated configuration dict
     &#34;&#34;&#34;
+    load_dotenv(override=True)
     for i, llm in enumerate(config[&#34;llms&#34;]):
         if isinstance(llm, str):
             provider, model = llm.split(&#34;/&#34;)

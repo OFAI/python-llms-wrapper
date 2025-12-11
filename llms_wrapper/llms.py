@@ -12,6 +12,7 @@ import time
 import traceback
 import inspect
 import docstring_parser
+from dotenv import load_dotenv
 from loguru import logger
 import typing
 from typing import Optional, Dict, List, Union, Tuple, Callable, get_args, get_origin
@@ -292,6 +293,8 @@ class LLMS:
         project name (so far this only works for local phoenix instances). Default URI for a local installation
         is "http://0.0.0.0:6006/v1/traces"
         """
+        # before anything, make sure we have loaded any dotenv file to override any env var settings for the api keys
+        load_dotenv(override=True)
         if config is None:
             config = dict(llms=[])
         self.config = deepcopy(config)

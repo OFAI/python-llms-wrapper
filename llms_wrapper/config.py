@@ -20,6 +20,7 @@ import yaml
 import hjson
 import tomllib
 import re
+from dotenv import load_dotenv
 
 ## Suppress the annoying litellm warning
 with warnings.catch_warnings():
@@ -69,6 +70,7 @@ def read_config_file(filepath: str, update: bool = True) -> dict:
         A dict with the configuration
     """
     # read config file as json, yaml or toml, depending on file extension
+    load_dotenv(override=True)
     if filepath.endswith(".json"):
         with open(filepath, 'r') as f:
             config = json.load(f)
@@ -148,6 +150,7 @@ def update_llm_config(config: dict):
     Returns:
         the updated configuration dict
     """
+    load_dotenv(override=True)
     for i, llm in enumerate(config["llms"]):
         if isinstance(llm, str):
             provider, model = llm.split("/")
