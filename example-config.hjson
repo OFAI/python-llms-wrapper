@@ -1,15 +1,23 @@
-# api_url: "http://localhost:11434/api/models/gpt-oss:20b"
 {
   llms:
-  [ {
-      llm: "ollama/gpt-oss:20b" 
-      api_base: "http://localhost:11434"
-      alias: local1
+  [
+    {
+      llm: openai/gpt-5
+      api_key_env: MY_OPENAI_API_KEY
+      alias: gpt5
+      temperature: 1
     }
     {
-      llm: "openai/gpt-oss-20b" 
-      api_base: "http://localhost:1234/v1" 
-      alias: local2
+      llm: openai/gpt-5-mini
+      api_key_env: MY_OPENAI_API_KEY
+      alias: gpt5mini
+      temperature: 1
+    }
+    {
+      llm: openai/gpt-5-nano
+      api_key_env: MY_OPENAI_API_KEY
+      alias: gpt5nano
+      temperature: 1
     }
     {
       llm: openai/gpt-4.1
@@ -64,6 +72,7 @@
       api_key_env: MY_MISTRAL_API_KEY
       alias: mistral-large
       temperature: 0
+      via_streaming: true
     }  
     {
       llm: anthropic/claude-sonnet-4-20250514
@@ -107,6 +116,16 @@
       alias: llama33_70b
       temperature: 0
     }
+    {
+      llm: "ollama/gpt-oss:20b"
+      api_base: "http://localhost:11434"
+      alias: local1
+    }
+    {
+      llm: "openai/gpt-oss-20b"
+      api_base: "http://localhost:1234/v1"
+      alias: local2
+    }
   ]
-  use_llm: local2
+  use_llm: gemini25pro
 }
