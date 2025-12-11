@@ -1,7 +1,5 @@
 # python-llms-wrapper
 
-**IMPORTANT** This is still work in progress! API may change and documentation is still work in progress!
-
 The `llms_wrapper` Python package is an opinionated library based on the excellent 
 [`litelmm`](https://github.com/BerriAI/litellm) package to simplify using diverse
 LLMs from many different providers. 
