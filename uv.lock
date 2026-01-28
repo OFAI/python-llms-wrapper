@@ -1658,10 +1658,12 @@ wheels = [
 name = "llms-wrapper"
 source = { editable = "." }
 dependencies = [
+    { name = "arize-phoenix-otel" },
     { name = "docstring-parser" },
     { name = "hjson" },
     { name = "litellm" },
     { name = "loguru" },
+    { name = "openinference-instrumentation-litellm" },
     { name = "python-dotenv" },
     { name = "tenacity" },
 ]
@@ -1702,6 +1704,7 @@ webchat = [
 
 [package.metadata]
 requires-dist = [
+    { name = "arize-phoenix-otel" },
     { name = "arize-phoenix-otel", marker = "extra == 'phoenix'" },
     { name = "docstring-parser" },
     { name = "hjson" },
@@ -1713,6 +1716,7 @@ requires-dist = [
     { name = "llms-wrapper", extras = ["dev", "phoenix", "webchat"], marker = "extra == 'all'" },
     { name = "loguru" },
     { name = "notebook", marker = "extra == 'dev'" },
+    { name = "openinference-instrumentation-litellm" },
     { name = "openinference-instrumentation-litellm", marker = "extra == 'phoenix'" },
     { name = "pdoc3", marker = "extra == 'dev'" },
     { name = "pyperclip", marker = "extra == 'webchat'" },

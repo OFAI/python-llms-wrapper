@@ -26,6 +26,8 @@ dependencies = [
     "loguru",
     "docstring_parser",
     "python-dotenv",
+    "arize-phoenix-otel",
+    "openinference-instrumentation-litellm",
 ]
 
 [project.optional-dependencies]

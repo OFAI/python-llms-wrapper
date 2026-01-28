@@ -1,7 +1,7 @@
 """
 Module related to using LLMs.
 """
-import os
+import os, sys
 import warnings
 # TODO: Remove after https://github.com/BerriAI/litellm/issues/7560 is fixed
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic._internal._config")
@@ -9,6 +9,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 import litellm
 import json
 import time
+import threading
 import traceback
 import inspect
 import docstring_parser
@@ -18,7 +19,7 @@ import typing
 from typing import Optional, Dict, List, Union, Tuple, Callable, get_args, get_origin
 from copy import deepcopy
 
-from litellm import completion, completion_cost, token_counter
+from litellm import completion, completion_cost, token_counter, cost_per_token
 from litellm.utils import get_model_info, get_supported_openai_params, supports_response_schema
 from litellm.utils import supports_function_calling, supports_parallel_function_calling
 from litellm._logging import _enable_debugging as litellm_enable_debugging
@@ -740,12 +741,14 @@ class LLMS:
         if via_streaming:
             # TODO: check if model supports streaming
             completion_kwargs["stream"] = True
+            completion_kwargs["stream_options"] = {"include_usage": True}
             logger.debug(f"completion kwargs after detecting via_streaming: {cleaned_args(completion_kwargs)}")
         elif stream:
             # TODO: check if model supports streaming
             # if streaming is enabled, we always return the original response
             return_response = True
             completion_kwargs["stream"] = True
+            completion_kwargs["stream_options"] = {"include_usage": True}
             logger.debug(f"completion kwargs after detecting stream: {cleaned_args(completion_kwargs)}")
         ret = {}
         # before adding the kwargs, save the recursive_call_info and remove it from kwargs
@@ -773,6 +776,20 @@ class LLMS:
             else:
                 start = time.time()
                 recursive_call_info["start"] = start
+            callback_data = {}
+            # NOTE: this does not seem to work!?!?!?
+            callback_complete = threading.Event()
+            def cost_callback(kwargs, completion_response, start_time, end_time):
+                cost = kwargs.get("response_cost")
+                if cost is not None:
+                    callback_data["cost"] = cost
+                    callback_complete.set()
+                if hasattr(completion_response, "usage"):
+                    callback_data["prompt_tokens"] = completion_response.usage.prompt_tokens
+                    callback_data["completion_tokens"] = completion_response.usage.completion_tokens
+                    callback_data["total_tokens"] = completion_response.usage.prompt_tokens + completion_response.usage.completion_tokens
+            litellm.success_callback = [cost_callback]
+            logger.info(f"completion kwargs: {completion_kwargs}")
             response = litellm.completion(
                 model=llm["llm"],
                 messages=messages,
@@ -786,14 +803,27 @@ class LLMS:
                     logger.debug(f"Retrieving chunks ...")
                     n_chunks = 0
                     for chunk in response:
-                        choice0 = chunk["choices"][0]
+                        # TODO: this should work, but does not!!!!
+                        if hasattr(chunk, "usage"):
+                            if chunk.usage:
+                                prompt_cost, completion_cost_value = cost_per_token(
+                                    model=llm["llm"],
+                                    prompt_tokens=chunk.usage.prompt_tokens,
+                                    completion_tokens=chunk.usage.completion_tokens
+                                )
+                                cost = prompt_cost + completion_cost_value
+                        else:
+                            pass
+                            # logger.info(f"!!!!DEBUG: chunk attributes: {dir(chunk)}")
+                        choice0 = chunk.choices[0]
                         if choice0.finish_reason == "stop":
                             logger.debug(f"Streaming got stop. Chunk {chunk}")
-                            break
+                            # break
                         n_chunks += 1
                         content = choice0["delta"].get("content", "")
                         logger.debug(f"Got streaming content: {content}")
-                        answer += content
+                        if isinstance(content, str):
+                            answer += content
                     if return_response:
                         ret["response"] = response
                     ret["answer"] = answer
@@ -801,10 +831,12 @@ class LLMS:
                     ret["elapsed_time"] = time.time() - start
                     ret["ok"] = True
                     ret["error"] = ""
-                    # TODO: for now return 0, may perhaps be possible to do better?
-                    ret["cost"] = 0
-                    ret["n_prompt_tokens"] = 0
-                    ret["n_completion_tokens"] = 0
+                    # get the cost from the callback
+                    if not callback_complete.is_set():
+                        callback_complete.wait(timeout=2.0)
+                    ret["cost"] = callback_data.get("cost")
+                    ret["n_prompt_tokens"] = callback_data.get("prompt_tokens")
+                    ret["n_completion_tokens"] = callback_data.get("completion_tokens")
                     return ret
                 except Exception as e:
                     tb = traceback.extract_tb(e.__traceback__)
@@ -827,12 +859,14 @@ class LLMS:
                     except Exception as e:
                         yield dict(error=str(e), answer="", ok=False)
                     finally:
-                        # TODO: add cost and elapsed time information into retobj
-                        # litellm does not support cost on streaming responses
-                        # response.__hidden_params["response_cost"] is 0.0
-                        ret["cost"] = None
+                        # get the cost from the callback
+                        if not callback_complete.is_set():
+                            logger.info(f"Waiting for callback completion")
+                            callback_complete.wait(timeout=2.0)
+                        ret["cost"] = callback_data.get("cost")
+                        ret["n_prompt_tokens"] = callback_data.get("prompt_tokens")
+                        ret["n_completion_tokens"] = callback_data.get("completion_tokens")
                         ret["elapsed_time"] = time.time() - start
-                        pass
                 if return_response:
                     ret["response"] = response
                 ret["chunks"] = chunk_generator(response, ret)
@@ -851,15 +885,20 @@ class LLMS:
                     del completion_kwargs["api_key"]
                 ret["kwargs"] = completion_kwargs
             if return_cost:
-                # TODO: replace with response._hidden_params["response_cost"] ? 
-                #     but what if cost not supported for the model?
-                
                 try:
-                    ret["cost"] = completion_cost(
-                        completion_response=response,
-                        model=llm["llm"],
-                        messages=messages,
-                    )
+                    cost = response._hidden_params.get("response_cost", None)
+                    logger.info(f"DEBUG: cost from hidden parms: {cost}")
+                    # if cost is None:
+                    if True:
+                        cost = completion_cost(
+                            completion_response=response,
+                            model=llm["llm"],
+                            messages=messages,
+                        )
+                        ret["cost"] = cost
+                        logger.info(f"DEBUG: cost from completion_cost: {cost}")
+                    else:
+                        ret["cost"] = cost
                     if debug:
                         logger.debug(f"Cost for this call {ret['cost']}")
                 except Exception as e:
