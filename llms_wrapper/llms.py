@@ -47,6 +47,7 @@ KNOWN_LLM_CONFIG_FIELDS = [
     "max_input_tokens",
     "use_phoenix",
     "via_streaming",
+    "max_recursive_calls",
     "min_delay",   # minimum delay between queries for that model
 ]
 
@@ -649,7 +650,8 @@ class LLMS:
             litellm_debug=None,
             stream=False,
             via_streaming=False,
-            recursive_call_info: Optional[Dict[str, any]] = None,
+            max_recursive_calls=99,
+            recursive_call_info: Optional[Dict[str, any]] = None,            
             **kwargs,
     ) -> Dict[str, any]:
         """
@@ -715,7 +717,7 @@ class LLMS:
         logger.debug(f"Options: via_streaming: {via_streaming}, stream: {stream}")
         logger.debug(f"Initial completion kwargs: {cleaned_args(completion_kwargs)}")
         if recursive_call_info is None:
-            recursive_call_info = {}            
+            recursive_call_info = dict(n_calls=0)
         if llm.get("api_key"):
             completion_kwargs["api_key"] = llm["api_key"]
         elif llm.get("api_key_env"):
@@ -953,8 +955,18 @@ class LLMS:
                 if len(tool_calls) > 0:   # not an empty list
                     if debug:
                         logger.debug(f"Appending response message: {response_message}")
+                    skip_tools = False
+                    if recursive_call_info["n_calls"] > max_recursive_calls:
+                        skip_tools = True
                     messages.append(response_message)
                     for tool_call in tool_calls:
+                        if skip_tools:
+                            messages.append(
+                                dict(
+                                    tool_call_id=tool_call.id, 
+                                    role="tool", name=function_name, 
+                                    content=f"ERROR: maximum number of tool calls ({max_recursive_calls}) exceeded!"))
+                            continue
                         function_name = tool_call.function.name
                         if debug:
                             logger.debug(f"Tool call {function_name}")
