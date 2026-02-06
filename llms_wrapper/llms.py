@@ -26,6 +26,7 @@ from litellm._logging import _enable_debugging as litellm_enable_debugging
 from litellm._logging import _disable_debugging as litellm_disable_debugging
 from llms_wrapper.utils import dict_except
 from llms_wrapper.model_list import model_list
+from llms_wrapper.cost_logger import Log2Sqlite
 
 # roles to consider in messages for replacing variables in the content
 ROLES = ["user", "assistant", "system"]
@@ -287,9 +288,19 @@ class LLMS:
     Class that represents a preconfigured set of large language modelservices.
     """
 
-    def __init__(self, config: Dict = None, debug: bool = False, use_phoenix: Optional[Union[str | Tuple[str, str]]] = None):
+    def __init__(
+            self,
+            config: Dict = None,
+            debug: bool = False,
+            cost_db_path: str = None,
+            cost_db_defaults: Dict = None,
+            use_phoenix: Optional[Union[str | Tuple[str, str]]] = None):
         """
         Initialize the LLMS object with the given configuration.
+
+        cost_db_path is the file path to where all costs get logged.
+
+        cost_db_defaults as a dictionary with any of the keys: project, task, note to use for cost logging.
 
         Use phoenix is either None or the URI of the phoenix endpoing or a tuple with the URI and the
         project name (so far this only works for local phoenix instances). Default URI for a local installation
@@ -299,7 +310,20 @@ class LLMS:
         load_dotenv(override=True)
         if config is None:
             config = dict(llms=[])
+
         self.config = deepcopy(config)
+        # get the cost_db_path and cost_db_defaults from the config if not specified via the parameter
+        # also remove from config
+        self.cost_db_path = cost_db_path if cost_db_path else self.config.get("cost_db_path")
+        self.cost_db_defaults = cost_db_defaults if cost_db_defaults else self.config.get("cost_db_defaults")
+        if "cost_db_path" in self.config:
+            del self.config["cost_db_path"]
+        if "cost_db_defaults" in self.config:
+            del self.config["cost_db_defaults"]
+        self.cost_logger = None
+        if self.cost_db_path:
+            self.cost_logger = Log2Sqlite(self.cost_db_path, **self.cost_db_defaults)
+
         self.debug = debug
         if not use_phoenix and config.get("use_phoenix"):
             use_phoenix = config["use_phoenix"]
@@ -839,6 +863,7 @@ class LLMS:
                     ret["cost"] = callback_data.get("cost")
                     ret["n_prompt_tokens"] = callback_data.get("prompt_tokens")
                     ret["n_completion_tokens"] = callback_data.get("completion_tokens")
+                    self.cost_logger.log(dict(cost=ret["cost"], input_tokens=ret["input_tokens"], output_tokens=ret["output_tokens"]))
                     return ret
                 except Exception as e:
                     tb = traceback.extract_tb(e.__traceback__)
@@ -912,6 +937,7 @@ class LLMS:
                 ret["n_completion_tokens"] = usage.completion_tokens
                 ret["n_prompt_tokens"] = usage.prompt_tokens
                 ret["n_total_tokens"] = usage.total_tokens
+                self.cost_logger.log(dict(cost=ret["cost"], input_tokens=ret["n_prompt_tokens"], output_tokens=ret["n_completion_tokens"]))
                 # add the cost and tokens from the recursive call info, if available
                 if recursive_call_info.get("cost") is not None:
                     ret["cost"] += recursive_call_info["cost"]
