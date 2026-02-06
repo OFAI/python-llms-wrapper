@@ -28,6 +28,12 @@ dependencies = [
     "python-dotenv",
     "arize-phoenix-otel",
     "openinference-instrumentation-litellm",
+    # make sure to avoid indirect dependencies with security issues
+    "python-multipart>=0.0.22",
+    "urllib3>=2.6.3",
+    "protobuf>=6.33.5",
+    "aiohttp>=3.13.3",
+    "filelock>=3.20.3",
 ]
 
 [project.optional-dependencies]
