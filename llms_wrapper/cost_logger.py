@@ -10,6 +10,7 @@ import json
 import socket
 import getpass
 import datetime
+import argparse
 
 
 def get_username() -> str:
@@ -526,33 +527,126 @@ class Log2Sqlite:
         except Exception as e:
             raise Exception(f"Failed to get output_tokens sum: {e}") from e
 
+    def stats(self) -> dict:
+        """
+        Generate summary statistics over the entire table.
+        Includes rows with NULL values using 'NULL' as the key.
+
+        Returns:
+            Dictionary with three top-level keys:
+            - 'by_user': {user: {modelalias: cost, ...}, ...}
+            - 'by_project': {project: {modelalias: cost, ...}, ...}
+            - 'by_user_project': {"user / project": {modelalias: cost, ...}, ...}
+
+            NULL values are represented as 'NULL' in the dictionary keys.
+
+        Raises:
+            Exception: If query fails
+        """
+        try:
+            conn = sqlite3.connect(self.db_path, timeout=5.0)
+            try:
+                result = {
+                    'by_user': {},
+                    'by_project': {},
+                    'by_user_project': {}
+                }
+
+                # Get cost by user and modelalias
+                cursor = conn.execute('''
+                    SELECT user, modelalias, SUM(cost) as total_cost
+                    FROM logs
+                    GROUP BY user, modelalias
+                    ORDER BY user, modelalias
+                ''')
+
+                for row in cursor:
+                    user, modelalias, cost = row
+                    user_key = user if user is not None else 'NULL'
+                    if user_key not in result['by_user']:
+                        result['by_user'][user_key] = {}
+                    alias_key = modelalias if modelalias is not None else 'NULL'
+                    result['by_user'][user_key][alias_key] = float(cost) if cost else 0.0
+
+                # Get cost by project and modelalias
+                cursor = conn.execute('''
+                    SELECT project, modelalias, SUM(cost) as total_cost
+                    FROM logs
+                    GROUP BY project, modelalias
+                    ORDER BY project, modelalias
+                ''')
+
+                for row in cursor:
+                    project, modelalias, cost = row
+                    project_key = project if project is not None else 'NULL'
+                    if project_key not in result['by_project']:
+                        result['by_project'][project_key] = {}
+                    alias_key = modelalias if modelalias is not None else 'NULL'
+                    result['by_project'][project_key][alias_key] = float(cost) if cost else 0.0
+
+                # Get cost by user/project combination and modelalias
+                cursor = conn.execute('''
+                    SELECT user, project, modelalias, SUM(cost) as total_cost
+                    FROM logs
+                    GROUP BY user, project, modelalias
+                    ORDER BY user, project, modelalias
+                ''')
+
+                for row in cursor:
+                    user, project, modelalias, cost = row
+                    user_key = user if user is not None else 'NULL'
+                    project_key = project if project is not None else 'NULL'
+                    key = f"{user_key} / {project_key}"
+                    if key not in result['by_user_project']:
+                        result['by_user_project'][key] = {}
+                    alias_key = modelalias if modelalias is not None else 'NULL'
+                    result['by_user_project'][key][alias_key] = float(cost) if cost else 0.0
+
+                return result
+
+            finally:
+                conn.close()
+        except Exception as e:
+            raise Exception(f"Failed to generate stats: {e}") from e
+
+def get_args():
+    parser = argparse.ArgumentParser(description='Show costs')
+    parser.add_argument('file', type=str, help='Cost database file')
+    args = parser.parse_args()
+    argsconfig = {}
+    argsconfig.update(vars(args))
+    return argsconfig
+
+
+def main():
+    config = get_args()
+    costs = Log2Sqlite(config['file'])
+    all_stats = costs.stats()
+    print("Cost by User:")
+
+    def fflt(value: float):
+        return f"{value:.8f}".rstrip('0').rstrip('.')
+
+    for user, aliases in all_stats['by_user'].items():
+        total = fflt(sum(aliases.values()))
+        print(f"  {user}: ${total}")
+        for alias, cost in aliases.items():
+            cost = fflt(cost)
+            print(f"    {alias}: ${cost}")
+
+    # Print project costs
+    print("\nCost by Project:")
+    for project, aliases in all_stats['by_project'].items():
+        total = fflt(sum(aliases.values()))
+        print(f"  {project}: ${total}")
+
+    # Print user/project combinations
+    print("\nCost by User/Project:")
+    for combo, aliases in all_stats['by_user_project'].items():
+        total = fflt(sum(aliases.values()))
+        print(f"  {combo}: ${total}")
+
 
 # Example usage
 if __name__ == '__main__':
-    # Create logger with defaults
-    logger = Log2Sqlite('api_usage.db', project='my_project', user='alice')
-
-    # Log some entries
-    logger.log({
-        'model': 'gpt-4',
-        'task': 'summarization',
-        'cost': 0.05,
-        'input_tokens': 1000,
-        'output_tokens': 200,
-        'datetime': '2024-02-06 10:30:00'
-    })
-
-    logger.log({
-        'model': 'gpt-3.5-turbo',
-        'task': 'chat',
-        'cost': 0.01,
-        'input_tokens': 500,
-        'output_tokens': 100,
-        'datetime': '2024-02-06 11:00:00'
-    })
-
-    # Get aggregations (only for project='my_project', user='alice')
-    print(f"Total cost: ${logger.get_cost():.4f}")
-    print(f"Total input tokens: {logger.get_input_tokens()}")
-    print(f"Total output tokens: {logger.get_output_tokens()}")
-    print(f"Get all: {logger.get()}")
+    main()
