@@ -7,6 +7,39 @@ import os
 from typing import Any, Optional
 from pathlib import Path
 import json
+import socket
+import getpass
+import datetime
+
+
+def get_username() -> str:
+    """
+    Get the current username in a portable way.
+
+    Returns:
+        Username as a string
+    """
+    try:
+        # getpass.getuser() works on Windows, Linux, and macOS
+        # It checks environment variables in order: LOGNAME, USER, LNAME, USERNAME
+        return getpass.getuser()
+    except Exception:
+        # Fallback to environment variables
+        return os.environ.get('USER') or os.environ.get('USERNAME') or 'unknown'
+
+
+def get_hostname() -> str:
+    """
+    Get the current hostname in a portable way.
+
+    Returns:
+        Hostname as a string
+    """
+    try:
+        # socket.gethostname() works on Windows, Linux, and macOS
+        return socket.gethostname()
+    except Exception:
+        return 'unknown'
 
 
 class Log2Sqlite:
@@ -39,6 +72,13 @@ class Log2Sqlite:
             Exception: If database initialization fails
         """
         self.db_path = Path(db_path)
+
+        if defaults.get("user") is None:
+            defaults["user"] = get_username()
+        if defaults.get("hostname") is None:
+            defaults["hostname"] = get_hostname()
+
+
         self.defaults = defaults
 
         # Validate that defaults only contain known fields
@@ -119,6 +159,10 @@ class Log2Sqlite:
         invalid_fields = set(row.keys()) - set(self.SCHEMA.keys())
         if invalid_fields:
             raise Exception(f"Invalid fields in row: {invalid_fields}")
+
+        # the datetime is always set fixed here!
+        row["datetime"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
 
         # Merge defaults with provided row (row takes precedence)
         merged_row = {**self.defaults, **row}
@@ -245,9 +289,89 @@ class Log2Sqlite:
                 raise Exception(f"Failed to import from {file}: {e}") from e
             raise
 
+    def rows(self, model=None, modelalias=None, hostname=None, user=None,
+             project=None, task=None, note=None, apikey_name=None,
+             date_from=None, date_to=None) -> list[dict]:
+        """
+        Get all rows matching specified criteria.
+
+        Args:
+            model: Filter by model name
+            modelalias: Filter by model alias
+            hostname: Filter by hostname
+            user: Filter by user
+            project: Filter by project
+            task: Filter by task
+            note: Filter by note
+            apikey_name: Filter by API key name
+            date_from: Filter by datetime >= this value (inclusive)
+            date_to: Filter by datetime <= this value (inclusive)
+
+        Returns:
+            List of dictionaries, each containing a matching row's data
+            (excluding the auto-increment id field)
+
+        Raises:
+            Exception: If query fails
+        """
+        conditions = []
+        values = []
+
+        # Add field filters
+        field_filters = {
+            'model': model,
+            'modelalias': modelalias,
+            'hostname': hostname,
+            'user': user,
+            'project': project,
+            'task': task,
+            'note': note,
+            'apikey_name': apikey_name
+        }
+
+        for field, value in field_filters.items():
+            if value is not None:
+                conditions.append(f'{field} = ?')
+                values.append(value)
+
+        # Add date range filters
+        if date_from is not None:
+            conditions.append('datetime >= ?')
+            values.append(date_from)
+
+        if date_to is not None:
+            conditions.append('datetime <= ?')
+            values.append(date_to)
+
+        # Build WHERE clause
+        where = ''
+        if conditions:
+            where = 'WHERE ' + ' AND '.join(conditions)
+
+        try:
+            conn = sqlite3.connect(self.db_path, timeout=5.0)
+            try:
+                conn.row_factory = sqlite3.Row  # Access columns by name
+                cursor = conn.execute(
+                    f'SELECT * FROM logs {where} ORDER BY datetime DESC, id DESC',
+                    values
+                )
+
+                # Convert rows to list of dicts, excluding id field
+                result = []
+                for row in cursor:
+                    row_dict = {key: row[key] for key in row.keys() if key != 'id'}
+                    result.append(row_dict)
+
+                return result
+            finally:
+                conn.close()
+        except Exception as e:
+            raise Exception(f"Failed to get rows: {e}") from e
+
     def get(self, model=None, modelalias=None, hostname=None, user=None,
             project=None, task=None, note=None, apikey_name=None,
-            date_from=None, date_to=None) -> tuple[float, int, int]:
+            date_from=None, date_to=None) -> tuple[float, int, int, int]:
         """
         Get aggregated cost and token sums for rows matching specified criteria.
 
@@ -264,7 +388,7 @@ class Log2Sqlite:
             date_to: Filter by datetime <= this value (inclusive)
 
         Returns:
-            Tuple of (total_cost, total_input_tokens, total_output_tokens)
+            Tuple of (total_cost, total_input_tokens, total_output_tokens, row_count)
 
         Raises:
             Exception: If query fails
@@ -310,12 +434,13 @@ class Log2Sqlite:
                     f'''SELECT 
                         COALESCE(SUM(cost), 0.0),
                         COALESCE(SUM(input_tokens), 0),
-                        COALESCE(SUM(output_tokens), 0)
+                        COALESCE(SUM(output_tokens), 0),
+                        COUNT(*)
                     FROM logs {where}''',
                     values
                 )
                 result = cursor.fetchone()
-                return (float(result[0]), int(result[1]), int(result[2]))
+                return (float(result[0]), int(result[1]), int(result[2]), int(result[3]))
             finally:
                 conn.close()
         except Exception as e:

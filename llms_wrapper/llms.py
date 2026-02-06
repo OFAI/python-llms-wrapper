@@ -687,7 +687,8 @@ class LLMS:
             tools: a list of tool dictionaries, each dictionary describing a tool. 
                 See https://docs.litellm.ai/docs/completion/function_call for the format. 
                 However, this can be created using the `make_tooling` function.
-            return_cost: whether or not LLM invocation costs should get returned
+            return_cost: whether or not LLM invocation costs should get returned. Gets automatically enabled if
+                cost logging is enabled.
             return_response: whether or not the complete reponse should get returned
             debug: if True, emits debug messages to aid development and debugging
             litellm_debug: if True, litellm debug logging is enabled, if False, disabled, if None, use debug setting
@@ -712,6 +713,8 @@ class LLMS:
             return args
         if self.debug:
             debug = True
+        if self.cost_logger:
+            return_cost = True
         if litellm_debug is None and debug or litellm_debug:
             #  litellm.set_verbose = True    ## deprecated!
             os.environ['LITELLM_LOG'] = 'DEBUG'
@@ -863,7 +866,10 @@ class LLMS:
                     ret["cost"] = callback_data.get("cost")
                     ret["n_prompt_tokens"] = callback_data.get("prompt_tokens")
                     ret["n_completion_tokens"] = callback_data.get("completion_tokens")
-                    self.cost_logger.log(dict(cost=ret["cost"], input_tokens=ret["input_tokens"], output_tokens=ret["output_tokens"]))
+                    self.cost_logger.log(
+                        dict(
+                            model=llm["llm"], modelalias=llm["alias"],
+                            cost=ret["cost"], input_tokens=ret["input_tokens"], output_tokens=ret["output_tokens"]))
                     return ret
                 except Exception as e:
                     tb = traceback.extract_tb(e.__traceback__)
@@ -937,7 +943,10 @@ class LLMS:
                 ret["n_completion_tokens"] = usage.completion_tokens
                 ret["n_prompt_tokens"] = usage.prompt_tokens
                 ret["n_total_tokens"] = usage.total_tokens
-                self.cost_logger.log(dict(cost=ret["cost"], input_tokens=ret["n_prompt_tokens"], output_tokens=ret["n_completion_tokens"]))
+                self.cost_logger.log(
+                    dict(
+                        model=llm["llm"], modelalias=llm["alias"],
+                        cost=ret["cost"], input_tokens=ret["n_prompt_tokens"], output_tokens=ret["n_completion_tokens"]))
                 # add the cost and tokens from the recursive call info, if available
                 if recursive_call_info.get("cost") is not None:
                     ret["cost"] += recursive_call_info["cost"]
