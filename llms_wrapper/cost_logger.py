@@ -71,6 +71,8 @@ class Log2Sqlite:
         Raises:
             Exception: If database initialization fails
         """
+        db_path = os.path.expanduser(db_path)
+        db_path = os.path.expandvars(db_path)
         self.db_path = Path(db_path)
 
         if defaults.get("user") is None:
