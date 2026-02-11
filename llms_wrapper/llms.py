@@ -1113,6 +1113,7 @@ class LLM:
             llmalias,
             messages=messages,
             tools=tools,
+            tool_map=tool_map,
             return_cost=return_cost,
             return_response=return_response,
             debug=debug,
