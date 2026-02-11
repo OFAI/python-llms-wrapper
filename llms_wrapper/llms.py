@@ -123,7 +123,7 @@ def toolnames2funcs(tools, tool_map: dict = None):
         else:
             func = get_func_by_name(name)
         if func is None:
-            raise Exception(f"Function {name} not found")
+            raise Exception(f"Function {name} not found, tool_map is: {tool_map}")
         fmap[name] = func
     return fmap
 
@@ -773,7 +773,9 @@ class LLMS:
                 # Not known/supported by litellm, apparently
                 # if "parallel_tool_choice" not in completion_kwargs:
                 #     completion_kwargs["parallel_tool_choice"] = True
+            print(f"DEBUG: creating map for tools, tool_map is {tool_map}")
             fmap = toolnames2funcs(tools, tool_map=tool_map)
+            print(f"DEBUG: create fmap: {fmap}")
         else:
             fmap = {}
         if via_streaming:
