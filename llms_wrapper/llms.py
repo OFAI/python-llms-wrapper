@@ -100,7 +100,7 @@ def any2message(message: str|List[Dict[str,str]]|Dict[str,str], vars: Optional[D
 
 
 
-def toolnames2funcs(tools):
+def toolnames2funcs(tools, tool_map: dict = None):
     """
     Convert a list of tool names to a dictionary of functions.
     
@@ -113,10 +113,15 @@ def toolnames2funcs(tools):
     Raises:
         Exception: If a function is not found.
     """
+    if tool_map is None:
+        tool_map = {}
     fmap = {}
     for tool in tools:
         name = tool["function"]["name"]
-        func = get_func_by_name(name)
+        if name in tool_map:
+            func = tool_map[name]
+        else:
+            func = get_func_by_name(name)
         if func is None:
             raise Exception(f"Function {name} not found")
         fmap[name] = func
@@ -668,6 +673,7 @@ class LLMS:
             llmalias: str,
             messages: List[Dict[str, str]],
             tools: Optional[List[Dict]] = None,
+            tool_map: Optional[Dict[str, Callable]] = None,
             return_cost: bool = False,
             return_response: bool = False,
             debug=False,
@@ -685,8 +691,11 @@ class LLMS:
             llmalias: the alias/name of the LLM to query
             messages: a list of message dictionaries with role and content keys
             tools: a list of tool dictionaries, each dictionary describing a tool. 
-                See https://docs.litellm.ai/docs/completion/function_call for the format. 
-                However, this can be created using the `make_tooling` function.
+                See https://docs.litellm.ai/docs/completion/function_call for the format. Each entry must contain
+                the key `python_function` in addition, where the value is the actual python callable to invoke.
+                This can be created using the `make_tooling` function.
+            tool_map: a dictionary, mapping the tool names in the "tools" list to actual python callables. If a tool
+                name is not found in this or this is empy/None, an attempt is made to find the function automatically.
             return_cost: whether or not LLM invocation costs should get returned. Gets automatically enabled if
                 cost logging is enabled.
             return_response: whether or not the complete reponse should get returned
@@ -763,8 +772,8 @@ class LLMS:
                     completion_kwargs["tool_choice"] = "auto"  
                 # Not known/supported by litellm, apparently
                 # if "parallel_tool_choice" not in completion_kwargs:
-                #     completion_kwargs["parallel_tool_choice"] = True 
-            fmap = toolnames2funcs(tools)
+                #     completion_kwargs["parallel_tool_choice"] = True
+            fmap = toolnames2funcs(tools, tool_map=tool_map)
         else:
             fmap = {}
         if via_streaming:
