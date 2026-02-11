@@ -335,7 +335,6 @@ class LLMS:
         if use_phoenix:
             if isinstance(use_phoenix, str):
                 use_phoenix = (use_phoenix, "default")
-                print("importing")
             from phoenix.otel import register
             from openinference.instrumentation.litellm import LiteLLMInstrumentor
             # register
@@ -773,9 +772,7 @@ class LLMS:
                 # Not known/supported by litellm, apparently
                 # if "parallel_tool_choice" not in completion_kwargs:
                 #     completion_kwargs["parallel_tool_choice"] = True
-            print(f"DEBUG: creating map for tools, tool_map is {tool_map}")
             fmap = toolnames2funcs(tools, tool_map=tool_map)
-            print(f"DEBUG: create fmap: {fmap}")
         else:
             fmap = {}
         if via_streaming:
@@ -1054,7 +1051,8 @@ class LLMS:
                     return self.query(
                         llmalias, 
                         messages, 
-                        tools=tools, 
+                        tools=tools,
+                        tool_map=tool_map,
                         return_cost=return_cost, 
                         return_response=return_response, 
                         debug=debug, 
