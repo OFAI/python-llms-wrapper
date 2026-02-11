@@ -16,7 +16,7 @@ import docstring_parser
 from dotenv import load_dotenv
 from loguru import logger
 import typing
-from typing import Optional, Dict, List, Union, Tuple, Callable, get_args, get_origin
+from typing import Optional, Dict, List, Union, Tuple, Callable, get_args, get_origin, Any
 from copy import deepcopy
 
 from litellm import completion, completion_cost, token_counter, cost_per_token
@@ -1079,13 +1079,13 @@ class LLM:
         self.config = config
         self.llmsobject = llmsobject
 
-    def __getitem__(self, item: str) -> any:
+    def __getitem__(self, item: str) -> Any:
         return self.config[item]
 
-    def __setitem__(self, key: str, value: any):
+    def __setitem__(self, key: str, value: Any):
         self.config[key] = value
 
-    def get(self, item: str, default=None) -> any:
+    def get(self, item: str, default=None) -> Any:
         return self.config.get(item, default)
 
     def items(self):
@@ -1095,10 +1095,18 @@ class LLM:
             self,
             messages: List[Dict[str, str]],
             tools: Optional[List[Dict]] = None,
+            tool_map: Optional[Dict[str, Callable]] = None,
             return_cost: bool = False,
             return_response: bool = False,
             debug=False,
+            litellm_debug=None,
+            stream=False,
+            via_streaming=False,
+            max_recursive_calls=99,
+            recursive_call_info: Optional[Dict[str, any]] = None,
             **kwargs,
+
+
     ) -> Dict[str, any]:
         llmalias = self.config["alias"]
         return self.llmsobject.query(
@@ -1107,7 +1115,13 @@ class LLM:
             tools=tools,
             return_cost=return_cost,
             return_response=return_response,
-            debug=debug, **kwargs)
+            debug=debug,
+            litellm_debug=litellm_debug,
+            stream=stream,
+            via_streaming=via_streaming,
+            max_recursive_calls=max_recursive_calls,
+            recursive_call_info=recursive_call_info,
+            **kwargs)
 
     def __str__(self):
         return f"LLM({self.config['alias']})"
