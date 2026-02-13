@@ -749,6 +749,7 @@ class LLMS:
             KNOWN_LLM_CONFIG_FIELDS,
             ignore_underscored=True,
         )
+        ret = {}
         logger.debug(f"Options: via_streaming: {via_streaming}, stream: {stream}")
         logger.debug(f"Initial completion kwargs: {cleaned_args(completion_kwargs)}")
         if recursive_call_info is None:
@@ -760,6 +761,19 @@ class LLMS:
         if llm.get("api_url"):
             completion_kwargs["api_base"] = llm["api_url"]
         if tools is not None:
+            # check if this LLM allows function calling, if not, it wont help with tools
+            if not litellm.supports_function_calling(model=llm["llm"]):
+                ret["error"] = f"Model {llmalias} does not support function_calling, cannot use with tools"
+                ret["answer"] = ""
+                ret["ok"] = False
+                return ret
+            #
+            if not "tools" in litellm.get_supported_openai_params(model=llm["llm"]):
+                ret["error"] = f"Model {llmalias} does not support 'tools' parameter, cannot use with tools"
+                ret["answer"] = ""
+                ret["ok"] = False
+                return ret
+
             # add tooling-related arguments to completion_kwargs
             completion_kwargs["tools"] = tools
             if not self.supports_function_calling(llmalias):
@@ -787,7 +801,6 @@ class LLMS:
             completion_kwargs["stream"] = True
             completion_kwargs["stream_options"] = {"include_usage": True}
             logger.debug(f"completion kwargs after detecting stream: {cleaned_args(completion_kwargs)}")
-        ret = {}
         # before adding the kwargs, save the recursive_call_info and remove it from kwargs
         if debug:
             logger.debug(f"Received recursive call info: {recursive_call_info}")
