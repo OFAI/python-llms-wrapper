@@ -8,6 +8,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="pydantic._intern
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 import litellm
 import json
+import re
 import time
 import threading
 import traceback
@@ -52,7 +53,11 @@ KNOWN_LLM_CONFIG_FIELDS = [
     "min_delay",   # minimum delay between queries for that model
 ]
 
-def any2message(message: str|List[Dict[str,str]]|Dict[str,str], vars: Optional[Dict] = None) -> List[Dict[str,str]]:
+def any2message(
+        message: str|List[Dict[str,str]]|Dict[str,str], 
+        vars: Optional[Dict] = None,
+        check4unreplaced: bool = False,
+    ) -> List[Dict[str,str]]:
     """
     Convert the different representations of prompt messages we use to the standard representation
     used by OpenAI and others.
@@ -69,6 +74,8 @@ def any2message(message: str|List[Dict[str,str]]|Dict[str,str], vars: Optional[D
     Args:
         message: A string, list of dictionaries or a dictionary representing the message(s).
         vars: A dictionary of variables to replace in the content of the messages.
+        check4unreplaced: if True, and vars is not None, will check if there are any non-replaced template variables 
+            still in the prompt and throws and Exception if yes
 
     Returns:
         A list of message dictionaries with the keys "role" and "content".
@@ -91,11 +98,16 @@ def any2message(message: str|List[Dict[str,str]]|Dict[str,str], vars: Optional[D
             raise ValueError(f"Error: message is a dict but not a dict of strings: {message}")
     else:
         raise ValueError(f"Error: message is not a string or list or dict: {message}")
-    if vars:
+    if vars:        
+        unresolved = []
         for d in ret:
             if d["content"]:
                 for k, v in vars.items():
                     d["content"] = d["content"].replace(f"${{{k}}}", str(v))
+                if check4unreplaced:
+                    unresolved.extend(re.findall(r'\$\{\w+\}', d["content"]))
+        if check4unreplaced and unresolved:
+            raise Exception(f"Prompt contains unresolved template vars: {unresolved}")            
     return ret
 
 
