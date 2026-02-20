@@ -53,6 +53,15 @@ KNOWN_LLM_CONFIG_FIELDS = [
     "min_delay",   # minimum delay between queries for that model
 ]
 
+
+def cleaned_args(args: dict):
+    """If there is an API key in the dict, censor it"""
+    args = args.copy()
+    if "api_key" in args:
+        args["api_key"] = "***"
+    return args
+
+
 def any2message(
         message: str|List[Dict[str,str]]|Dict[str,str], 
         vars: Optional[Dict] = None,
@@ -725,12 +734,6 @@ class LLMS:
                 otherwise answer contains the response and error is the empty string.
                 The boolean key "ok" is True if there is no error, False otherwise.
         """
-        def cleaned_args(args: dict):
-            """If there is an API key in the dict, censor it"""
-            args = args.copy()
-            if "api_key" in args:
-                args["api_key"] = "***"
-            return args
         if self.debug:
             debug = True
         if self.cost_logger:
@@ -1093,6 +1096,84 @@ class LLMS:
                 logger.error(f"Returning error: {e}")
             ret["answer"] = ""
             ret["ok"] = False
+        return ret
+
+    def embeddings(
+            self,
+            llmalias: str,
+            texts: List[str],
+            return_cost: bool = True,
+            return_response: bool = False,
+            debug=False,
+            litellm_debug=None,
+            **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Get the embeddings for the batch of texts.
+
+        Args:
+            llmalias: LLM alias
+            texts:  a list of texts
+            return_cost: if true, the cost will get returned
+            return_response: if true, the original response will be returned
+            debug: enable debugging
+            litellm_debug: enable even more debugging from the LiteLLM library
+            **kwargs: additional parameters
+
+        Returns:
+            The return object is a dict with the following keys:
+            - answer: the list of embeddings
+            - response: the original response
+            - cost: the cost
+            - n_prompt_tokens
+            - ok: flag to indicate is processing was successful
+            - error: error message if not successful
+        """
+        llm = self.llms[llmalias].config
+        completion_kwargs = dict_except(
+            llm,
+            KNOWN_LLM_CONFIG_FIELDS,
+            ignore_underscored=True,
+        )
+        ret = {}
+        logger.debug(f"Initial completion kwargs: {cleaned_args(completion_kwargs)}")
+        if llm.get("api_key"):
+            completion_kwargs["api_key"] = llm["api_key"]
+        elif llm.get("api_key_env"):
+            completion_kwargs["api_key"] = os.getenv(llm["api_key_env"])
+        if llm.get("api_url"):
+            completion_kwargs["api_base"] = llm["api_url"]
+        if kwargs:
+            completion_kwargs.update(dict_except(kwargs,  KNOWN_LLM_CONFIG_FIELDS, ignore_underscored=True))
+        if debug:
+            logger.debug(f"calling query with completion kwargs: {cleaned_args(completion_kwargs)}")
+        try:
+            response = litellm.embedding(
+                model=llm["llm"],
+                input=texts,
+                **completion_kwargs
+            )
+        except Exception as e:
+            logger.debug(f"Exception in query with completion kwargs: {e}", exc_info=True)
+            ret["error"] = str(e)
+            ret["answer"] = []
+            ret["ok"] = False
+            ret["response"] = None
+            ret["n_prompt_tokens"] = 0
+            return ret
+        # response should be a dict with data[].embedding and usage.prompt_tokens
+        if return_cost:
+            ret["cost"] = response._hidden_params["response_cost"]
+        # extract the list of embeddings
+        embs = [d["embedding"] for d in response["data"]]
+        ret["answer"] = embs
+        if return_response:
+            ret["response"] = response
+        else:
+            ret["response"] = None
+        ret["ok"] = True
+        ret["error"] = ""
+        ret["n_prompt_tokens"] = response["usage"]["prompt_tokens"]
         return ret
 
 
