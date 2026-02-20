@@ -1211,8 +1211,6 @@ class LLM:
             max_recursive_calls=99,
             recursive_call_info: Optional[Dict[str, any]] = None,
             **kwargs,
-
-
     ) -> Dict[str, any]:
         llmalias = self.config["alias"]
         return self.llmsobject.query(
@@ -1229,6 +1227,27 @@ class LLM:
             max_recursive_calls=max_recursive_calls,
             recursive_call_info=recursive_call_info,
             **kwargs)
+
+    def embeddings(
+            self,
+            llmalias: str,
+            texts: List[str],
+            return_cost: bool = True,
+            return_response: bool = False,
+            debug=False,
+            litellm_debug=None,
+            **kwargs,
+    ) -> Dict[str, Any]:
+        llmalias = self.config["alias"]
+        return self.llmsobject.embeddings(
+            llmalias,
+            texts=texts,
+            return_cost=return_cost,
+            return_response=return_response,
+            debug=debug,
+            litellm_debug=litellm_debug,
+            **kwargs,
+        )
 
     def __str__(self):
         return f"LLM({self.config['alias']})"
