@@ -1230,7 +1230,6 @@ class LLM:
 
     def embeddings(
             self,
-            llmalias: str,
             texts: List[str],
             return_cost: bool = True,
             return_response: bool = False,
