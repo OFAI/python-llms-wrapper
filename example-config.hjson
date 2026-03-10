@@ -1,4 +1,10 @@
 {
+  cost_db_path: "~/llms_costs.db"
+  cost_db_defaults:
+  {
+    project: "python-llms-wrapper"
+    task: "Package development and testing"
+  }
   llms:
   [
     {
