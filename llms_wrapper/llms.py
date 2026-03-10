@@ -902,10 +902,11 @@ class LLMS:
                     ret["cost"] = callback_data.get("cost")
                     ret["n_prompt_tokens"] = callback_data.get("prompt_tokens")
                     ret["n_completion_tokens"] = callback_data.get("completion_tokens")
-                    self.cost_logger.log(
-                        dict(
-                            model=llm["llm"], modelalias=llm["alias"],
-                            cost=ret["cost"], input_tokens=ret["input_tokens"], output_tokens=ret["output_tokens"]))
+                    if self.cost_logger:
+                        self.cost_logger.log(
+                            dict(
+                                model=llm["llm"], modelalias=llm["alias"],
+                                cost=ret["cost"], input_tokens=ret["input_tokens"], output_tokens=ret["output_tokens"]))
                     return ret
                 except Exception as e:
                     tb = traceback.extract_tb(e.__traceback__)
@@ -979,10 +980,11 @@ class LLMS:
                 ret["n_completion_tokens"] = usage.completion_tokens
                 ret["n_prompt_tokens"] = usage.prompt_tokens
                 ret["n_total_tokens"] = usage.total_tokens
-                self.cost_logger.log(
-                    dict(
-                        model=llm["llm"], modelalias=llm["alias"],
-                        cost=ret["cost"], input_tokens=ret["n_prompt_tokens"], output_tokens=ret["n_completion_tokens"]))
+                if self.cost_logger:
+                    self.cost_logger.log(
+                        dict(
+                            model=llm["llm"], modelalias=llm["alias"],
+                            cost=ret["cost"], input_tokens=ret["n_prompt_tokens"], output_tokens=ret["n_completion_tokens"]))
                 # add the cost and tokens from the recursive call info, if available
                 if recursive_call_info.get("cost") is not None:
                     ret["cost"] += recursive_call_info["cost"]
