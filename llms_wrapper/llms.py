@@ -957,7 +957,7 @@ class LLMS:
                         self.cost_logger.log(
                             dict(
                                 model=llm["llm"], modelalias=llm["alias"],
-                                cost=ret["cost"], input_tokens=ret["input_tokens"], output_tokens=ret["output_tokens"]))
+                                cost=ret["cost"], input_tokens=ret["n_prompt_tokens"], output_tokens=ret["n_completion_tokens"]))
                     return ret
                 except Exception as e:
                     tb = traceback.extract_tb(e.__traceback__)
