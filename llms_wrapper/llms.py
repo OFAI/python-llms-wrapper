@@ -603,6 +603,55 @@ class LLMS:
         return messages
 
     @staticmethod
+    def get_reasoning(response_or_ret, return_if_missing=None) -> str|None:
+        """
+        Extract the reasoning text if the model provided it, otherwise return None or "" (depending on the
+        return_if_missing parameter).
+        This takes either the return value which must contain the response or the response directly.
+        """
+        if "response" in response_or_ret and "error" in response_or_ret and "ok" in response_or_ret:
+            response = response_or_ret["response"]
+        else:
+            response = response_or_ret
+        if not hasattr(response, "choices"):
+            return return_if_missing
+        choices = response.choices
+        choice0 = choices[0]
+        message = choice0.message
+        if hasattr(message, "reasoning_content"):
+            return message.reasoning_content
+        else:
+            return return_if_missing
+
+
+
+    @staticmethod
+    def get_thinkingblocks(response_or_ret, return_if_missing=None) -> list[str]|None:
+        """
+        Extract the thining blocks if the model provided it, otherwise return None or "" (depending on the
+        return_if_missing parameter).
+        This takes either the return value which must contain the response or the response directly.
+        """
+        if "response" in response_or_ret and "error" in response_or_ret and "ok" in response_or_ret:
+            response = response_or_ret["response"]
+        else:
+            response = response_or_ret
+        if not hasattr(response, "choices"):
+            return return_if_missing
+        choices = response.choices
+        choice0 = choices[0]
+        message = choice0.message
+        if hasattr(message, "thinking_blocks"):
+            blocks = []
+            for i, d in enumerate(message.thinking_blocks):
+                t = d["thinking"]
+                blocks.append(t)
+            return blocks
+        else:
+            return return_if_missing
+
+
+    @staticmethod
     def make_tooling(functions: Union[Callable, List[Callable]]) -> List[Dict]:
         """
         Automatically create the tooling descriptions for a function or list of functions, based on the
@@ -821,6 +870,9 @@ class LLMS:
             logger.debug(f"Received recursive call info: {recursive_call_info}")
         if kwargs:
             completion_kwargs.update(dict_except(kwargs,  KNOWN_LLM_CONFIG_FIELDS, ignore_underscored=True))
+        # we default to drop_params=False by default, but do not set this if the parameter is already set
+        if "drop_params" not in completion_kwargs:
+            completion_kwargs["drop_params"] = False
         if debug:
             logger.debug(f"calling query with completion kwargs: {cleaned_args(completion_kwargs)}")
         # if we have min_delay set, we look at the _last_request_time for the LLM and caclulate the time
@@ -858,7 +910,6 @@ class LLMS:
             response = litellm.completion(
                 model=llm["llm"],
                 messages=messages,
-                drop_params=False,     # we do not drop, so typos in the query call can be detected easier!
                 **completion_kwargs)
             logger.debug(f"Received response from litellm")
             if via_streaming:
