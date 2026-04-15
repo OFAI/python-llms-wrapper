@@ -4,6 +4,7 @@ Simple cost logger to get used optionally by LLMS/LLM
 
 import sqlite3
 import os
+import calendar
 from typing import Any, Optional
 from pathlib import Path
 import json
@@ -527,13 +528,18 @@ class Log2Sqlite:
         except Exception as e:
             raise Exception(f"Failed to get output_tokens sum: {e}") from e
 
-    def stats(self) -> dict:
+    def stats(self, date_from=None, date_to=None) -> dict:
         """
-        Generate summary statistics over the entire table.
+        Generate summary statistics, optionally filtered to a date range.
         Includes rows with NULL values using 'NULL' as the key.
 
+        Args:
+            date_from: Optional lower bound for datetime (inclusive, 'YYYY-MM-DD HH:MM:SS')
+            date_to:   Optional upper bound for datetime (inclusive, 'YYYY-MM-DD HH:MM:SS')
+
         Returns:
-            Dictionary with three top-level keys:
+            Dictionary with four top-level keys:
+            - 'by_all': {modelalias: cost, ...}
             - 'by_user': {user: {modelalias: cost, ...}, ...}
             - 'by_project': {project: {modelalias: cost, ...}, ...}
             - 'by_user_project': {"user / project": {modelalias: cost, ...}, ...}
@@ -543,57 +549,65 @@ class Log2Sqlite:
         Raises:
             Exception: If query fails
         """
+        conditions = []
+        values = []
+        if date_from is not None:
+            conditions.append('datetime >= ?')
+            values.append(date_from)
+        if date_to is not None:
+            conditions.append('datetime <= ?')
+            values.append(date_to)
+        where = ('WHERE ' + ' AND '.join(conditions)) if conditions else ''
+
         try:
             conn = sqlite3.connect(self.db_path, timeout=5.0)
             try:
                 result = {
+                    'by_all': {},
                     'by_user': {},
                     'by_project': {},
                     'by_user_project': {}
                 }
 
-                # Get cost by user and modelalias
-                cursor = conn.execute('''
-                    SELECT user, modelalias, SUM(cost) as total_cost
-                    FROM logs
-                    GROUP BY user, modelalias
-                    ORDER BY user, modelalias
-                ''')
+                # Grand total by modelalias
+                cursor = conn.execute(
+                    f'SELECT modelalias, SUM(cost) FROM logs {where} GROUP BY modelalias ORDER BY modelalias',
+                    values
+                )
+                for modelalias, cost in cursor:
+                    alias_key = modelalias if modelalias is not None else 'NULL'
+                    result['by_all'][alias_key] = float(cost) if cost else 0.0
 
-                for row in cursor:
-                    user, modelalias, cost = row
+                # Cost by user and modelalias
+                cursor = conn.execute(
+                    f'SELECT user, modelalias, SUM(cost) FROM logs {where} GROUP BY user, modelalias ORDER BY user, modelalias',
+                    values
+                )
+                for user, modelalias, cost in cursor:
                     user_key = user if user is not None else 'NULL'
                     if user_key not in result['by_user']:
                         result['by_user'][user_key] = {}
                     alias_key = modelalias if modelalias is not None else 'NULL'
                     result['by_user'][user_key][alias_key] = float(cost) if cost else 0.0
 
-                # Get cost by project and modelalias
-                cursor = conn.execute('''
-                    SELECT project, modelalias, SUM(cost) as total_cost
-                    FROM logs
-                    GROUP BY project, modelalias
-                    ORDER BY project, modelalias
-                ''')
-
-                for row in cursor:
-                    project, modelalias, cost = row
+                # Cost by project and modelalias
+                cursor = conn.execute(
+                    f'SELECT project, modelalias, SUM(cost) FROM logs {where} GROUP BY project, modelalias ORDER BY project, modelalias',
+                    values
+                )
+                for project, modelalias, cost in cursor:
                     project_key = project if project is not None else 'NULL'
                     if project_key not in result['by_project']:
                         result['by_project'][project_key] = {}
                     alias_key = modelalias if modelalias is not None else 'NULL'
                     result['by_project'][project_key][alias_key] = float(cost) if cost else 0.0
 
-                # Get cost by user/project combination and modelalias
-                cursor = conn.execute('''
-                    SELECT user, project, modelalias, SUM(cost) as total_cost
-                    FROM logs
-                    GROUP BY user, project, modelalias
-                    ORDER BY user, project, modelalias
-                ''')
-
-                for row in cursor:
-                    user, project, modelalias, cost = row
+                # Cost by user/project combination and modelalias
+                cursor = conn.execute(
+                    f'SELECT user, project, modelalias, SUM(cost) FROM logs {where} GROUP BY user, project, modelalias ORDER BY user, project, modelalias',
+                    values
+                )
+                for user, project, modelalias, cost in cursor:
                     user_key = user if user is not None else 'NULL'
                     project_key = project if project is not None else 'NULL'
                     key = f"{user_key} / {project_key}"
@@ -609,42 +623,120 @@ class Log2Sqlite:
         except Exception as e:
             raise Exception(f"Failed to generate stats: {e}") from e
 
+    def get_months(self) -> list[str]:
+        """
+        Return sorted list of distinct 'YYYY-MM' strings present in the logs table.
+
+        Raises:
+            Exception: If query fails
+        """
+        try:
+            conn = sqlite3.connect(self.db_path, timeout=5.0)
+            try:
+                cursor = conn.execute(
+                    "SELECT DISTINCT strftime('%Y-%m', datetime) FROM logs ORDER BY 1"
+                )
+                return [row[0] for row in cursor if row[0] is not None]
+            finally:
+                conn.close()
+        except Exception as e:
+            raise Exception(f"Failed to get months: {e}") from e
+
+def fflt(value: float) -> str:
+    return f"{value:.8f}".rstrip('0').rstrip('.')
+
+
+def print_stats(all_stats: dict, by: str, byllm: bool):
+    """Print cost statistics according to the selected grouping and LLM flag."""
+
+    def section_total(groups: dict) -> str:
+        return fflt(sum(sum(aliases.values()) for aliases in groups.values()))
+
+    if by == 'all':
+        aliases = all_stats['by_all']
+        grand = fflt(sum(aliases.values()))
+        if byllm:
+            print(f"Total Cost: ${grand}")
+            for alias, cost in aliases.items():
+                print(f"  {alias}: ${fflt(cost)}")
+        else:
+            print(f"Total Cost: ${grand}")
+
+    elif by == 'user':
+        print("Cost by User:")
+        groups = all_stats['by_user']
+        for user, aliases in groups.items():
+            print(f"  {user}: ${fflt(sum(aliases.values()))}")
+            if byllm:
+                for alias, cost in aliases.items():
+                    print(f"    {alias}: ${fflt(cost)}")
+        if len(groups) > 1:
+            print(f"  Total: ${section_total(groups)}")
+
+    elif by == 'project':
+        print("Cost by Project:")
+        groups = all_stats['by_project']
+        for project, aliases in groups.items():
+            print(f"  {project}: ${fflt(sum(aliases.values()))}")
+            if byllm:
+                for alias, cost in aliases.items():
+                    print(f"    {alias}: ${fflt(cost)}")
+        if len(groups) > 1:
+            print(f"  Total: ${section_total(groups)}")
+
+    elif by == 'user+project':
+        print("Cost by User/Project:")
+        groups = all_stats['by_user_project']
+        for combo, aliases in groups.items():
+            print(f"  {combo}: ${fflt(sum(aliases.values()))}")
+            if byllm:
+                for alias, cost in aliases.items():
+                    print(f"    {alias}: ${fflt(cost)}")
+        if len(groups) > 1:
+            print(f"  Total: ${section_total(groups)}")
+
+
 def get_args():
     parser = argparse.ArgumentParser(description='Show costs')
     parser.add_argument('file', type=str, help='Cost database file')
+    parser.add_argument('--sum', action='store_true',
+                        help='Output only the total cost as a float (ignores all other options)')
+    parser.add_argument('--by', choices=['user', 'project', 'user+project', 'all'], default='all',
+                        help='Grouping: user, project, user+project, or all (default: all)')
+    parser.add_argument('--byllm', action='store_true',
+                        help='Add per-LLM breakdown within the selected grouping')
+    parser.add_argument('--bymonth', action='store_true',
+                        help='Group output by year-month')
     args = parser.parse_args()
-    argsconfig = {}
-    argsconfig.update(vars(args))
-    return argsconfig
+    return vars(args)
 
 
 def main():
     config = get_args()
     costs = Log2Sqlite(config['file'])
-    all_stats = costs.stats()
-    print("Cost by User:")
 
-    def fflt(value: float):
-        return f"{value:.8f}".rstrip('0').rstrip('.')
+    if config['sum']:
+        total_cost, _, _, _ = costs.get()
+        print(total_cost)
+        return
 
-    for user, aliases in all_stats['by_user'].items():
-        total = fflt(sum(aliases.values()))
-        print(f"  {user}: ${total}")
-        for alias, cost in aliases.items():
-            cost = fflt(cost)
-            print(f"    {alias}: ${cost}")
+    by = config['by']
+    byllm = config['byllm']
 
-    # Print project costs
-    print("\nCost by Project:")
-    for project, aliases in all_stats['by_project'].items():
-        total = fflt(sum(aliases.values()))
-        print(f"  {project}: ${total}")
-
-    # Print user/project combinations
-    print("\nCost by User/Project:")
-    for combo, aliases in all_stats['by_user_project'].items():
-        total = fflt(sum(aliases.values()))
-        print(f"  {combo}: ${total}")
+    if config['bymonth']:
+        months = costs.get_months()
+        for month in months:
+            year, mon = map(int, month.split('-'))
+            last_day = calendar.monthrange(year, mon)[1]
+            date_from = f"{month}-01 00:00:00"
+            date_to = f"{month}-{last_day:02d} 23:59:59"
+            all_stats = costs.stats(date_from=date_from, date_to=date_to)
+            print(f"=== {month} ===")
+            print_stats(all_stats, by, byllm)
+            print()
+    else:
+        all_stats = costs.stats()
+        print_stats(all_stats, by, byllm)
 
 
 # Example usage
