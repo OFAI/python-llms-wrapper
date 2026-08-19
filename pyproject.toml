@@ -20,7 +20,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
 ]
 dependencies = [
-    "litellm",
+    "litellm==v1.96.2",
     "tenacity",
     "hjson",
     "loguru",
